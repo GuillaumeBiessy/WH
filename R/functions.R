@@ -1,4 +1,18 @@
-cumindex <- function(n) {
+# Misc----
+
+build_D_mat <- function(p, q) {diff(diag(p), differences = q)}
+
+compute_XZ_mat <- function(XZ) {map(XZ, \(X) {X[[2]] %x% X[[1]]}) |> reduce(cbind)}
+
+compute_Xtheta <- function(X_mat, theta) {c(X_mat %*% (c(theta, recursive = TRUE)))}
+
+compute_tXWz <- function(X_mat, z, wt) {c(t(X_mat) %*% c(wt * z))}
+
+compute_tXWZ <- function(X_mat, Z_mat, wt) {t(X_mat) %*% (c(wt) * Z_mat)}
+
+compute_diag_XPsitZ <- function(X_mat, Z_mat, PsiXZ) {rowSums((X_mat %*% PsiXZ) * Z_mat)}
+
+cum_index <- function(n) {
 
   c(0, cumsum(n)[- length(n)]) |>
     map2(n, \(x,y) x + seq_len(y))
@@ -12,8 +26,8 @@ blockdiag <- function(L) {
   n1 <- map(L, nrow)
   n2 <- map(L, ncol)
 
-  i1 <- cumindex(n1)
-  i2 <- cumindex(n2)
+  i1 <- cum_index(n1)
+  i2 <- cum_index(n2)
 
   M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
   for(i in seq_along(L)) M[i1[[i]], i2[[i]]] <- L[[i]]
@@ -21,11 +35,38 @@ blockdiag <- function(L) {
   return(M)
 }
 
-SVD_aux <- function(D_q, q) {
+compute_res_deviance <- function(D, D_hat) {
 
-  P  <- crossprod(D_q)
+  D_diff <- D - D_hat
+  log_D_diff <- ifelse(D == 0, 0, D * (log(D) - log(D_hat)))
+
+  sign(D_diff) * sqrt(2 * (log_D_diff - D_diff))
+}
+
+compute_deviance <- function(D, D_hat) {
+
+  res_deviance <- compute_res_deviance(D, D_hat)
+  sum(res_deviance * res_deviance)
+}
+
+compute_inner_cond <- function(old_lambda, lambda) {
+
+  max(abs(log(old_lambda) - log(lambda)))
+}
+
+compute_outer_cond <- function(D, old_D_hat, D_hat) {
+
+  abs(compute_deviance(old_D_hat, D) / compute_deviance(D_hat, D) - 1)
+}
+
+#  Fit----
+
+eigen_dec <- function(n, q) {
+
+  D_mat <- build_D_mat(n, q)
+  P  <- crossprod(D_mat)
   p  <- nrow(P)
-  ei <- eigen(P)
+  ei <- eigen(P, TRUE)
   U  <- ei$vectors[, order(ei$values)]
 
   X <- U[, seq_len(q), drop = FALSE]
@@ -35,182 +76,28 @@ SVD_aux <- function(D_q, q) {
   list(X = X, Z = Z, Sigma = Sigma)
 }
 
-# GLAM computation----
-
-vmix <- function(...) {c(t(do.call(list(...), what = cbind)))}
-
-G2 = function(X1, X2) {
-
-  (X1 %x% matrix(1, 1, ncol(X2))) * (matrix(1, 1, ncol(X1)) %x% X2)
-}
-
-Rotate = function(A) {
-
-  d <- seq_along(dim(A))
-  aperm(A, c(d[-1], d[1]))
-}
-
-tidyXM = function(XM, d) {
-
-  array(XM, c(nrow(XM), d[-1]))
-}
-
-Htransform = function(X, A) {
-
-  d = dim(A)
-  M = matrix(A, nrow = d[1])
-  if (nrow(X) == 1) {
-    if (all(X == 1)) return(tidyXM(t(colSums(M)), d))
-    else return(tidyXM(t(colSums(c(X) * M)), d))
-  }
-  if (nrow(X) == ncol(X)) {
-    X_min_diag <- X
-    diag(X_min_diag) <- 0
-    if (all(X_min_diag == 0)) {
-      Xdiag <- diag(X)
-      if (all(Xdiag == 1)) return(tidyXM(M, d))
-      else return(tidyXM(Xdiag * M, d))
-    }
-  }
-  return(tidyXM(X %*% M, d))
-}
-
-RH = function(X, A) {
-
-  Rotate(Htransform(X, A))
-}
-
-rec_RH = function(X, Theta) {
-
-  if (length(X) == 0) Theta else rec_RH(X[- 1], RH(X[[1]], Theta))
-}
-
-compute_G2XZ = function(X, Z) {
-
-  map(seq_along(X), function(i) {
-    map(seq_along(Z), function(j) {
-      map2(X[[i]], Z[[j]], G2)
-    })
-  }) |>
-    flatten() |>
-    matrix(nrow = length(X), byrow = TRUE)
-}
-
-compute_Xtheta_GLAM = function(X, Theta) {
-
-  c(map2(X, Theta, rec_RH) |> reduce(`+`))
-}
-
-compute_tXWz_GLAM = function(X, z, mu) {
-
-  X %>%
-    map_depth(2, t) %>%
-    map(rec_RH, z * mu) %>%
-    reduce(c) %>%
-    c()
-}
-
-compute_tXWZ_GLAM = function(X, Z, mu, tG2XZ) {
-
-  compute_tXWZ_GLAM_cell = function(Xi, Zj, mu, tG2_Xi_Zj) {
-
-    ll <- length(tG2_Xi_Zj)
-
-    pi <- map_dbl(Xi, ncol)
-    pj <- map_dbl(Zj, ncol)
-
-    candidate <- rec_RH(tG2_Xi_Zj, mu)
-    dim(candidate) <- vmix(pj, pi)
-    v <- c(seq(2, 2 * ll, 2), seq(1, 2 * ll - 1, 2))
-    candidate <- candidate %>% aperm(v)
-    dim(candidate) <- c(prod(pi), prod(pj))
-
-    return(candidate)
-  }
-
-  out <- map(seq_along(X), function(i) {
-    map(seq_along(Z), function(j) {
-      compute_tXWZ_GLAM_cell(X[[i]], Z[[j]], mu, tG2XZ[[i, j]])
-    }) %>% reduce(cbind)
-  }) %>% reduce(rbind)
-
-  return(out)
-}
-
-compute_diagXPsitZ_GLAM = function(X, Z, PsiXZ, G2XZ) {
-
-  compute_diagXPsitZ_GLAM_cell = function(Xi, Zj, Psi_Xi_Zj, G2_Xi_Zj) {
-
-    ll <- length(G2_Xi_Zj)
-
-    pi <- map_dbl(Xi, ncol)
-    pj <- map_dbl(Zj, ncol)
-
-    dim(Psi_Xi_Zj) <- c(pi, pj)
-    Psi_Xi_Zj <- aperm(Psi_Xi_Zj, vmix(ll + 1:ll, 1:ll))
-    dim(Psi_Xi_Zj) <- pi * pj
-
-    out <- rec_RH(G2_Xi_Zj, Psi_Xi_Zj)
-
-    return(out)
-  }
-
-  cumdX <- X %>% map(map_dbl, ncol) %>% map_dbl(prod) %>% cumindex
-  cumdZ <- Z %>% map(map_dbl, ncol) %>% map_dbl(prod) %>% cumindex
-
-  out <- map(seq_along(X), function(i) {
-    map(seq_along(Z), function(j) {
-      compute_diagXPsitZ_GLAM_cell(X[[i]], Z[[j]], PsiXZ[cumdX[[i]], cumdZ[[j]]], G2XZ[[i, j]])
-    })
-  }) %>% flatten() %>% reduce(`+`) %>% c()
-
-  return(out)
-}
-
-# Variance components----
-
-build_var_comp_2d <- function(X, Z, Sigma, include_coef) {
+build_var_comp_2d <- function(X, Z, Sigma) {
 
   q <- map(X, ncol)
   p <- map(Z, ncol)
 
-  # Marginal effects
-  d1u <- Sigma[[1]]
-  d2u <- Sigma[[2]]
-
   # Double interactions
-  d12d <- diag(q[[2]]) %x% Sigma[[1]]
-  d21d <- Sigma[[2]] %x% diag(q[[1]])
+  d12s <- diag(q[[2]]) %x% Sigma[[1]]
+  d21s <- Sigma[[2]] %x% diag(q[[1]])
 
-  d12dd <- diag(p[[2]]) %x% Sigma[[1]]
-  d21dd <- Sigma[[2]] %x% diag(p[[1]])
+  d12d <- diag(p[[2]]) %x% Sigma[[1]]
+  d21d <- Sigma[[2]] %x% diag(p[[1]])
 
-  G_blocks <-
-    list(d1u, d2u, d12d, d21d, d12dd) |>
-    map(~0 * .x) |>
-    list() |>
-    rep(2)
+  G_blocks <- list(d12s, d21s, d12d) |> map(~0 * .x) |> list() |> rep(2)
+  G_blocks[[1]][c(1,3)] <- list(d12s, d12d)
+  G_blocks[[2]][c(2,3)] <- list(d21s, d21d)
 
-  G_blocks[[1]][1]      <- list(d1u)
-  G_blocks[[2]][2]      <- list(d2u)
-  G_blocks[[1]][c(3,5)] <- list(d12d, d12dd)
-  G_blocks[[2]][c(4,5)] <- list(d21d, d21dd)
+  dLambda <- G_blocks |> map_depth(2, diag) |> map(c, recursive = TRUE)
 
-  var_comp_builder(G_blocks, include_coef)
-}
-
-var_comp_builder <- function(G_blocks, include_coef) {
-
-  G_blocks <- G_blocks |> map(~.x[include_coef$Z])
-
-  dLambda <- G_blocks |>
-    map_depth(2, diag) |>
-    map(c, recursive = TRUE)
-
-  build_G <- function(theta) {
+  build_G <- function(lambda) {
 
     Gm <- G_blocks |>
-      map2(theta, function(x, y) map(x, ~.x * y)) |>
+      map2(lambda, function(x, y) map(x, ~.x * y)) |>
       transpose() |>
       map(reduce, `+`) |>
       blockdiag()
@@ -220,3 +107,4 @@ var_comp_builder <- function(G_blocks, include_coef) {
 
   list(dLambda = dLambda, build_G = build_G)
 }
+

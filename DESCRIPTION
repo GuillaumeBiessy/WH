@@ -1,9 +1,9 @@
 Package: WH
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Whittaker Henderson smoothing
 Version: 0.1.0
 Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
+Maintainer: <guillaume.biessy78@gmail.com>
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: What license is it under?
@@ -12,9 +12,10 @@ LazyData: true
 URL: https://github.com/GuillaumeBiessy/WH
 BugReports: https://github.com/GuillaumeBiessy/WH/issues
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1)
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     purrr
+RoxygenNote: 7.1.1
