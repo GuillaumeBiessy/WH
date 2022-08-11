@@ -6,7 +6,7 @@ date_tronc_gauche <- dmy("01/01/2008")
 date_cens_droite <- dmy("01/01/2018")
 causes_sorties <- c("Décès", "Résiliation", "En cours")
 
-portfolio_mort <- read_csv2("data-raw/portefeuille_deces.csv") %>%
+portfolio_mort <- read_csv2("data-raw/portefeuille_deces_1M.csv") %>%
   mutate(Sexe = factor(Sexe, levels = c("Homme", "Femme")),
          Date_fin_obs = pmin(Date_deces, Date_resiliation, date_cens_droite, na.rm = TRUE),
          Cause_fin_obs = case_when(Date_fin_obs == Date_deces ~ "Décès",
@@ -17,9 +17,15 @@ portfolio_mort <- read_csv2("data-raw/portefeuille_deces.csv") %>%
                  duration_origin = "Date_souscription",
                  obs_start = "Date_souscription",
                  obs_end = "Date_fin_obs",
-                 cause = "Cause_fin_obs") |>
-  slice_portfolio(timescales = list(age = list(y = 30:90)),
-                  covariates = list(Sexe = NULL),
-                  exits = 1)
+                 cause = "Cause_fin_obs")
 
-usethis::use_data(portfolio_mort, overwrite = TRUE)
+set.seed(1)
+portfolios_mort <- c(2e4, 1e5, 5e5) |>
+  map(\(x) portfolio_mort[sample(nrow(portfolio_mort), x),]) |>
+set_names(c("20k", "100k", "500k")) |>
+  map(slice_portfolio,
+      timescales = list(age = list(y = 0:120)),
+      covariates = list(Sexe = NULL),
+      exits = 1)
+
+usethis::use_data(portfolios_mort, overwrite = TRUE)

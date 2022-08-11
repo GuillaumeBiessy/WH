@@ -1,83 +1,176 @@
-data("portfolio_mort")
-data("portfolio_LTC")
+data("portfolios_mort")
+data("portfolios_LTC")
 
-library(profvis)
-library(bench)
+get_edf <- \(x) sum(x$edf)
 
-# 1D smoothing
+# 1D smoothing----
+ec <- rowSums(portfolios_mort[[1]]$expo) / 365.25
+d <- rowSums(portfolios_mort[[1]]$exit)
 
-type_IC <- "freq"
-
-ec <- rowSums(portfolio_mort$expo) / 365.25
-d <- rowSums(portfolio_mort$exit)
+keep <- which(ec > 0) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
+ec <- ec[keep]
+d <- d[keep]
 
 y <- log(d / ec)
-y[d == 0] <- 0
+y[d == 0] <- - 20
+wt <- d
 
-WH_1d_fit_reg_vintage <- WH_1d_reg_vintage(y, d, type_IC = type_IC)
-WH_1d_fit_reg_mixed <- WH_1d_reg_mixed(y, d, type_IC = type_IC)
+# Regression
+WH_1d_reg_fixed_lambda(y, wt, lambda = 1e2) |> get_edf()
+WH_1d(y = y, wt = wt, lambda = 1e2) |> get_edf()
+WH_1d(d, ec, framework = "reg", lambda = 1e2) |> get_edf()
 
-WH_1d_fit_surv_vintage <- WH_1d_surv_vintage(ec, d, type_IC = type_IC)
-WH_1d_fit_surv_mixed <- WH_1d_surv_mixed(ec, d, type_IC = type_IC)
+WH_1d_reg_fs(y, wt) |> get_edf()
+WH_1d(y = y, wt = wt) |> get_edf()
+WH_1d(d, ec, framework = "reg") |> get_edf()
 
-plot.WH_1d(WH_1d_fit_reg_vintage)
-plot.WH_1d(WH_1d_fit_reg_mixed)
-plot.WH_1d(WH_1d_fit_surv_vintage)
-plot.WH_1d(WH_1d_fit_surv_mixed)
+WH_1d_reg_optim(y, wt) |> get_edf()
+WH_1d(y = y, wt = wt, method = "optim") |> get_edf()
+WH_1d(d, ec, framework = "reg", method = "optim") |> get_edf()
 
-newdata_1d <- 20:109
+WH_1d_reg_optim(y, wt, criterion = "AIC") |> get_edf()
+WH_1d(y = y, wt = wt, method = "optim", criterion = "AIC") |> get_edf()
+WH_1d(d, ec, framework = "reg", method = "optim", criterion = "AIC") |> get_edf()
 
-WH_1d_fit_reg_vintage_pred <- predict.WH_1d(object = WH_1d_fit_reg_vintage,
-                                            newdata = newdata_1d, type_IC = type_IC)
-WH_1d_fit_reg_mixed_pred <- predict.WH_1d(object = WH_1d_fit_reg_mixed,
-                                          newdata = newdata_1d, type_IC = type_IC)
-WH_1d_fit_surv_vintage_pred <- predict.WH_1d(object = WH_1d_fit_surv_vintage,
-                                             newdata = newdata_1d, type_IC = type_IC)
-WH_1d_fit_surv_mixed_pred <- predict.WH_1d(object = WH_1d_fit_surv_mixed,
-                                           newdata = newdata_1d, type_IC = type_IC)
+WH_1d_reg_optim(y, wt, criterion = "BIC") |> get_edf()
+WH_1d(y = y, wt = wt, method = "optim", criterion = "BIC") |> get_edf()
+WH_1d(d, ec, framework = "reg", method = "optim", criterion = "BIC") |> get_edf()
 
-plot.WH_1d(WH_1d_fit_reg_vintage_pred)
-plot.WH_1d(WH_1d_fit_reg_mixed_pred)
-plot.WH_1d(WH_1d_fit_surv_vintage_pred)
-plot.WH_1d(WH_1d_fit_surv_mixed_pred)
+WH_1d_reg_optim(y, wt, criterion = "GCV") |> get_edf()
+WH_1d(y = y, wt = wt, method = "optim", criterion = "GCV") |> get_edf()
+WH_1d(d, ec, framework = "reg", method = "optim", criterion = "GCV") |> get_edf()
 
-library(ggplot2)
-library(Linkplots)
+WH_1d_reg_fs(y, wt, p = 20) |> get_edf()
+WH_1d(y = y, wt = wt, p = 20) |> get_edf()
+WH_1d(d, ec, framework = "reg", p = 20) |> get_edf()
 
-theme_LinkPact() |> theme_set()
+WH_1d_reg_optim(y, wt, p = 20) |> get_edf()
+WH_1d(y = y, wt = wt, method = "optim", p = 20) |> get_edf()
+WH_1d(d, ec, framework = "reg", method = "optim", p = 20) |> get_edf()
 
-# 2D smoothing
+# Maximum likelihood
+WH_1d_ml_fixed_lambda(d, ec, lambda = 1e2) |> get_edf()
 
-EC <- (portfolio_LTC$expo / 365.25) |> aperm(c(3,1,2)) |> colSums()
-D <- (portfolio_LTC$exit) |> aperm(c(3,4,1,2)) |> colSums(dims = 2)
+WH_1d_ml_fs(d, ec) |> get_edf()
 
-Y <- log(D / EC) # observation vector
-Y[D == 0] <- 0
+WH_1d_ml_optim(d, ec) |> get_edf()
 
-WH_2d_fit_reg_vintage <- WH_2d_reg_vintage(Y, D, type_IC = type_IC)
-WH_2d_fit_reg_mixed <- WH_2d_reg_mixed(Y, D, type_IC = type_IC)
+WH_1d_ml_optim(d, ec, criterion = "AIC") |> get_edf()
+WH_1d_ml_optim(d, ec, criterion = "BIC") |> get_edf()
+WH_1d_ml_optim(d, ec, criterion = "GCV") |> get_edf()
 
-WH_2d_fit_surv_vintage <- WH_2d_surv_vintage(EC, D, type_IC = type_IC)
-WH_2d_fit_surv_mixed <- WH_2d_surv_mixed(EC, D, type_IC = type_IC)
+WH_1d(d, ec, p = 20) |> get_edf()
 
-plot.WH_2d(WH_2d_fit_reg_vintage)
-plot.WH_2d(WH_2d_fit_reg_mixed)
-plot.WH_2d(WH_2d_fit_surv_vintage)
-plot.WH_2d(WH_2d_fit_surv_mixed)
+WH_1d(d, ec, method = "optim", p = 20) |> get_edf()
 
-newdata_2d <- list(age = 55:109,
-                duration = 0:19)
+# Plots
+WH_1d_reg_optim(y, wt) |> plot.WH_1d()
+WH_1d_reg_fs(y, wt) |> plot.WH_1d()
 
-WH_2d_fit_reg_vintage_pred <- predict.WH_2d(object = WH_2d_fit_reg_vintage,
-                                            newdata = newdata_2d, type_IC = type_IC)
-WH_2d_fit_reg_mixed_pred <- predict.WH_2d(object = WH_2d_fit_reg_mixed,
-                                          newdata = newdata_2d, type_IC = type_IC)
-WH_2d_fit_surv_vintage_pred <- predict.WH_2d(object = WH_2d_fit_surv_vintage,
-                                             newdata = newdata_2d, type_IC = type_IC)
-WH_2d_fit_surv_mixed_pred <- predict.WH_2d(object = WH_2d_fit_surv_mixed,
-                                           newdata = newdata_2d, type_IC = type_IC)
+WH_1d_ml_optim(d, ec) |> plot.WH_1d()
+WH_1d_ml_fs(d, ec) |> plot.WH_1d()
 
-plot.WH_2d(WH_2d_fit_reg_vintage_pred)
-plot.WH_2d(WH_2d_fit_reg_mixed_pred)
-plot.WH_2d(WH_2d_fit_surv_vintage_pred)
-plot.WH_2d(WH_2d_fit_surv_mixed_pred)
+WH_1d_reg_optim(y, wt) |> plot.WH_1d("res")
+WH_1d_reg_fs(y, wt) |> plot.WH_1d("res")
+
+WH_1d_ml_optim(d, ec) |> plot.WH_1d("res")
+WH_1d_ml_fs(d, ec) |> plot.WH_1d("res")
+
+WH_1d_reg_optim(y, wt) |> plot.WH_1d("edf")
+WH_1d_reg_fs(y, wt) |> plot.WH_1d("edf")
+
+WH_1d_ml_optim(d, ec) |> plot.WH_1d("edf")
+WH_1d_ml_fs(d, ec) |> plot.WH_1d("edf")
+
+# Extrapolation
+newdata_1d <- 18:119
+
+WH_1d_reg_optim(y, wt) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
+WH_1d_reg_fs(y, wt) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
+
+WH_1d_ml_optim(d, ec) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
+WH_1d_ml_fs(d, ec) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
+
+# 2D smoothing----
+d  <- (portfolios_LTC[[1]]$exit) |> aperm(c(3,4,1,2)) |> colSums(dims = 2)
+ec <- (portfolios_LTC[[1]]$expo / 365.25) |> aperm(c(3,1,2)) |> colSums()
+
+keep_age <- which(rowSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
+keep_duration <- which(colSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
+
+d <- d[keep_age, keep_duration]
+ec <- ec[keep_age, keep_duration]
+
+y <- log(d / ec) # observation vector
+y[d == 0] <- - 20
+wt <- d
+
+# Regression
+WH_2d_reg_fixed_lambda(y, wt, lambda = c(1e2, 1e2)) |> get_edf()
+WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2)) |> get_edf()
+WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2)) |> get_edf()
+
+WH_2d_reg_fs(y, wt) |> get_edf()
+WH_2d(y = y, wt = wt) |> get_edf()
+WH_2d(d, ec, framework = "reg") |> get_edf()
+
+WH_2d_reg_optim(y, wt) |> get_edf()
+WH_2d(y = y, wt = wt, method = "optim") |> get_edf()
+WH_2d(d, ec, framework = "reg", method = "optim") |> get_edf()
+
+WH_2d_reg_optim(y, wt, criterion = "AIC") |> get_edf()
+WH_2d(y = y, wt = wt, method = "optim", criterion = "AIC") |> get_edf()
+WH_2d(d, ec, framework = "reg", method = "optim", criterion = "AIC") |> get_edf()
+
+WH_2d_reg_optim(y, wt, criterion = "BIC") |> get_edf()
+WH_2d(y = y, wt = wt, method = "optim", criterion = "BIC") |> get_edf()
+WH_2d(d, ec, framework = "reg", method = "optim", criterion = "BIC") |> get_edf()
+
+WH_2d_reg_optim(y, wt, criterion = "GCV") |> get_edf()
+WH_2d(y = y, wt = wt, method = "optim", criterion = "GCV") |> get_edf()
+WH_2d(d, ec, framework = "reg", method = "optim", criterion = "GCV") |> get_edf()
+
+WH_2d_reg_fs(y, wt, p = c(10, 5)) |> get_edf()
+WH_2d(y = y, wt = wt, p = c(10, 5)) |> get_edf()
+WH_2d(d, ec, framework = "reg", p = c(10, 5)) |> get_edf()
+
+WH_2d_reg_optim(y, wt, p = c(10, 5)) |> get_edf()
+WH_2d(y = y, wt = wt, method = "optim", p = c(10, 5)) |> get_edf()
+WH_2d(d, ec, framework = "reg", method = "optim", p = c(10, 5)) |> get_edf()
+
+# Maximum likelihood
+WH_2d_ml_fixed_lambda(d, ec, lambda = c(1e2, 1e2)) |> get_edf()
+
+WH_2d_ml_fs(d, ec) |> get_edf()
+
+WH_2d_ml_optim(d, ec) |> get_edf()
+WH_2d_ml_optim(d, ec, criterion = "AIC") |> get_edf()
+WH_2d_ml_optim(d, ec, criterion = "BIC") |> get_edf()
+WH_2d_ml_optim(d, ec, criterion = "GCV") |> get_edf()
+
+WH_2d(d, ec, p = c(10, 5)) |> get_edf()
+WH_2d(d, ec, method = "optim", p = c(10, 5)) |> get_edf()
+
+# Plots
+WH_2d_reg_optim(y, wt) |> plot.WH_2d()
+WH_2d_reg_fs(y, wt) |> plot.WH_2d()
+
+WH_2d_ml_optim(d, ec) |> plot.WH_2d()
+WH_2d_ml_fs(d, ec) |> plot.WH_2d()
+
+WH_2d_reg_optim(y, wt) |> plot.WH_2d("std_y_hat")
+WH_2d_reg_fs(y, wt) |> plot.WH_2d("std_y_hat")
+
+WH_2d_ml_optim(d, ec) |> plot.WH_2d("std_y_hat")
+WH_2d_ml_fs(d, ec) |> plot.WH_2d("std_y_hat")
+
+# Extrapolation
+newdata_2d <- list(age = 50:119,
+                duration = 0:29)
+
+WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+
+WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+

@@ -7,7 +7,7 @@ date_cens_droite <- dmy("01/01/2018")
 franchise <- days(90)
 causes_sorties <- c("Décès", "En cours")
 
-portfolio_LTC <- read_csv2("data-raw/portefeuille_dependance.csv") |>
+portfolio_LTC <- read_csv2("data-raw/portefeuille_dependance_1M.csv") |>
   filter(!is.na(Date_dependance)) |>
   mutate(Sexe = factor(Sexe, levels = c("Homme", "Femme")),
          Date_debut_obs = pmax(Date_dependance + franchise, date_tronc_gauche, na.rm = TRUE),
@@ -19,10 +19,16 @@ portfolio_LTC <- read_csv2("data-raw/portefeuille_dependance.csv") |>
                  duration_origin = "Date_dependance",
                  obs_start = "Date_debut_obs",
                  obs_end = "Date_fin_obs",
-                 cause = "Cause_fin_obs") |>
-  slice_portfolio(timescales = list(age = list(y = 65:100),
-                                    duration = list(y = seq(0, 10, 1))),
-                  covariates = list(Sexe = NULL),
-                  exits = 1)
+                 cause = "Cause_fin_obs")
 
-usethis::use_data(portfolio_LTC, overwrite = TRUE)
+set.seed(1)
+portfolios_LTC <- c(1e3, 5e3, 2.5e4) |>
+  map(\(x) portfolio_LTC[sample(nrow(portfolio_LTC), x),]) |>
+  set_names(c("1k", "5k", "25k")) |>
+  map(slice_portfolio,
+      timescales = list(age = list(y = 0:120),
+                        duration = list(y = seq(0, 30, 1))),
+      covariates = list(Sexe = NULL),
+      exits = 1)
+
+usethis::use_data(portfolios_LTC, overwrite = TRUE)

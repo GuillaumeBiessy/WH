@@ -1,12 +1,19 @@
 Package: WH
 Type: Package
-Title: Whittaker Henderson smoothing
+Title: Whittaker-Henderson Smoothing
 Version: 0.1.0
-Author: Who wrote it
+Author: Guillaume Biessy, PhD, fully qualified actuary
 Maintainer: <guillaume.biessy78@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Description: Implementation of Whittaker-Henderson Smoothing for the gradation 
+  of actuarial tables for person insurance risks such as mortality, disability, 
+  long-term care and unemployment. The package covers tables in 1 or 2 dimensions
+  and perform automatic selection of the smoothing parameters. Smoothing is 
+  performed over vectors / matrices containing the number of observed events and 
+  the associated central risk exposure in the framework of maximum likelihood 
+  estimation or an approximate regression framework. Optimal parameter selection
+  may be performed using the Nelder-Mead algorithm from the optim function in the
+  stats package or using the generalized Fellner-Schall update formula.
+License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/GuillaumeBiessy/WH
@@ -18,4 +25,4 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     purrr
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1

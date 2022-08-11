@@ -1,575 +1,1353 @@
+# Wrappers functions----
+
+#' 1D Whittaker-Henderson Smoothing
+#'
+#' @param d Vector of observed events whose elements should be named. Required
+#'   in case of maximum likelihood estimation
+#' @param ec Vector of central exposure. Required in case of maximum likelihood
+#'   estimation. The central exposure corresponds to the sum of the exposure
+#'   period over the insured population. An individual experiencing an event of
+#'   interest during the year will no longer be exposed afterward and the
+#'   exposure should be reduced accordingly.
+#' @param lambda Smoothing parameter. Optional. If missing, an optimization
+#'   procedure will be used to find the optimal smoothing parameter. If
+#'   provided, no optimal smoothing parameter search will be performed unless
+#'   the \code{method} argument is also provided, in which case \code{lambda}
+#'   will be used as the starting parameter for the optimization procedure.
+#' @param method The method to be used to find an optimal smoothing parameter.
+#'   Default to `"fixed_lambda"` if \code{lambda} is supplied, meaning no
+#'   optimization is performed. Otherwise, default to `"fs"` which means the
+#'   generalized Fellner-Schall method is used. The third option is `"optim"`
+#'   meaning the \code{optim} function from package \code{stats} will be used
+#'   with the default Nelder-Mead algorithm. The optimization criterion used for
+#'   the `"fs"` method as well as the default of the `"optim"` method is is the
+#'   restricted maximum likelihood (REML). For the `"optim"` method others
+#'   options such as `AIC`, `BIC` and `GCV` may be used by supplying for example
+#'   \code{criterion = "AIC"} as an extra argument to the function
+#' @param q Order of penalization. Polynoms of degrees \code{q - 1} are
+#'   considered smooth and are therefore unpenalized. Should be left to the
+#'   default of \code{2} for most practical applications.
+#' @param framework Default framework is `"ml"` which stands for maximum
+#'   likelihood unless both the \code{y} and \code{wt} arguments are provided,
+#'   in which case the `"reg"` or regression framework is used. The regression
+#'   framework is an asymptotical approximation of the maximum likelihood
+#'   likelihood framework.
+#' @param y Vector of observations whose elements should be named. Used only in
+#'   the regression framework and even in this case will be automatically
+#'   computed if the \code{d} and \code{ec} arguments are provided. May be
+#'   useful when using Whittaker-Henderson smoothing outside of the survival
+#'   analysis framework.
+#' @param wt Vector of weights. As for the observation vector \code{y}, used
+#'   only in the regression framework and even in this case will be
+#'   automatically computed if the \code{d} and \code{ec} arguments are
+#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
+#'   the survival analysis framework.
+#' @param ... Additional parameters passed to the smoothing function called.
+#'
+#' @return A fitted \code{WH_1d} object.
+#'
+#' @export
+WH_1d <- function(d, ec, lambda, method, q = 2, framework, y, wt, ...) {
+
+  if (missing(framework)) framework <- if (!missing(y) && !missing(wt)) "reg" else "ml"
+  if (missing(method)) method <- if (missing(lambda)) "fs" else "fixed_lambda"
+  if (missing(lambda)) lambda <- 1e3
+
+  if (framework == "reg") {
+    if (missing(y) && !missing(d) && !missing(ec)) {
+      y <- log(d / ec)
+      y[d == 0] <- - 20
+    }
+    if (missing(wt) && !missing(d)) wt <- d
+  }
+
+  what <- paste("WH_1d", framework, method, sep = "_")
+  args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
+    c(list(q = q, lambda = lambda), list(...))
+  do.call(what, args)
+}
+
+#' 1D Whittaker-Henderson Smoothing
+#'
+#' @inheritParams WH_1d
+#' @param d Matrix of observed events whose rows and columns should be named.
+#'   Required in case of maximum likelihood estimation
+#' @param ec Matrix of central exposure. Required in case of maximum likelihood
+#'   estimation. The central exposure corresponds to the sum of the exposure
+#'   period over the insured population. An individual experiencing an event of
+#'   interest during the year will no longer be exposed afterward and the
+#'   exposure should be reduced accordingly.
+#' @param lambda Smoothing parameter vector of size \code{2}. Optional. If
+#'   missing, an optimization procedure will be used to find the optimal
+#'   smoothing parameter. If provided, no optimal smoothing parameter search
+#'   will be performed unless the \code{method} argument is also provided, in
+#'   which case \code{lambda} will be used as the starting parameter for the
+#'   optimization procedure.
+#' @param p Optional vector of size \code{2}. Maximum number of eigenvectors to
+#'   keep on each dimension after performing the eigen decomposition of the
+#'   penalization matrix. If missing, will be automatically computed so that the
+#'   dimensions of (square) matrices involved in the optimization problem
+#'   remains lower to the \code{max_dim} argument
+#' @param max_dim Maximal number of rows (or equivalently columns) of the square
+#'   matrices that should be involved in the optimization problem. Default is
+#'   \code{1000}. Values higher than \code{2000} may result in issues with both
+#'   memory usage and computation times.
+#' @param q Order of penalization vector of size \code{2}. Polynoms of degrees
+#'   \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
+#'   unpenalized. Should be left to the default of \code{c(2,2)} for most
+#'   practical applications.
+#' @param y Matrix of observations whose rows and columns should be named. Used
+#'   only in the regression framework and even in this case will be
+#'   automatically computed if the \code{d} and \code{ec} arguments are
+#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
+#'   the survival analysis framework.
+#' @param wt Matrix of weights. As for the observation vector \code{y}, used
+#'   only in the regression framework and even in this case will be
+#'   automatically computed if the \code{d} and \code{ec} arguments are
+#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
+#'   the survival analysis framework.
+#'
+#' @return A fitted \code{WH_2d} object.
+#'
+#' @export
+WH_2d <- function(d, ec, lambda, method, p, max_dim = 1e3, q = c(2, 2), framework, y, wt, ...) {
+
+  if (missing(framework)) framework <- if (!missing(y) && !missing(wt)) "reg" else "ml"
+  if (missing(method)) method <- if (missing(lambda)) "fs" else "fixed_lambda"
+  if (missing(lambda)) lambda <- c(1e3, 1e3)
+
+  if (framework == "reg") {
+    if (missing(y) && !missing(d) && !missing(ec)) {
+      y <- log(d / ec)
+      y[d == 0] <- - 20
+    }
+    if (missing(wt) && !missing(d)) wt <- d
+  }
+
+  dims <- if (!missing(y)) dim(y) else dim(d)
+  if (missing(p)) {
+
+    asp <- dims[[2]] / dims[[1]]
+    max_ratio <- sqrt(max_dim / asp) / dims[[1]]
+    p <- floor(pmin(max_ratio, 1) * dims)
+  }
+
+  what <- paste("WH_2d", framework, method, sep = "_")
+  args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
+    c(list(p = p, q = q, lambda = lambda), list(...))
+  do.call(what, args)
+}
+
 # Regression----
 
-WH_1d_reg_vintage <- function(y, wt = rep(1, length(y)),
-                              lambda = 1e3, q = 2, type_IC = "bayesian") {
+## 1D----
+
+#' Whittaker-Henderson Smoothing (Regression, fixed lambda)
+#'
+#' @param y Vector of observations
+#' @param wt Optional vector of weights
+#' @param lambda Smoothing parameter
+#' @param p The number of eigenvectors to keep
+#' @param q Order of penalization. Polynoms of degrees q - 1 are considered
+#'   smooth and are therefore unpenalized
+#'
+#' @return A list containing model fit, residuals and associated uncertainty
+#'
+#' @export
+WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = length(y), q = 2) {
 
   n <- length(y)
-  W <- diag(wt) # weight matrix
-  D_mat <- build_D_mat(n, q) # difference matrix
-  P <- lambda * crossprod(D_mat) # penalization matrix
+  SVD <- eigen_dec(n, p, q)
 
-  Psi_hat <- (W + P) |> chol() |> chol2inv()  # variance / covariance matrix
-  par_hat <- y_hat <- c(Psi_hat %*% (wt * y)) # fitted value
+  X <- SVD$X
+  Z <- SVD$Z
+  U <- cbind(X, Z)
+
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
+
+  tUWU <- t(U) %*% (wt * U)
+  tUWy <- t(U) %*% (wt * y)
+
+  Psi_chol <- tUWU
+  diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+  Psi_chol <- Psi_chol |> chol()
+  Psi <- Psi_chol |> chol2inv()
+
+  gamma_hat <- c(Psi %*% tUWy)
+
+  RESS <- sum(gamma_hat * s * gamma_hat)
+  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+
+  y_hat <- c(U %*% gamma_hat)
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
 
   res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
-  edf <- sum(wt * diag(Psi_hat)) # effective degrees of freedom
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation
 
-  sigma_2_hat <- sum(res ^ 2) / (n - edf) # estimated dispersion parameter
-  std_y_hat <- # standard deviation of fit
-    sqrt(sigma_2_hat *
-           switch(type_IC,
-                  freq = rowSums(wt * Psi_hat * Psi_hat),
-                  bayesian = diag(Psi_hat)))
+  n_pos <- sum(wt != 0)
+  dev <- sum(res * res) # residuals sum of squares
+  sum_edf <- sum(edf) # effective degrees of freedom
 
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(wt) <- names(y) # set names for output vectors
+  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat, sigma_2_hat = sigma_2_hat,
-              edf = edf, lambda = lambda, q = q)
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev + lambda * RESS - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
+    names(wt) <- names(y) # set names for output vectors
+
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
 }
 
-WH_2d_reg_vintage <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
-                              lambda = c(1e3, 1e3), q = c(2, 2), type_IC = "bayesian") {
+#' Whittaker-Henderson Smoothing (Regression, optimize function)
+#'
+#' @inheritParams WH_1d_reg_fixed_lambda
+#' @param criterion Criterion used to choose the smoothing parameter. One of
+#'   "GCV" (default), "AIC" or "BIC".
+#' @param lambda Initial smoothing parameter
+#' @param verbose Should information about the optimization progress be
+#'   displayed
+#' @param accu_edf Tolerance for the convergence of the outer optimization
+#'   procedure
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen through successive fits, using the
+#'   \code{optimize} function
+#'
+#' @export
+WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
+                            criterion = "REML", lambda = 1e3,
+                            verbose = FALSE, accu_edf = 1e-10) {
 
-  n <- dim(y)
-  W <- diag(c(wt)) # weight matrix
-  D_mat <- map2(n, q, build_D_mat) # difference matrices
-  P <- lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
-    lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]]) # penalization matrix
-
-  Psi_hat <- (W + P) |> chol() |> chol2inv() # variance / covariance matrix
-  par_hat <- y_hat <- c(Psi_hat %*% c(wt * y)) # fitted value
-
-  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
-  edf <- sum(wt * diag(Psi_hat)) # effective degrees of freedom
-
-  sigma_2_hat <- sum(res ^ 2) / (prod(n) - edf) # estimated dispersion parameter
-  std_y_hat <- # standard deviation of fit
-    sqrt(sigma_2_hat *
-           switch(type_IC,
-                  freq = rowSums(c(wt) * Psi_hat * Psi_hat),
-                  bayesian = diag(Psi_hat)))
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(wt) <- dim(y) # set dimension for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(wt) <- dimnames(y) # set names for output matrices
-
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              Psi_hat = Psi_hat, sigma_2_hat = sigma_2_hat,
-              par_hat = par_hat, edf = edf, lambda = lambda, q = q)
-  class(out) <- "WH_2d"
-
-  return(out)
-}
-
-WH_1d_reg_mixed <- function(y, wt = rep(1, length(y)),
-                            q = 2, type_IC = "bayesian") {
-
-  # Initialization
   n <- length(y)
-  SVD <- eigen_dec(n, q)
+  n_pos <- sum(wt != 0)
+  SVD <- eigen_dec(n, p, q)
 
   X <- SVD$X
   Z <- SVD$Z
-  dLambda <- diag(SVD$Sigma)
+  U <- cbind(X, Z)
 
-  XZ <- cbind(X, Z)
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
 
-  tXWX <- compute_tXWZ(X, X, wt)
-  tXWZ <- compute_tXWZ(X, Z, wt)
-  tZWZ <- compute_tXWZ(Z, Z, wt)
-  tXWy <- compute_tXWz(X, y, wt)
-  tZWy <- compute_tXWz(Z, y, wt)
+  tUWU <- t(U) %*% (wt * U)
+  tUWy <- t(U) %*% (wt * y)
 
-  lambda <- 1e2
-  sigma_2_hat <- 1
-  cond_lambda <- Inf
+  WH_1d_reg_aux <- function(log_lambda) {
 
-  # Loop
-  while(cond_lambda > 1e-2) {
+    lambda <- exp(log_lambda)
+    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
-    Gm <- lambda * diag(dLambda)
-    dG <- 1 / (dLambda * lambda)
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
 
-    Cm <- (tZWZ + Gm) |> chol() |> chol2inv()
-    CmtB <- Cm %*% t(tXWZ)
-    S <- solve(tXWX - tXWZ %*% CmtB)
+    gamma_hat <- c(Psi %*% tUWy)
 
-    Psi_hat <- vector("list", 4) |>
-      matrix(2, 2, dimnames = list("X", "Z") |> list() |> rep(2))
+    RESS <- sum(gamma_hat * s * gamma_hat)
+    edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
 
-    Psi_hat[["X", "X"]] <- S
-    Psi_hat[["X", "Z"]] <- - S %*% t(CmtB)
-    Psi_hat[["Z", "X"]] <- t(Psi_hat[["X", "Z"]])
-    Psi_hat[["Z", "Z"]] <- Cm - CmtB %*% Psi_hat[["X", "Z"]]
-
-    beta_hat  <- c(Psi_hat[["X", "X"]] %*% tXWy + Psi_hat[["X", "Z"]] %*% tZWy)
-    alpha_hat <- c(Psi_hat[["Z", "X"]] %*% tXWy + Psi_hat[["Z", "Z"]] %*% tZWy)
-
-    par_hat <- c(beta_hat, alpha_hat)
-    y_hat <- c(XZ %*% par_hat)
-
-    zeta <- colSums(t(Psi_hat[["Z", "X"]]) * tXWZ) + colSums(t(Psi_hat[["Z", "Z"]]) * tZWZ)
-    ed_re <- lambda * sum(zeta * dG * dLambda)
-    RRSS <- sum(dLambda * alpha_hat ^ 2)
+    y_hat <- c(U %*% gamma_hat)
 
     res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
-    edf <- sum(q + ed_re) # effective degrees of freedom
+    dev <- sum(res * res) # residuals sum of squares
+    sum_edf <- sum(edf_par) # effective degrees of freedom
 
-    sigma_2_hat <- sigma_2_hat * sum(res ^ 2) / (n - edf)
+    switch(criterion,
+           AIC = dev + 2 * sum_edf,
+           BIC = dev + log(n_pos) * sum_edf,
+           GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
+           REML = {
+             tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-    old_lambda <- lambda
-    lambda <- ed_re / RRSS
-    cond_lambda <- max(abs(log(lambda) - log(old_lambda)))
-    print(paste("lambda:", format(lambda, digits = 2), "; sigma_2_hat:", format(sigma_2_hat, digits = 2)))
+             dev + lambda * RESS - tr_log_P + tr_log_Psi
+           })
   }
 
-  Psi_hat <- rbind(cbind(Psi_hat[["X", "X"]], Psi_hat[["X", "Z"]]),
-                   cbind(Psi_hat[["Z", "X"]], Psi_hat[["Z", "Z"]]))
-
-  std_y_hat <- # standard deviation of fit
-    sqrt(sigma_2_hat * switch(type_IC,
-                              freq = compute_diag_XPsitZ(XZ, XZ, Psi_hat %*% (wt * Psi_hat)),
-                              bayesian = compute_diag_XPsitZ(XZ, XZ, Psi_hat)))
-
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(wt) <- names(y) # set names for output vectors
-
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat, X = X, Z = Z,
-              sigma_2_hat = sigma_2_hat, edf = edf, lambda = lambda, q = q)
-  class(out) <- "WH_1d"
-
-  return(out)
+  lambda <- exp(stats::optimize(f = WH_1d_reg_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
+  WH_1d_reg_fixed_lambda(y, wt, lambda, p, q)
 }
 
-WH_2d_reg_mixed <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
-                            q = c(2, 2), type_IC = "bayesian") {
+#' Whittaker-Henderson Smoothing (Regression, Generalized Fellner-Schall update)
+#'
+#' @inheritParams WH_1d_reg_optim
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
+#'   formula
+#'
+#' @export
+WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
+                             lambda = 1e3, verbose = FALSE, accu_edf = 1e-10) {
 
   # Initialization
-  n <- dim(y)
-  SVD <- map2(n, q, eigen_dec)
-
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  Sigma_SVD <- map(SVD, "Sigma")
-
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
-    compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
-    compute_XZ_mat()
-
-  tXWX <- compute_tXWZ(X, X, wt)
-  tXWZ <- compute_tXWZ(X, Z, wt)
-  tZWZ <- compute_tXWZ(Z, Z, wt)
-  tXWy <- compute_tXWz(X, c(y), c(wt))
-  tZWy <- compute_tXWz(Z, c(y), c(wt))
-
-  var_comp <- build_var_comp_2d(X_SVD, Z_SVD, Sigma_SVD)
-  dLambda <- var_comp$dLambda
-  build_G <- var_comp$build_G
-
-  lambda <- c(1e3, 1e3)
-  sigma_2_hat <- 1
-  cond_lambda <- Inf
-
-  # Loop
-  while(cond_lambda > 1e-2) {
-
-    G_built <- build_G(lambda)
-
-    Gm <- G_built$Gm
-    dG <- G_built$dG
-
-    Cm <- (tZWZ + Gm) |> chol() |> chol2inv()
-    CmtB <- Cm %*% t(tXWZ)
-    S <- solve(tXWX - tXWZ %*% CmtB)
-
-    Psi_hat <- vector("list", 4) |> matrix(2, 2, dimnames = list("X", "Z") |> list() |> rep(2))
-
-    Psi_hat[["X", "X"]] <- S
-    Psi_hat[["X", "Z"]] <- - S %*% t(CmtB)
-    Psi_hat[["Z", "X"]] <- t(Psi_hat[["X", "Z"]])
-    Psi_hat[["Z", "Z"]] <- Cm - CmtB %*% Psi_hat[["X", "Z"]]
-
-    beta_hat  <- c(Psi_hat[["X", "X"]] %*% tXWy + Psi_hat[["X", "Z"]] %*% tZWy)
-    alpha_hat <- c(Psi_hat[["Z", "X"]] %*% tXWy + Psi_hat[["Z", "Z"]] %*% tZWy)
-
-    y_hat <- c(X %*% beta_hat + Z %*% alpha_hat)
-
-    zeta <- colSums(t(Psi_hat[["Z", "X"]]) * tXWZ) + colSums(t(Psi_hat[["Z", "Z"]]) * tZWZ)
-    ed_re <- map2_dbl(dLambda, lambda, ~.y * sum(zeta * dG * .x))
-    RRSS <- map_dbl(dLambda, ~sum(.x * alpha_hat * alpha_hat))
-
-    res <- sqrt(c(wt)) * (y - y_hat) # (weighted) residuals
-    edf <- sum(q + ed_re) # effective degrees of freedom
-
-    sigma_2_hat <- sigma_2_hat * sum(res ^ 2) / (prod(n) - edf)
-
-    old_lambda <- lambda
-    lambda <- ed_re / RRSS
-    cond_lambda <- max(abs(log(lambda) - log(old_lambda)))
-    print(paste0(paste("lambda:", format(lambda, digits = 2)),
-                 paste("; sigma_2_hat:", format(sigma_2_hat, digits = 2))))
-  }
-
-  XZ <- cbind(X, Z)
-  par_hat <- c(beta_hat, alpha_hat)
-  Psi_hat <- rbind(cbind(Psi_hat[["X", "X"]], Psi_hat[["X", "Z"]]),
-                   cbind(Psi_hat[["Z", "X"]], Psi_hat[["Z", "Z"]]))
-  std_y_hat <- # standard deviation of fit
-    sqrt(sigma_2_hat * switch(type_IC,
-                              freq = compute_diag_XPsitZ(XZ, XZ, Psi_hat %*% (c(wt) * Psi_hat)),
-                              bayesian = compute_diag_XPsitZ(XZ, XZ, Psi_hat)))
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(wt) <- dim(y) # set dimension for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(wt) <- dimnames(y) # set names for output matrices
-
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat, X = X, Z = Z,
-              sigma_2_hat = sigma_2_hat, edf = edf, lambda = lambda, q = q)
-  class(out) <- "WH_2d"
-
-  return(out)
-}
-
-# Survival analysis----
-
-WH_1d_surv_vintage <- function(ec, d, lambda = 1e3, q = 2, type_IC = "bayesian") {
-
-  # Initialization
-  n <- length(d)
-  off <- log(ec |> pmax(1e-4))
-  y <- ifelse(d == 0, NA, log(d) - off)
-  z <- log(d |> pmax(1e-8)) - off
-  wt <- d
-  W <- diag(wt)
-
-  D_mat <- build_D_mat(n, q) # difference matrix
-  P <- lambda * crossprod(D_mat) # penalization matrix
-
-  deviance <- cond_deviance <- Inf
-
-  # Loop
-  while(cond_deviance > 1e-4) {
-
-    Psi_hat <- (W + P) |> chol() |> chol2inv()  # variance / covariance matrix
-    par_hat <- y_hat <- c(Psi_hat %*% (wt * z)) # fitted value
-    wt <- exp(y_hat + off)
-    W <- diag(wt)
-    z <- y_hat + d / wt - 1
-
-    old_deviance <- deviance
-    deviance <- compute_deviance(d, wt)
-    cond_deviance <- abs(old_deviance / deviance - 1)
-    print(paste("deviance:", format(deviance, digits = 3)))
-  }
-
-  res <- compute_res_deviance(d, wt) # (weighted) residuals
-  edf <- sum(wt * diag(Psi_hat)) # effective degrees of freedom
-
-  std_y_hat <- # standard deviation of fit
-    sqrt(switch(type_IC,
-                freq = rowSums(wt * Psi_hat * Psi_hat),
-                bayesian = diag(Psi_hat)))
-
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(y) # set names for output vectors
-
-  out <- list(y = y, z = z, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat,
-              edf = edf, lambda = lambda, q = q)
-  class(out) <- "WH_1d"
-
-  return(out)
-}
-
-WH_2d_surv_vintage <- function(ec, d, lambda = c(1e3, 1e3), q = c(2, 2), type_IC = "bayesian") {
-
-  # Initialization
-  n <- dim(d)
-  off <- log(ec |> pmax(1e-4))
-  y <- ifelse(d == 0, NA, log(d) - off)
-  z <- log(d |> pmax(1e-8)) - off
-  wt <- d
-
-  W <- diag(c(wt))
-
-  D_mat <- map2(n, q, build_D_mat) # difference matrices
-  P <- lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
-    lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]]) # penalization matrix
-
-  deviance <- cond_deviance <- Inf
-
-  # Loop
-  while(cond_deviance > 1e-4) {
-
-    Psi_hat <- (W + P) |> chol() |> chol2inv()  # variance / covariance matrix
-    par_hat <- y_hat <- c(Psi_hat %*% c(wt * z)) # fitted value
-    wt <- exp(y_hat + off)
-    W <- diag(c(wt))
-    z <- y_hat + d / wt - 1
-
-    old_deviance <- deviance
-    deviance <- compute_deviance(d, wt)
-    cond_deviance <- abs(old_deviance / deviance - 1)
-    print(paste("deviance:", format(deviance, digits = 2)))
-  }
-
-  res <- compute_res_deviance(d, wt) # (weighted) residuals
-  edf <- sum(c(wt) * diag(Psi_hat)) # effective degrees of freedom
-
-  std_y_hat <- # standard deviation of fit
-    sqrt(switch(type_IC,
-                freq = rowSums(c(wt) * Psi_hat * Psi_hat),
-                bayesian = diag(Psi_hat)))
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <-
-    dim(wt) <- dim(z) <- dim(y) # set dimension for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <-
-    dimnames(wt) <- dimnames(z) <- dimnames(y) # set names for output matrices
-
-  out <- list(y = y, z = z, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat,
-              edf = edf, lambda = lambda, q = q)
-  class(out) <- "WH_2d"
-
-  return(out)
-}
-
-WH_1d_surv_mixed <- function(ec, d, q = 2, type_IC = "bayesian") {
-
-  # Initialization
-  n <- length(d)
-  off <- log(ec |> pmax(1e-4))
-  y <- ifelse(d == 0, NA, log(d) - off)
-  z <- log(d |> pmax(1e-8)) - off
-  wt <- d
-
-  SVD <- eigen_dec(n, q)
+  n <- length(y)
+  SVD <- eigen_dec(n, p, q)
 
   X <- SVD$X
   Z <- SVD$Z
-  dLambda <- diag(SVD$Sigma)
+  U <- cbind(X, Z)
 
-  lambda <- 1e2
-  deviance <- cond_deviance <- Inf
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
+
+  tUWU <- t(U) %*% (wt * U)
+  tUWy <- t(U) %*% (wt * y)
+
+  init <- TRUE
 
   # Loop
-  while(cond_deviance > 1e-4) {
+  while (init || cond_edf_random) {
 
-    tXWX <- compute_tXWZ(X, X, wt)
-    tXWZ <- compute_tXWZ(X, Z, wt)
-    tZWZ <- compute_tXWZ(Z, Z, wt)
-    tXWz <- compute_tXWz(X, z, wt)
-    tZWz <- compute_tXWz(Z, z, wt)
+    lambda <- if (init) lambda else (edf_random / RESS)
 
-    cond_lambda <- Inf
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
 
-    # Loop
-    while(cond_lambda > 1e-2) {
+    gamma_hat <- c(Psi %*% tUWy)
 
-      Gm <- lambda * diag(dLambda)
-      dG <- 1 / (dLambda * lambda)
+    RESS <- sum(gamma_hat * s * gamma_hat)
+    edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
 
-      Cm <- (tZWZ + Gm) |> chol() |> chol2inv()
-      CmtB <- Cm %*% t(tXWZ)
-      S <- solve(tXWX - tXWZ %*% CmtB)
-
-      Psi_hat <- vector("list", 4) |>
-        matrix(2, 2, dimnames = list("X", "Z") |> list() |> rep(2))
-
-      Psi_hat[["X", "X"]] <- S
-      Psi_hat[["X", "Z"]] <- - S %*% t(CmtB)
-      Psi_hat[["Z", "X"]] <- t(Psi_hat[["X", "Z"]])
-      Psi_hat[["Z", "Z"]] <- Cm - CmtB %*% Psi_hat[["X", "Z"]]
-
-      beta_hat  <- c(Psi_hat[["X", "X"]] %*% tXWz + Psi_hat[["X", "Z"]] %*% tZWz)
-      alpha_hat <- c(Psi_hat[["Z", "X"]] %*% tXWz + Psi_hat[["Z", "Z"]] %*% tZWz)
-
-      zeta <- colSums(t(Psi_hat[["Z", "X"]]) * tXWZ) + colSums(t(Psi_hat[["Z", "Z"]]) * tZWZ)
-
-      ed_re <- lambda * sum(zeta * dG * dLambda)
-      RRSS <- sum(dLambda * alpha_hat * alpha_hat)
-
-      old_lambda <- lambda
-      lambda <- ed_re / RRSS
-      cond_lambda <- max(abs(log(lambda) - log(old_lambda)))
-      print(paste("lambda:", format(lambda, digits = 2)))
+    old_edf_random <- if (init) NA else edf_random
+    edf_random <- sum(edf_par) - q
+    if (verbose) cat("edf :", format(old_edf_random + q, digits = 3), "=>",
+                     format(edf_random + q, digits = 3), "\n")
+    cond_edf_random <- if (init) TRUE else {
+      abs(edf_random - old_edf_random) > accu_edf * (old_edf_random + q)
     }
-
-    y_hat <- c(X %*% beta_hat + Z %*% alpha_hat) # fitted value
-    wt <- exp(y_hat + off)
-    z <- y_hat + d / wt - 1
-
-    old_deviance <- deviance
-    deviance <- compute_deviance(d, wt)
-    cond_deviance <- abs(old_deviance / deviance - 1)
-    print(paste("deviance:", format(deviance, digits = 2)))
+    init <- FALSE
   }
 
-  XZ <- cbind(X, Z)
-  par_hat <- c(beta_hat, alpha_hat)
-  Psi_hat <- rbind(cbind(Psi_hat[["X", "X"]], Psi_hat[["X", "Z"]]),
-                   cbind(Psi_hat[["Z", "X"]], Psi_hat[["Z", "Z"]]))
+  y_hat <- c(U %*% gamma_hat)
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
 
-  std_y_hat <- # standard deviation of fit
-    sqrt(switch(type_IC,
-                freq = compute_diag_XPsitZ(XZ, XZ, Psi_hat %*% (wt * Psi_hat)),
-                bayesian = compute_diag_XPsitZ(XZ, XZ, Psi_hat)))
+  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation
 
-  res <- compute_res_deviance(d, wt) # (weighted) residuals
-  edf <- sum(q + ed_re) # effective degrees of freedom
+  n_pos <- sum(wt != 0)
+  dev <- sum(res * res) # residuals sum of squares
+  sum_edf <- sum(edf) # effective degrees of freedom
 
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(wt) <- names(y) # set names for output vectors
+  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  out <- list(y = y, z = z, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat, X = X, Z = Z,
-              edf = edf, lambda = lambda, q = q)
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev + lambda * RESS - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
+    names(wt) <- names(y) # set names for output vectors
+
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
 }
 
-WH_2d_surv_mixed <- function(ec, d, q = c(2, 2), type_IC = "bayesian") {
+## 2D----
 
-  # Initialization
-  n <- dim(d)
-  off <- log(ec |> pmax(1e-4))
-  y <- ifelse(d == 0, NA, log(d) - off)
-  z <- log(d |> pmax(1e-8)) - off
-  wt <- d
+#' 2D Whittaker-Henderson Smoothing (Regression, fixed lambda)
+#'
+#' @param y Matrix of observations
+#' @param wt Optional matrix of weights
+#' @param lambda Vector of smoothing parameter
+#' @param p The number of eigenvectors to keep on each dimension
+#' @param q Matrix of orders of penalization. Polynoms of degrees q - 1 are considered
+#'   smooth and are therefore unpenalized
+#'
+#' @return A list containing model fit, residuals and associated uncertainty
+#'
+#' @export
+WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
+                                   lambda = c(1e3, 1e3), p = dim(y), q = c(2, 2)) {
 
-  SVD <- map2(n, q, eigen_dec)
+  n <- dim(y)
+  which_pos <- which(wt != 0)
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
-  Sigma_SVD <- map(SVD, "Sigma")
-
   X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
     compute_XZ_mat()
   Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
             XZ = list(X_SVD[[1]], Z_SVD[[2]]),
             ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
     compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
 
-  var_comp <- build_var_comp_2d(X_SVD, Z_SVD, Sigma_SVD)
-  dLambda <- var_comp$dLambda
-  build_G <- var_comp$build_G
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
 
-  lambda <- c(1e3, 1e3)
-  deviance <- cond_deviance <- Inf
+  wt_pos <- c(wt)[which_pos]
+  y_pos <- c(y)[which_pos]
 
-  # Loop
-  while(cond_deviance > 1e-4) {
+  tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+  tUWy <- t(U_pos) %*% (wt_pos * y_pos)
 
-    tXWX <- compute_tXWZ(X, X, wt)
-    tXWZ <- compute_tXWZ(X, Z, wt)
-    tZWZ <- compute_tXWZ(Z, Z, wt)
-    tXWz <- compute_tXWz(X, z, wt)
-    tZWz <- compute_tXWz(Z, z, wt)
+  s_lambda <- map2(lambda, s, `*`)
+  sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
-    cond_lambda <- Inf
+  Psi_chol <- tUWU
+  diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+  Psi_chol <- Psi_chol |> chol()
+  Psi <- Psi_chol |> chol2inv()
 
-    # Loop
-    while(cond_lambda > 1e-2) {
+  gamma_hat <- c(Psi %*% tUWy)
 
-      G_built <- build_G(lambda)
-      Gm <- G_built$Gm
-      dG <- G_built$dG
+  RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+  omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
-      Cm <- (tZWZ + Gm) |> chol() |> chol2inv()
-      CmtB <- Cm %*% t(tXWZ)
-      S <- solve(tXWX - tXWZ %*% CmtB)
+  y_hat <- c(U %*% gamma_hat)
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
 
-      Psi_hat <- vector("list", 4) |>
-        matrix(2, 2, dimnames = list("X", "Z") |> list() |> rep(2))
+  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
+  edf <- c(wt) * diag(Psi) # effective degrees of freedom by observation / parameter
 
-      Psi_hat[["X", "X"]] <- S
-      Psi_hat[["X", "Z"]] <- - S %*% t(CmtB)
-      Psi_hat[["Z", "X"]] <- t(Psi_hat[["X", "Z"]])
-      Psi_hat[["Z", "Z"]] <- Cm - CmtB %*% Psi_hat[["X", "Z"]]
+  n_pos <- sum(wt != 0)
+  dev <- sum(res * res) # residuals sum of squares
+  pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
+  dev_pen <- dev + pen
+  sum_edf <- sum(edf) # effective degrees of freedom
 
-      beta_hat  <- c(Psi_hat[["X", "X"]] %*% tXWz + Psi_hat[["X", "Z"]] %*% tZWz)
-      alpha_hat <- c(Psi_hat[["Z", "X"]] %*% tXWz + Psi_hat[["Z", "Z"]] %*% tZWz)
+  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-      zeta <- colSums(t(Psi_hat[["Z", "X"]]) * tXWZ) + colSums(t(Psi_hat[["Z", "Z"]]) * tZWZ)
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev + pen - tr_log_P + tr_log_Psi
 
-      ed_re <- map2_dbl(dLambda, lambda, ~.y * sum(zeta * dG * .x))
-      RRSS <- map_dbl(dLambda, ~sum(.x * alpha_hat * alpha_hat))
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
 
-      old_lambda <- lambda
-      lambda <- ed_re / RRSS
-      cond_lambda <- max(abs(log(lambda) - log(old_lambda)))
-      print(paste("lambda:", format(lambda, digits = 2)))
-    }
+  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
+    dim(wt) <- dim(y) # set dimensions for output matrices
+  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
+    dimnames(wt) <- dimnames(y) # set names for output matrices
 
-    y_hat <- c(X %*% beta_hat + Z %*% alpha_hat) # fitted value
-    wt <- exp(y_hat + off)
-    z <- y_hat + d / wt - 1
-
-    old_deviance <- deviance
-    deviance <- compute_deviance(d, wt)
-    cond_deviance <- abs(old_deviance / deviance - 1)
-    print(paste("deviance:", format(deviance, digits = 2)))
-  }
-
-  XZ <- cbind(X, Z)
-  par_hat <- c(beta_hat, alpha_hat)
-  Psi_hat <- rbind(cbind(Psi_hat[["X", "X"]], Psi_hat[["X", "Z"]]),
-                   cbind(Psi_hat[["Z", "X"]], Psi_hat[["Z", "Z"]]))
-
-  std_y_hat <- # standard deviation of fit
-    sqrt(switch(type_IC,
-                freq = compute_diag_XPsitZ(XZ, XZ, Psi_hat %*% (c(wt) * Psi_hat)),
-                bayesian = compute_diag_XPsitZ(XZ, XZ, Psi_hat)))
-
-  res <- compute_res_deviance(d, wt) # (weighted) residuals
-  edf <- sum(q + ed_re) # effective degrees of freedom
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <-
-    dim(wt) <- dim(z) <- dim(y) # set dimension for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <-
-    dimnames(wt) <- dimnames(z) <- dimnames(y) # set names for output matrices
-
-  out <- list(y = y, z = z, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res,
-              par_hat = par_hat, Psi_hat = Psi_hat, X = X, Z = Z,
-              edf = edf, lambda = lambda, q = q)
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_2d"
 
   return(out)
 }
 
-# Plots----
+#' 2D Whittaker-Henderson Smoothing (Regression, optim function)
+#'
+#' @inheritParams WH_1d_reg_optim
+#' @inheritParams WH_2d_reg_fixed_lambda
+#' @param lambda Initial smoothing parameters
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen through successive fits, using the
+#'   \code{optimize} function
+#'
+#' @export
+WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
+                            q = c(2, 2), p = dim(y), criterion = "REML",
+                            lambda = c(1e3, 1e3), verbose = FALSE, accu_edf = 1e-10) {
 
-plot.WH_1d <- function(x, trans) {
+  n <- dim(y)
+  n_pos <- sum(wt != 0)
+  which_pos <- which(wt != 0)
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
 
-  if (missing(trans)) trans <- \(x) x
+  X_SVD <- map(SVD, "X")
+  Z_SVD <- map(SVD, "Z")
+  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+    compute_XZ_mat()
+  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
+            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
+            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+    compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
 
-  plot(names(x$y), trans(x$y), xlab = "Age", ylab = "log - taux de décès",
-       xlim = range(as.numeric(names(x$y_hat))),
-       ylim = trans(range(c(x$y_hat - 2 * x$std_y_hat),
-                          c(x$y_hat + 2 * x$std_y_hat))))
-  lines(names(x$y_hat), trans(x$y_hat), col = "blue")
-  lines(names(x$y_hat), trans(x$y_hat - 2 * x$std_y_hat), col = "red", lty = 3)
-  lines(names(x$y_hat), trans(x$y_hat + 2 * x$std_y_hat), col = "red", lty = 3)
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
+
+  wt_pos <- c(wt)[which_pos]
+  y_pos <- c(y)[which_pos]
+
+  tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+  tUWy <- t(U_pos) %*% (wt_pos * y_pos)
+
+  WH_2d_reg_aux <- function(log_lambda) {
+
+    lambda <- exp(log_lambda)
+    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
+
+    s_lambda <- map2(lambda, s, `*`)
+    sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
+
+    gamma_hat <- c(Psi %*% tUWy)
+
+    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+
+    y_hat <- c(U %*% gamma_hat)
+
+    res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
+    dev <- sum(res * res) # residuals sum of squares
+    sum_edf <- sum(edf_par) # effective degrees of freedom
+
+    switch(criterion,
+           AIC = dev + 2 * sum_edf,
+           BIC = dev + log(prod(n_pos)) * sum_edf,
+           GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
+           REML = {
+             tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+             dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
+           })
+  }
+
+  lambda <- exp(stats::optim(par = log(lambda), fn = WH_2d_reg_aux, control = list(reltol = accu_edf))$par)
+  WH_2d_reg_fixed_lambda(y, wt, lambda, p, q)
 }
 
-plot.WH_2d <- function(x, trans) {
+#' 2D Whittaker-Henderson Smoothing (Regression, Fellner-Schall update)
+#'
+#' @inheritParams WH_2d_reg_optim
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen through successive fits, using the
+#'   \code{optimize} function
+#'
+#' @export
+WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
+                         q = c(2, 2), p = dim(y), lambda = c(1e3, 1e3),
+                         verbose = FALSE, accu_edf = 1e-10) {
 
-  if (missing(trans)) trans <- \(x) x
+  # Initialization
+  n <- dim(y)
+  which_pos <- which(wt != 0)
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
 
-  contour(as.numeric(colnames(x$y_hat)),
-          as.numeric(rownames(x$y_hat)),
-          nlevels = 20,
-          trans(t(x$y_hat)))
+  X_SVD <- map(SVD, "X")
+  Z_SVD <- map(SVD, "Z")
+  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+    compute_XZ_mat()
+  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
+            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
+            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+    compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
+
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
+
+  wt_pos <- c(wt)[which_pos]
+  y_pos <- c(y)[which_pos]
+
+  tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+  tUWy <- t(U_pos) %*% (wt_pos * y_pos)
+
+  init <- TRUE
+
+  # Loop
+  while (init || cond_edf_random) {
+
+    if (!init) lambda <- edf_random / RESS
+
+    s_lambda <- map2(lambda, s, `*`)
+    sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
+
+    gamma_hat <- c(Psi %*% tUWy)
+
+    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+    omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+
+    old_edf_random <- if (init) NA else edf_random
+    edf_random <- map_dbl(omega_j, \(x) sum(x * edf_par))
+    if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
+                     "=>", format(edf_random + q, digits = 3), "\n")
+    cond_edf_random <- if (init) TRUE else{
+      any(abs(edf_random - old_edf_random) > accu_edf * (old_edf_random + q))
+    }
+    init <- FALSE
+  }
+
+  y_hat <- c(U %*% gamma_hat)
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
+
+  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
+  edf <- c(wt) * diag(Psi) # effective degrees of freedom by observation / parameter
+
+  n_pos <- sum(wt != 0)
+  dev <- sum(res * res) # residuals sum of squares
+  sum_edf <- sum(edf) # effective degrees of freedom
+
+  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
+    dim(wt) <- dim(y) # set dimensions for output matrices
+  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
+    dimnames(wt) <- dimnames(y) # set names for output matrices
+
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
+  class(out) <- "WH_2d"
+
+  return(out)
+}
+
+# Likelihood----
+
+## 1D----
+
+#' Whittaker-Henderson Smoothing (Maximum Likelihood, fixed lambda)
+#'
+#' @inheritParams WH_1d_reg_fixed_lambda
+#' @inheritParams WH_1d_reg_optim
+#' @param d Vector of observed events
+#' @param ec Vector of central exposure
+#' @param accu_dev Tolerance for the convergence of the optimization procedure
+#'
+#' @return A list containing model fit, residuals and associated uncertainty
+#'
+#' @export
+WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
+                                  verbose = FALSE, accu_dev = 1e-12) {
+
+  # Initialization
+  n <- length(d)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- eigen_dec(n, p, q)
+
+  X <- SVD$X
+  Z <- SVD$Z
+  U <- cbind(X, Z)
+
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
+
+  y_hat <- log(pmax(d, 1e-8)) - off
+  new_wt <- exp(y_hat + off)
+  # gamma_hat <- c(t(U) %*% y_hat)
+  # RESS <- sum(gamma_hat * s * gamma_hat)
+  # dev_pen <- compute_deviance(d, new_wt) + lambda * RESS
+  dev_pen <- Inf
+  cond_dev_pen <- TRUE
+
+  # Loop
+  while (cond_dev_pen) {
+
+    # update of parameters, working vector and weight matrix
+    wt <- new_wt
+    z <- y_hat + d / wt - 1
+
+    tUWU <- t(U) %*% (wt * U)
+    tUWz <- t(U) %*% (wt * z)
+
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
+
+    gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+    y_hat <- c(U %*% gamma_hat)
+    new_wt <- exp(y_hat + off)
+
+    # update of convergence check
+    old_dev_pen <- dev_pen
+    RESS <- sum(gamma_hat * s * gamma_hat)
+    dev <- compute_deviance(d, new_wt)
+    dev_pen <- dev + lambda * RESS
+    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+  }
+
+  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
+
+  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
+
+  n_pos <- sum(wt != 0)
+  sum_edf <- sum(edf) # effective degrees of freedom
+
+  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev_pen - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
+    names(wt) <- names(z) <- names(y) # set names for output vectors
+
+  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, q = q)
+  class(out) <- "WH_1d"
+
+  return(out)
+}
+
+#' Whittaker-Henderson Smoothing (Maximum Likelihood, optimize function)
+#'
+#' @inheritParams WH_1d_reg_optim
+#' @inheritParams WH_1d_ml_fixed_lambda
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen through successive fits, using the
+#'   \code{optimize} function
+#'
+#' @export
+WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lambda = 1e3,
+                             verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+
+  # Initialization
+  n <- length(d)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- eigen_dec(n, p, q)
+
+  X <- SVD$X
+  Z <- SVD$Z
+  U <- cbind(X, Z)
+
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
+
+  WH_1d_ml_aux <- function(log_lambda) {
+
+    lambda <- exp(log_lambda)
+    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
+
+    y_hat <- log(pmax(d, 1e-8)) - off
+    new_wt <- exp(y_hat + off)
+    # gamma_hat <- c(t(U) %*% y_hat)
+    # RESS <- sum(gamma_hat * s * gamma_hat)
+    # dev_pen <- compute_deviance(d, new_wt) + lambda * RESS
+    dev_pen <- Inf
+    cond_dev_pen <- TRUE
+
+    # Loop
+    while (cond_dev_pen) {
+
+      # update of working vector and weight matrix
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+
+      tUWU <- t(U) %*% (wt * U)
+      tUWz <- t(U) %*% (wt * z)
+
+      Psi_chol <- tUWU
+      diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+      Psi_chol <- Psi_chol |> chol()
+      Psi <- Psi_chol |> chol2inv()
+
+      gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+      RESS <- sum(gamma_hat * s * gamma_hat)
+
+      y_hat <- c(U %*% gamma_hat)
+      new_wt <- exp(y_hat + off)
+
+      # update of convergence check
+      old_dev_pen <- dev_pen
+      dev <- compute_deviance(d, new_wt)
+      dev_pen <- dev + lambda * RESS
+      if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                       "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+      cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    }
+
+    n_pos <- sum(wt != 0)
+    sum_edf <- sum(t(Psi) * tUWU) # effective degrees of freedom
+
+    switch(criterion,
+           AIC = dev + 2 * sum_edf,
+           BIC = dev + log(n_pos) * sum_edf,
+           GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
+           REML = {
+             tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+             dev_pen - tr_log_P + tr_log_Psi
+           })
+  }
+
+  lambda <- exp(stats::optimize(f = WH_1d_ml_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
+  WH_1d_ml_fixed_lambda(d, ec, lambda, p, q)
+}
+
+#' Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
+#'
+#' @inheritParams WH_1d_ml_optim
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
+#'   formula
+#'
+#' @export
+WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
+                        lambda = 1e3, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+
+  # Initialization
+  n <- length(d)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- eigen_dec(n, p, q)
+
+  X <- SVD$X
+  Z <- SVD$Z
+  U <- cbind(X, Z)
+
+  s <- SVD$s
+  s_tilde <- s[- seq_len(q)]
+
+  y_hat <- log(pmax(d, 1e-8)) - off
+  new_wt <- exp(y_hat + off)
+
+  dev_pen <- Inf
+  cond_dev_pen <- TRUE
+
+  # Loop
+  while (cond_dev_pen) {
+
+    # update of working vector and weight matrix
+    wt <- new_wt
+    z <- y_hat + d / wt - 1
+
+    tUWU <- t(U) %*% (wt * U)
+    tUWz <- t(U) %*% (wt * z)
+
+    init_lambda <- TRUE
+
+    # Loop
+    while (init_lambda || cond_edf_random) {
+
+      if (!init_lambda) lambda <- edf_random / RESS
+
+      Psi_chol <- tUWU
+      diag(Psi_chol) <- diag(Psi_chol) + lambda * s
+      Psi_chol <- Psi_chol |> chol()
+      Psi <- Psi_chol |> chol2inv()
+
+      gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+      RESS <- sum(gamma_hat * s * gamma_hat)
+      edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+
+      old_edf_random <- if (init_lambda) NA else edf_random
+      edf_random <- sum(edf_par) - q
+      if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
+                       "=>", format(edf_random + q, digits = 3), "\n")
+      cond_edf_random <- if (init_lambda) TRUE else {
+        abs(edf_random - old_edf_random) > accu_edf * (old_edf_random + q)
+      }
+      init_lambda <- FALSE
+    }
+
+    y_hat <- c(U %*% gamma_hat)
+    new_wt <- exp(y_hat + off)
+
+    # update of convergence check
+    old_dev_pen <- dev_pen
+    dev <- compute_deviance(d, new_wt)
+    dev_pen <- dev + lambda * RESS
+    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+  }
+
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
+
+  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
+
+  n_pos <- sum(wt != 0)
+  sum_edf <- sum(edf) # effective degrees of freedom
+
+  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev_pen - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
+    names(wt) <- names(z) <- names(y) # set names for output vectors
+
+  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, q = q)
+  class(out) <- "WH_1d"
+
+  return(out)
+}
+
+## 2D----
+
+#' 2D Whittaker-Henderson Smoothing (Maximum Likelihood, fixed lambda)
+#'
+#' @inheritParams WH_2d_reg_fixed_lambda
+#' @inheritParams WH_1d_ml_fixed_lambda
+#'
+#' @return A list containing model fit, residuals and associated uncertainty
+#'
+#' @export
+WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
+                                  verbose = FALSE, accu_dev = 1e-12) {
+
+  # Initialization
+  n <- dim(d)
+  which_pos <- which(ec != 0)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+
+  X_SVD <- map(SVD, "X")
+  Z_SVD <- map(SVD, "Z")
+  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+    compute_XZ_mat()
+  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
+            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
+            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+    compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
+
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
+
+  s_lambda <- map2(lambda, s, `*`)
+  sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+  y_hat <- log(pmax(d, 1e-8)) - off
+  new_wt <- exp(y_hat + off)
+  # gamma_hat <- c(t(U) %*% c(y_hat))
+  # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+  # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+  dev_pen <- Inf
+  cond_dev_pen <- TRUE
+
+  # Loop
+  while (cond_dev_pen) {
+
+    # update of parameters, working vector and weight matrix
+    wt <- new_wt
+    z <- y_hat + d / wt - 1
+
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+
+    Psi_chol <- tUWU
+    diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+    Psi_chol <- Psi_chol |> chol()
+    Psi <- Psi_chol |> chol2inv()
+
+    gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+
+    y_hat <- c(U %*% gamma_hat)
+    new_wt <- exp(y_hat + off)
+
+    # update of convergence check
+    old_dev_pen <- dev_pen
+    dev <- compute_deviance(d, new_wt)
+    dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+  }
+
+  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
+
+  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
+
+  n_pos <- sum(wt != 0)
+  sum_edf <- sum(edf) # effective degrees of freedom
+
+  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev_pen - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
+    dim(wt) <- dim(y) # set dimensions for output matrices
+  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
+    dimnames(wt) <- dimnames(y) # set names for output matrices
+
+  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, q = q)
+  class(out) <- "WH_2d"
+
+  return(out)
+}
+
+#' 2D Whittaker-Henderson Smoothing (Maximum Likelihood, optim function)
+#'
+#' @inheritParams WH_2d_ml_fixed_lambda
+#' @inheritParams WH_2d_reg_optim
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen through successive fits, using the
+#'   \code{optimize} function
+#'
+#' @export
+WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", lambda = c(1e3, 1e3),
+                             verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+
+  n <- dim(d)
+  which_pos <- which(ec != 0)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+
+  X_SVD <- map(SVD, "X")
+  Z_SVD <- map(SVD, "Z")
+  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+    compute_XZ_mat()
+  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
+            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
+            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+    compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
+
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
+
+  WH_2d_ml_aux <- function(log_lambda) {
+
+    lambda <- exp(log_lambda)
+    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
+
+    s_lambda <- map2(lambda, s, `*`)
+    sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+    y_hat <- log(pmax(d, 1e-8)) - off
+    new_wt <- exp(y_hat + off)
+    # gamma_hat <- c(t(U) %*% c(y_hat))
+    # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    dev_pen <- Inf
+    cond_dev_pen <- TRUE
+
+    # Loop
+    while (cond_dev_pen) {
+
+      # update of parameters, working vector and weight matrix
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+
+      Psi_chol <- tUWU
+      diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+      Psi_chol <- Psi_chol |> chol()
+      Psi <- Psi_chol |> chol2inv()
+
+      gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+      RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+
+      y_hat <- c(U %*% gamma_hat)
+      new_wt <- exp(y_hat + off)
+
+      # update of convergence check
+      old_dev_pen <- dev_pen
+      dev <- compute_deviance(d, new_wt)
+      dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+      if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                       "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+      cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    }
+
+    n_pos <- sum(wt != 0)
+    sum_edf <- sum(t(Psi) * tUWU) # effective degrees of freedom
+
+    switch(criterion,
+           AIC = dev + 2 * sum_edf,
+           BIC = dev + log(prod(n_pos)) * sum_edf,
+           GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
+           REML = {
+             tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+             dev_pen - tr_log_P + tr_log_Psi
+           })
+  }
+
+  lambda <- exp(stats::optim(par = log(lambda),
+                      fn = WH_2d_ml_aux,
+                      control = list(reltol = accu_edf))$par)
+  WH_2d_ml_fixed_lambda(d, ec, lambda, p, q)
+}
+
+#' 2D Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
+#'
+#' @inheritParams WH_2d_ml_optim
+#'
+#' @return A list containing model fit, residuals and associated uncertainty.
+#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
+#'   formula
+#'
+#' @export
+WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
+                          lambda = c(1e3, 1e3), accu_edf = 1e-10, accu_dev = 1e-12) {
+
+  # Initialization
+  n <- dim(d)
+  which_pos <- which(ec != 0)
+  sum_d <- sum(d)
+  off <- log(pmax(ec, 1e-4))
+  y <- ifelse(d == 0, NA, log(d)) - off
+
+  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+
+  X_SVD <- map(SVD, "X")
+  Z_SVD <- map(SVD, "Z")
+  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+    compute_XZ_mat()
+  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
+            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
+            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+    compute_XZ_mat()
+  U <- cbind(X, Z)
+  U_pos <- U[which_pos,]
+
+  s_SVD <- map(SVD, "s")
+  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
+                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
+                    rep(s_tilde_SVD[[2]], each = q[[1]]),
+                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
+            c(rep(0, prod(q)), s_tilde[[2]]))
+
+  y_hat <- log(pmax(d, 1e-8)) - off
+  new_wt <- exp(y_hat + off)
+  # gamma_hat <- c(t(U) %*% c(y_hat))
+  # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+  # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+  dev_pen <- Inf
+  cond_dev_pen <- TRUE
+
+  # Loop
+  while (cond_dev_pen) {
+
+    # update of parameters, working vector and weight matrix
+    wt <- new_wt
+    z <- y_hat + d / wt - 1
+
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+
+    init_lambda <- TRUE
+
+    # Loop
+    while (init_lambda || cond_edf_random) {
+
+      if (!init_lambda) lambda <- edf_random / RESS
+
+      s_lambda <- map2(lambda, s, `*`)
+      sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+      Psi_chol <- tUWU
+      diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+      Psi_chol <- Psi_chol |> chol()
+      Psi <- Psi_chol |> chol2inv()
+
+      gamma_hat <- c(Psi %*% tUWz) # fitted value
+
+      RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+      edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+      omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+
+      old_edf_random <- if (init_lambda) NA else edf_random
+      edf_random <- map_dbl(omega_j, \(x) sum(x * edf_par))
+      if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
+                       "=>", format(edf_random + q, digits = 3), "\n")
+      cond_edf_random <- if (init_lambda) TRUE else any(abs(edf_random - old_edf_random) > accu_edf * (old_edf_random + q))
+      init_lambda <- FALSE
+    }
+
+    y_hat <- c(U %*% gamma_hat)
+    new_wt <- exp(y_hat + off)
+
+    # update of convergence check
+    old_dev_pen <- dev_pen
+    dev <- compute_deviance(d, new_wt)
+    dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
+                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
+    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+  }
+
+  Psi <- U %*% Psi %*% t(U)
+  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
+
+  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
+  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
+
+  n_pos <- sum(wt != 0)
+  sum_edf <- sum(edf) # effective degrees of freedom
+
+  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- dev_pen - tr_log_P + tr_log_Psi
+
+  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
+    dim(wt) <- dim(y) # set dimensions for output matrices
+  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
+    dimnames(wt) <- dimnames(y) # set names for output matrices
+
+  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, q = q)
+  class(out) <- "WH_2d"
+
+  return(out)
 }
 
 # Extrapolation----
 
-predict.WH_1d <- function(object, newdata = NULL, type_IC = "bayesian") {
+predict.WH_1d <- function(object, newdata = NULL) {
 
   data <- as.numeric(names(object$y))
   full_data <- sort(union(data, newdata))
@@ -578,42 +1356,37 @@ predict.WH_1d <- function(object, newdata = NULL, type_IC = "bayesian") {
   n <- length(data)
   n_pred <- length(full_data)
 
-  C1 <- diag(1, n, n_pred)[, ind] # constraint matrix
-  C2 <- matrix(0L, n_pred - n, n_pred)
-  C2[cbind(seq_len(n_pred - n), which(colSums(C1) == 0))] <- 1
+  C <- diag(1L, n, n_pred)[, ind] # constraint matrix
 
-  wt <- t(C1) %*% c(object$wt)
-  W_pred <- diag(c(wt)) # extended weight matrix
-
+  wt_pred <- c(t(C) %*% object$wt)
+  W_pred <- diag(wt_pred) # extended weight matrix
   D_mat_pred <- build_D_mat(n_pred, object$q) # extended difference matrices
   P_pred <- object$lambda * crossprod(D_mat_pred) # extended penalization matrix
 
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # un constrained variance / covariance matrix
+  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+  Psi_inv <- object$Psi |> chol() |> chol2inv()
+  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
 
-  Psi_11_pred_inv <- (C1 %*% Psi_pred %*% t(C1)) |> chol() |> chol2inv()
-  Psi_21_pred <- (C2 %*% Psi_pred %*% t(C1))
+  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  y_pred <- c(A_pred %*% object$y_hat)
+  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
 
-  p <- length(object$par_hat)
-  XZ_pred <- rbind(diag(p), Psi_21_pred %*% Psi_11_pred_inv)
-  if ("X" %in% names(object) && "Z" %in% names(object)) XZ_pred <- XZ_pred %*% cbind(object$X, object$Z)
+  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
+  y_pred_2 <- c(A_pred_2 %*% object$y_hat)
+  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
 
-  y_hat <- c(XZ_pred %*% object$par_hat)[ind]
+  names(y_pred) <- names(std_y_pred) <-
+    names(std_y_pred) <- names(std_y_pred_2) <- full_data
 
-  sigma_2_hat <- if ("sigma_2_hat" %in% names(object)) object$sigma_2_hat else 1
-  std_y_hat <- sqrt(sigma_2_hat * compute_diag_XPsitZ(XZ_pred, XZ_pred, switch(
-    type_IC,
-    freq = object$Psi_hat %*% (c(object$wt) * object$Psi_hat),
-    bayesian = object$Psi_hat)))[ind]
-
-  names(y_hat) <- names(std_y_hat) <- full_data
-
-  object$y_hat <- y_hat
-  object$std_y_hat <- std_y_hat
+  object$y_pred <- y_pred
+  object$std_y_pred <- std_y_pred
+  object$y_pred_2 <- y_pred_2
+  object$std_y_pred_2 <- std_y_pred_2
 
   return(object)
 }
 
-predict.WH_2d <- function(object, newdata = NULL, type_IC = "bayesian") {
+predict.WH_2d <- function(object, newdata = NULL) {
 
   data <- dimnames(object$y) |> map(as.numeric)
   full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
@@ -622,50 +1395,184 @@ predict.WH_2d <- function(object, newdata = NULL, type_IC = "bayesian") {
   n <- map_int(data, length)
   n_pred <- map_int(full_data, length)
 
-  C1 <- map2(n, n_pred, \(x,y) diag(1, x, y)) |>
+  C <- map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
     map2(ind, \(x,y) x[,y]) |>
     rev() |>
     reduce(kronecker) # constraint matrix
-  C2 <- matrix(0L, prod(n_pred) - prod(n), prod(n_pred))
-  C2[cbind(seq_len(prod(n_pred) - prod(n)), which(colSums(C1) == 0))] <- 1
 
-  wt <- t(C1) %*% c(object$wt)
-  W_pred <- diag(c(wt)) # extended weight matrix
-
+  wt_pred <- c(t(C) %*% c(object$wt))
+  W_pred <- diag(wt_pred) # extended weight matrix
   D_mat_pred <- map2(n_pred, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
 
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # un constrained variance / covariance matrix
+  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+  Psi_inv <- object$Psi |> chol() |> chol2inv()
+  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
 
-  Psi_11_pred_inv <- (C1 %*% Psi_pred %*% t(C1)) |> chol() |> chol2inv()
-  Psi_21_pred <- (C2 %*% Psi_pred %*% t(C1))
+  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  y_pred <- c(A_pred %*% c(object$y_hat))
+  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
 
-  p <- length(object$par_hat)
+  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
+  y_pred_2 <- c(A_pred_2 %*% c(object$y_hat))
+  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
 
-  XZ_pred <- rbind(diag(p), Psi_21_pred %*% Psi_11_pred_inv)
-  if ("X" %in% names(object) && "Z" %in% names(object)) XZ_pred <- XZ_pred %*% cbind(object$X, object$Z)
+  dim(y_pred) <- dim(std_y_pred) <-
+    dim(y_pred_2) <- dim(std_y_pred_2) <- map_int(full_data, length) # set dimension for output matrices
+  dimnames(y_pred) <- dimnames(std_y_pred) <-
+    dimnames(y_pred_2) <- dimnames(std_y_pred_2) <- full_data # set names for output matrices
 
-  y_hat <- c(XZ_pred %*% object$par_hat)
-
-  sigma_2_hat <- if ("sigma_2_hat" %in% names(object)) object$sigma_2_hat else 1
-  std_y_hat <- sqrt(sigma_2_hat * compute_diag_XPsitZ(XZ_pred, XZ_pred, switch(
-    type_IC,
-    freq = object$Psi_hat %*% (c(object$wt) * object$Psi_hat),
-    bayesian = object$Psi_hat)))
-
-  y_hat_mat <- std_y_hat_mat <- rep(0, prod(n_pred))
-  dim(y_hat_mat) <- dim(std_y_hat_mat) <- map_int(full_data, length) # set dimension for output matrices
-  dimnames(y_hat_mat) <- dimnames(std_y_hat_mat) <- full_data # set names for output matrices
-
-  y_hat_mat[which(colSums(C1) == 1)] <- y_hat[seq_len(prod(n))]
-  y_hat_mat[which(colSums(C1) == 0)] <- y_hat[prod(n) + seq_len(prod(n_pred) - prod(n))]
-
-  std_y_hat_mat[which(colSums(C1) == 1)] <- std_y_hat[seq_len(prod(n))]
-  std_y_hat_mat[which(colSums(C1) == 0)] <- std_y_hat[prod(n) + seq_len(prod(n_pred) - prod(n))]
-
-  object$y_hat <- y_hat_mat
-  object$std_y_hat <- std_y_hat_mat
+  object$y_pred <- y_pred
+  object$std_y_pred <- std_y_pred
+  object$y_pred_2 <- y_pred_2
+  object$std_y_pred_2 <- std_y_pred_2
 
   return(object)
+}
+
+# Mise en forme----
+
+#' Convert fitted WH object into a data.frame
+#'
+#' @param object An object returned by one of the WH fitting function
+#' @param dim1 The (optional) name to be given to the first dimension
+#' @param dim2 The (optional) name to be given to the second dimension
+#'
+#' @return A data.frame gathering information about the fitted and predicted
+#'   values, the associated uncertainty, residuals, effective degrees of
+#'   freedom...
+#'
+#' @export
+output_to_df <- function(object, dim1 = "x", dim2 = "t") {
+
+  if ("y_pred" %in% names(object)) {
+    object$y_hat <- object$y_pred
+    object$std_y_hat = object$std_y_pred
+  }
+
+  df <- data.frame(y_hat = c(object$y_hat),
+                   std_y_hat = c(object$std_y_hat))
+
+  if (inherits(object, "WH_1d")) {
+
+    x <- as.numeric(names(object$y))
+    x_pred <- as.numeric(names(object$y_hat))
+
+    df[[dim1]] <- x_pred
+
+    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y[x_pred %in% x] <- c(object$y)
+    df$wt[x_pred %in% x] <- c(object$wt)
+    df$res[x_pred %in% x] <- c(object$res)
+    df$edf[x_pred %in% x] <- c(object$edf)
+
+    if("ec" %in% names(object) && "d" %in% names(object)) {
+
+      df$ec <- df$d <- NA_real_
+
+      df$ec[x_pred %in% x] <- c(object$ec)
+      df$d[x_pred %in% x] <- c(object$d)
+    }
+
+    df[,c(dim1, intersect(
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      names(object)))]
+
+  } else {
+
+    x <- as.numeric(rownames(object$y))
+    x_pred <- as.numeric(rownames(object$y_hat))
+
+    t <- as.numeric(colnames(object$y))
+    t_pred <- as.numeric(colnames(object$y_hat))
+
+    df[[dim1]] <- rep(x_pred, times = length(t_pred))
+    df[[dim2]] <- rep(t_pred, each = length(x_pred))
+
+    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$y)
+    df$wt[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$wt)
+    df$res[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$res)
+    df$edf[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$edf)
+
+    if("ec" %in% names(object) && "d" %in% names(object)) {
+
+      df$ec <- df$d <- NA_real_
+
+      df$ec[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$ec)
+      df$d[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$d)
+    }
+
+    df[,c(dim1, dim2, intersect(
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      names(object)))]
+  }
+}
+
+# Plots----
+
+#' Plot 1D WH fit
+#'
+#' @param x An object returned by one of the WH 1D fitting function
+#' @param what What should be plotted (fit, res, edf)
+#' @param trans An (optional) transformation to be applied to the data
+#'
+#' @return A plot representing the given element of the fit...
+#'
+#' @export
+plot.WH_1d <- function(x, what = "fit", trans) {
+
+  df <- output_to_df(x)
+  if (missing(trans)) trans <- \(x) x
+
+  switch(what,
+         fit = {
+           plot(df$x, trans(df$y),
+                xlab = "x",
+                ylab = "log - taux de décès",
+                xlim = range(df$x),
+                ylim = trans(range(c(df$y_hat - 2 * df$std_y_hat),
+                                   c(df$y_hat + 2 * df$std_y_hat))))
+           graphics::lines(df$x, trans(df$y_hat), col = "blue")
+           graphics::lines(df$x, trans(df$y_hat - 2 * df$std_y_hat), col = "red", lty = 3)
+           graphics::lines(df$x, trans(df$y_hat + 2 * df$std_y_hat), col = "red", lty = 3)
+         },
+         res = {
+           plot(df$x, df$res,
+                xlab = "x", ylab = "résidus de déviance", type = "b")
+           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
+         },
+         edf = {
+           plot(df$x, df$edf,
+                xlab = "x", ylab = "dégrés de liberté", type = "b")
+           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
+           graphics::abline(a = 1, b = 0, lty = 2, col = "blue")
+         })
+}
+
+#' Plot 1D WH fit
+#'
+#' @param x An object returned by one of the WH 2D fitting function
+#' @param what What should be plotted (y_hat, std_y_hat, res, edf)
+#' @param trans An (optional) transformation to be applied to the data
+#'
+#' @return A plot representing the given element of the fit...
+#'
+#' @export
+plot.WH_2d <- function(x, what = "y_hat", trans) {
+
+  df <- output_to_df(x)
+  if (missing(trans)) trans <- \(x) x
+
+  x <- unique(df$x)
+  t <- unique(df$t)
+
+  data <- matrix(c(df[[what]]), length(t), length(x), byrow = TRUE)
+
+  graphics::contour(t, x, data,
+          nlevels = 20,
+          xlab = "x",
+          ylab = "t",
+          main = what)
 }
