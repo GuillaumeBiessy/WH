@@ -23,23 +23,23 @@ the \code{method} argument is also provided, in which case \code{lambda}
 will be used as the starting parameter for the optimization procedure.}
 
 \item{method}{The method to be used to find an optimal smoothing parameter.
-Default to `"fixed_lambda"` if \code{lambda} is supplied, meaning no
-optimization is performed. Otherwise, default to `"fs"` which means the
-generalized Fellner-Schall method is used. The third option is `"optim"`
+Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
+optimization is performed. Otherwise, default to \code{"fs"} which means the
+generalized Fellner-Schall method is used. The third option is \code{"optim"}
 meaning the \code{optim} function from package \code{stats} will be used
 with the default Nelder-Mead algorithm. The optimization criterion used for
-the `"fs"` method as well as the default of the `"optim"` method is is the
-restricted maximum likelihood (REML). For the `"optim"` method others
-options such as `AIC`, `BIC` and `GCV` may be used by supplying for example
+the \code{"fs"} method as well as the default of the \code{"optim"} method is is the
+restricted maximum likelihood (REML). For the \code{"optim"} method others
+options such as \code{AIC}, \code{BIC} and \code{GCV} may be used by supplying for example
 \code{criterion = "AIC"} as an extra argument to the function}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are
 considered smooth and are therefore unpenalized. Should be left to the
 default of \code{2} for most practical applications.}
 
-\item{framework}{Default framework is `"ml"` which stands for maximum
+\item{framework}{Default framework is \code{"ml"} which stands for maximum
 likelihood unless both the \code{y} and \code{wt} arguments are provided,
-in which case the `"reg"` or regression framework is used. The regression
+in which case the \code{"reg"} or regression framework is used. The regression
 framework is an asymptotical approximation of the maximum likelihood
 likelihood framework.}
 

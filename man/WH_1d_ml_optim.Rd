@@ -41,8 +41,8 @@ procedure}
 }
 \value{
 A list containing model fit, residuals and associated uncertainty.
-  Smoothing parameter is chosen through successive fits, using the
-  \code{optimize} function
+Smoothing parameter is chosen through successive fits, using the
+\code{optimize} function
 }
 \description{
 Whittaker-Henderson Smoothing (Maximum Likelihood, optimize function)

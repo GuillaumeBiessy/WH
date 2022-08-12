@@ -2,6 +2,8 @@
 
 S3method(plot,WH_1d)
 S3method(plot,WH_2d)
+S3method(predict,WH_1d)
+S3method(predict,WH_2d)
 export(WH_1d)
 export(WH_1d_ml_fixed_lambda)
 export(WH_1d_ml_fs)

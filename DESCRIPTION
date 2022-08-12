@@ -1,18 +1,18 @@
 Package: WH
 Type: Package
-Title: Whittaker-Henderson Smoothing
+Title: Apply Whittaker-Henderson Smoothing to Survival Data
 Version: 0.1.0
-Author: Guillaume Biessy, PhD, fully qualified actuary
-Maintainer: <guillaume.biessy78@gmail.com>
+Authors@R: person("Biessy", "Guillaume", email = "guillaume.biessy78@gmail.com",
+  role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3756-7345"))
 Description: Implementation of Whittaker-Henderson Smoothing for the gradation 
-  of actuarial tables for person insurance risks such as mortality, disability, 
-  long-term care and unemployment. The package covers tables in 1 or 2 dimensions
-  and perform automatic selection of the smoothing parameters. Smoothing is 
-  performed over vectors / matrices containing the number of observed events and 
-  the associated central risk exposure in the framework of maximum likelihood 
-  estimation or an approximate regression framework. Optimal parameter selection
-  may be performed using the Nelder-Mead algorithm from the optim function in the
-  stats package or using the generalized Fellner-Schall update formula.
+    of actuarial tables for person insurance risks such as mortality, disability, 
+    long-term care and unemployment. The package handles tables in 1 or 2 dimensions
+    and performs automatic selection of the smoothing parameters. Smoothing is 
+    applied to vectors / matrices containing the number of observed events and 
+    the associated central risk exposure in the framework of maximum likelihood 
+    estimation or an approximate regression framework. Optimal parameter selection
+    relies on the Nelder-Mead algorithm from the optim function in the
+    stats package or uses the generalized Fellner-Schall update formula.
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -25,4 +25,5 @@ Suggests:
 Config/testthat/edition: 3
 Imports: 
     purrr
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

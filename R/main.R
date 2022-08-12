@@ -665,7 +665,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   return(out)
 }
 
-# Likelihood----
+# Maximum Likelihood----
 
 ## 1D----
 
@@ -1347,7 +1347,17 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
 # Extrapolation----
 
-predict.WH_1d <- function(object, newdata = NULL) {
+#' Predict 1D WH values
+#'
+#' @param object An object returned by one of the WH 1D fitting function
+#' @param newdata A list containing a vector indicating the new observation
+#'   positions
+#' @param ... Not used
+#'
+#' @return An WH_1d object with predicted values...
+#'
+#' @export
+predict.WH_1d <- function(object, newdata = NULL, ...) {
 
   data <- as.numeric(names(object$y))
   full_data <- sort(union(data, newdata))
@@ -1386,7 +1396,17 @@ predict.WH_1d <- function(object, newdata = NULL) {
   return(object)
 }
 
-predict.WH_2d <- function(object, newdata = NULL) {
+#' Predict 2D WH values
+#'
+#' @param object An object returned by one of the WH 1D fitting function
+#' @param newdata A list containing two vectors indicating the new observation
+#'   positions
+#' @param ... Not used
+#'
+#' @return An WH_2d object with predicted values...
+#'
+#' @export
+predict.WH_2d <- function(object, newdata = NULL, ...) {
 
   data <- dimnames(object$y) |> map(as.numeric)
   full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
@@ -1517,11 +1537,12 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' @param x An object returned by one of the WH 1D fitting function
 #' @param what What should be plotted (fit, res, edf)
 #' @param trans An (optional) transformation to be applied to the data
+#' @param ... Not used
 #'
 #' @return A plot representing the given element of the fit...
 #'
 #' @export
-plot.WH_1d <- function(x, what = "fit", trans) {
+plot.WH_1d <- function(x, what = "fit", trans, ...) {
 
   df <- output_to_df(x)
   if (missing(trans)) trans <- \(x) x
@@ -1530,7 +1551,7 @@ plot.WH_1d <- function(x, what = "fit", trans) {
          fit = {
            plot(df$x, trans(df$y),
                 xlab = "x",
-                ylab = "log - taux de décès",
+                ylab = "log - hasard rate",
                 xlim = range(df$x),
                 ylim = trans(range(c(df$y_hat - 2 * df$std_y_hat),
                                    c(df$y_hat + 2 * df$std_y_hat))))
@@ -1540,12 +1561,12 @@ plot.WH_1d <- function(x, what = "fit", trans) {
          },
          res = {
            plot(df$x, df$res,
-                xlab = "x", ylab = "résidus de déviance", type = "b")
+                xlab = "x", ylab = "deviance residuals", type = "b")
            graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
          },
          edf = {
            plot(df$x, df$edf,
-                xlab = "x", ylab = "dégrés de liberté", type = "b")
+                xlab = "x", ylab = "degrees of freedom", type = "b")
            graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
            graphics::abline(a = 1, b = 0, lty = 2, col = "blue")
          })
@@ -1556,11 +1577,12 @@ plot.WH_1d <- function(x, what = "fit", trans) {
 #' @param x An object returned by one of the WH 2D fitting function
 #' @param what What should be plotted (y_hat, std_y_hat, res, edf)
 #' @param trans An (optional) transformation to be applied to the data
+#' @param ... Not used
 #'
 #' @return A plot representing the given element of the fit...
 #'
 #' @export
-plot.WH_2d <- function(x, what = "y_hat", trans) {
+plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
 
   df <- output_to_df(x)
   if (missing(trans)) trans <- \(x) x

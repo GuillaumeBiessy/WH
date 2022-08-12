@@ -9,6 +9,28 @@
 #' @name WH-package
 NULL
 
+#' Simulated Mortality Datasets
+#'
+#' Agregated mortality datasets built from simulated portfolios
+#'
+#' @format A list of 3 datasets of increasing sizes, each one containing :
+#'   \describe{ \item{expo}{An array containing the portfolio central exposure
+#'   in years for each combination of age and gender} \item{exit}{An array
+#'   containing the number of observed deaths for each combination of age and
+#'   gender}}
+"portfolios_mort"
+
+#' Simulated Long-Term Care Datasets
+#'
+#' Agregated long-term care datasets built from simulated portfolios
+#'
+#' @format A list of 3 datasets of increasing sizes, each one containing :
+#'   \describe{ \item{expo}{An array containing the portfolio central exposure
+#'   in years for each combination of age, duration in LTC and gender}
+#'   \item{exit}{An array containing the number of observed deaths for each
+#'   combination of age, duration in LTC and gender}}
+"portfolios_LTC"
+
 ## quiets concerns of R CMD check re: the .'s that appear in pipelines and data.table
 if (getRversion() >= "4.0")  {
   gv <- c()

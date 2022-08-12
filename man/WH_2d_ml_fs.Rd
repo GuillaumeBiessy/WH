@@ -37,8 +37,8 @@ procedure}
 }
 \value{
 A list containing model fit, residuals and associated uncertainty.
-  Smoothing parameter is chosen using the generalized Fellner-Schall update
-  formula
+Smoothing parameter is chosen using the generalized Fellner-Schall update
+formula
 }
 \description{
 2D Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)

@@ -34,8 +34,8 @@ procedure}
 }
 \value{
 A list containing model fit, residuals and associated uncertainty.
-  Smoothing parameter is chosen through successive fits, using the
-  \code{optimize} function
+Smoothing parameter is chosen through successive fits, using the
+\code{optimize} function
 }
 \description{
 2D Whittaker-Henderson Smoothing (Regression, Fellner-Schall update)

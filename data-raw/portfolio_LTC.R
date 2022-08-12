@@ -29,6 +29,7 @@ portfolios_LTC <- c(1e3, 5e3, 2.5e4) |>
       timescales = list(age = list(y = 0:120),
                         duration = list(y = seq(0, 30, 1))),
       covariates = list(Sexe = NULL),
-      exits = 1)
+      exits = 1) |>
+  map(\(x) x[c("expo", "exit")])
 
 usethis::use_data(portfolios_LTC, overwrite = TRUE)

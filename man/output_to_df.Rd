@@ -15,8 +15,8 @@ output_to_df(object, dim1 = "x", dim2 = "t")
 }
 \value{
 A data.frame gathering information about the fitted and predicted
-  values, the associated uncertainty, residuals, effective degrees of
-  freedom...
+values, the associated uncertainty, residuals, effective degrees of
+freedom...
 }
 \description{
 Convert fitted WH object into a data.frame

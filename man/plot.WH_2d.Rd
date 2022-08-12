@@ -4,7 +4,7 @@
 \alias{plot.WH_2d}
 \title{Plot 1D WH fit}
 \usage{
-\method{plot}{WH_2d}(x, what = "y_hat", trans)
+\method{plot}{WH_2d}(x, what = "y_hat", trans, ...)
 }
 \arguments{
 \item{x}{An object returned by one of the WH 2D fitting function}
@@ -12,6 +12,8 @@
 \item{what}{What should be plotted (y_hat, std_y_hat, res, edf)}
 
 \item{trans}{An (optional) transformation to be applied to the data}
+
+\item{...}{Not used}
 }
 \value{
 A plot representing the given element of the fit...

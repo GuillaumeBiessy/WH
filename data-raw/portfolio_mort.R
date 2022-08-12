@@ -26,6 +26,7 @@ set_names(c("20k", "100k", "500k")) |>
   map(slice_portfolio,
       timescales = list(age = list(y = 0:120)),
       covariates = list(Sexe = NULL),
-      exits = 1)
+      exits = 1) |>
+  map(\(x) x[c("expo", "exit")])
 
 usethis::use_data(portfolios_mort, overwrite = TRUE)
