@@ -95,7 +95,7 @@ WH_1d_ml_optim(d, ec) |> plot.WH_1d("edf")
 WH_1d_ml_fs(d, ec) |> plot.WH_1d("edf")
 
 # Extrapolation
-newdata <- 18:119
+newdata <- 18:99
 
 expect_equal(WH_1d_reg_fs(y, wt) |> predict.WH_1d(newdata),
              WH_1d_reg_optim(y, wt) |> predict.WH_1d(newdata),

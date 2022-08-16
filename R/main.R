@@ -50,7 +50,7 @@
 #'   framework.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
-#' @return A fitted \code{WH_1d} object.
+#' @returns An object of class \code{WH_1d}.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -63,34 +63,33 @@
 #'
 #' # Maximum likelihood
 #' WH_1d(d, ec, lambda = 1e2)
-#' WH_1d(d, ec) # Default generalized Fellner-Schall method
-#' WH_1d(d, ec, method = "optim") # Alternative method base on optimize function
+#' WH_1d(d, ec) # default generalized Fellner-Schall method
+#' WH_1d(d, ec, method = "optim") # alternative method base on optimize function
 #'
-#' expect_equal(WH_1d(d, ec, method = "fs"),
-#'              WH_1d(d, ec, method = "optim"),
-#'             tolerance = 1e-1) # generalized Fellner-Schall method  is approximate in maximum likelihood framework
+#' testthat::expect_equal(WH_1d(d, ec, method = "fs"),
+#'                        WH_1d(d, ec, method = "optim"),
+#'                        tolerance = 1e-1)
+#' # generalized Fellner-Schall method is approximate in maximum likelihood framework
 #'
-#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
-#' WH_1d(d, ec, criterion = "AIC")
-#' WH_1d(d, ec, criterion = "BIC")
 #' WH_1d(d, ec, criterion = "GCV")
+#' # alternative optimization criteria for smoothing parameter selection
 #'
 #' # Regression
-#' WH_1d(y = y, wt = wt, lambda = 1e2) # Regression framework is triggered when y is supplied
+#' WH_1d(y = y, wt = wt, lambda = 1e2)
+#' # regression framework is default when y is supplied
 #' WH_1d(d, y = y, lambda = 1e2) # d is used as wt
-#' WH_1d(d, ec, framework = "reg", lambda = 1e2) # Setting framework = "reg" forces computation of y from d and ec
-#'
+#' WH_1d(d, ec, framework = "reg", lambda = 1e2)
+#' # Setting framework = "reg" forces computation of y from d and ec
 #'
 #' WH_1d(y = y, wt = wt)
 #' WH_1d(y = y, wt = wt, method = "optim")
-#' expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
-#'              WH_1d(y = y, wt = wt, method = "optim"),
-#'              tolerance = 1e-6)  # generalized Fellner-Schall method is exact in regression framework
+#' testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
+#'                        WH_1d(y = y, wt = wt, method = "optim"),
+#'                        tolerance = 1e-6)
+#' # generalized Fellner-Schall method is exact in regression framework
 #'
-#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
-#' WH_1d(y = y, wt = wt, criterion = "AIC")
-#' WH_1d(y = y, wt = wt, criterion = "BIC")
 #' WH_1d(y = y, wt = wt, criterion = "GCV")
+#' # alternative optimization criteria for smoothing parameter selection
 #'
 #' @export
 WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...) {
@@ -172,7 +171,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   when using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #'
-#' @return A fitted \code{WH_2d} object.
+#' @returns An object of class \code{WH_2d}.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -187,37 +186,42 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'
 #' # Maximum likelihood
 #' WH_2d(d, ec, lambda = 1e2)
-#' WH_2d(d, ec) # Default generalized Fellner-Schall method
-#' WH_2d(d, ec, method = "optim") # Alternative method base on optimize function
+#' fit_fs <- WH_2d(d, ec) # default generalized Fellner-Schall method
+#' fit_optim <- WH_2d(d, ec, method = "optim") # alternative method base on optim function
+#' testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-1)
+#' # generalized Fellner-Schall method is approximate in maximum likelihood framework
 #'
-#' expect_equal(WH_2d(d, ec, method = "fs"),
-#'              WH_2d(d, ec, method = "optim"),
-#'              tolerance = 1e-1) # generalized Fellner-Schall method  is approximate in maximum likelihood framework
-#'
-#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
-#' WH_2d(d, ec, criterion = "AIC")
-#' WH_2d(d, ec, criterion = "BIC")
 #' WH_2d(d, ec, criterion = "GCV")
+#' # alternative optimization criteria for smoothing parameter selectio
 #'
 #' # Regression
-#' WH_2d(y = y, wt = wt, lambda = 1e2) # Regression framework is triggered when y is supplied
+#' WH_2d(y = y, wt = wt, lambda = 1e2)
+#' # regression framework is triggered when y is supplied
 #' WH_2d(d, y = y, lambda = 1e2) # d is used as wt
-#' WH_2d(d, ec, framework = "reg", lambda = 1e2) # Setting framework = "reg" forces computation of y from d and ec
+#' WH_2d(d, ec, framework = "reg", lambda = 1e2)
+#' # setting framework = "reg" forces computation of y from d and ec
 #'
+#' fit_fs <- WH_2d(y = y, wt = wt, method = "fs") # default generalized Fellner-Schall method
+#' fit_optim <- WH_2d(y = y, wt = wt, method = "optim") # alternative method base on optim function
+#' testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-4)
+#' # generalized Fellner-Schall method is exact in regression framework
 #'
-#' WH_2d(y = y, wt = wt)
-#' WH_2d(y = y, wt = wt, method = "optim")
-#' expect_equal(WH_2d(y = y, wt = wt, method = "fs"),
-#'              WH_2d(y = y, wt = wt, method = "optim"),
-#'              tolerance = 1e-6)  # generalized Fellner-Schall method is exact in regression framework
-#'
-#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
-#' WH_2d(y = y, wt = wt, criterion = "AIC")
-#' WH_2d(y = y, wt = wt, criterion = "BIC")
 #' WH_2d(y = y, wt = wt, criterion = "GCV")
+#' # alternative optimization criteria for smoothing parameter selection
+#'
+#' keep_age2 <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
+#' keep_duration2 <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
+#'
+#' # Rank reduction
+#' d  <- portfolios_LTC[[1]]$d[keep_age2, keep_duration2]
+#' ec <- portfolios_LTC[[1]]$ec[keep_age2, keep_duration2]
+#'
+#' prod(dim(d)) # problem dimension is 1,262 !
+#' WH_2d(d, ec)
+#' # rank-reduction may be used to quickly find an approximate solution
 #'
 #' @export
-WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,
+WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
                   q = c(2, 2), framework, y, wt, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
@@ -253,6 +257,367 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,
   do.call(what, args)
 }
 
+# Extrapolation----
+
+#' Predict new values using a fitted 1D WH model
+#'
+#' Extrapolate the model for new values of the covariates
+#'
+#' @param object An object returned by the WH_1d function
+#' @param newdata A list containing a vector indicating the new observation
+#'   positions
+#' @param ... Not used
+#'
+#' @returns An WH_1d object with predicted values...
+#'
+#' @examples
+#' keep <- which(portfolios_mort[[1]]$ec > 0)
+#' d <- portfolios_mort[[1]]$d[keep]
+#' ec <- portfolios_mort[[1]]$ec[keep]
+#'
+#' WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
+#'
+#' @export
+predict.WH_1d <- function(object, newdata = NULL, ...) {
+
+  data <- as.numeric(names(object$y))
+  full_data <- sort(union(data, newdata))
+  ind <- order(c(data, setdiff(full_data, data)))
+
+  n <- length(data)
+  n_pred <- length(full_data)
+
+  C <- diag(1L, n, n_pred)[, ind] # constraint matrix
+
+  wt_pred <- c(t(C) %*% object$wt)
+  W_pred <- diag(wt_pred) # extended weight matrix
+  D_mat_pred <- build_D_mat(n_pred, object$q) # extended difference matrices
+  P_pred <- object$lambda * crossprod(D_mat_pred) # extended penalization matrix
+
+  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+  Psi_inv <- object$Psi |> chol() |> chol2inv()
+  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+
+  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  y_pred <- c(A_pred %*% object$y_hat)
+  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
+
+  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
+  y_pred_2 <- c(A_pred_2 %*% object$y_hat)
+  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
+
+  names(y_pred) <- names(std_y_pred) <-
+    names(std_y_pred) <- names(std_y_pred_2) <- full_data
+
+  object$y_pred <- y_pred
+  object$std_y_pred <- std_y_pred
+  object$y_pred_2 <- y_pred_2
+  object$std_y_pred_2 <- std_y_pred_2
+
+  return(object)
+}
+
+#' Predict new values using a fitted 2D WH model
+#'
+#' Extrapolate the model for new values of the covariates in a way that is
+#' consistent with the fitted values
+#'
+#' @param object An object returned by the WH_2d function
+#' @param newdata A list containing two vectors indicating the new observation
+#'   positions
+#' @param ... Not used
+#'
+#' @returns An WH_2d object with predicted values...
+#'
+#' @examples
+#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#'
+#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#'
+#' WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
+#'
+#' @export
+predict.WH_2d <- function(object, newdata = NULL, ...) {
+
+  data <- dimnames(object$y) |> map(as.numeric)
+  full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
+  ind <- map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
+
+  n <- map_int(data, length)
+  n_pred <- map_int(full_data, length)
+
+  C <- map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
+    map2(ind, \(x,y) x[,y]) |>
+    rev() |>
+    reduce(kronecker) # constraint matrix
+
+  wt_pred <- c(t(C) %*% c(object$wt))
+  W_pred <- diag(wt_pred) # extended weight matrix
+  D_mat_pred <- map2(n_pred, object$q, build_D_mat) # extended difference matrices
+  P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
+    object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
+
+  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+  Psi_inv <- object$Psi |> chol() |> chol2inv()
+  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+
+  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  y_pred <- c(A_pred %*% c(object$y_hat))
+  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
+
+  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
+  y_pred_2 <- c(A_pred_2 %*% c(object$y_hat))
+  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
+
+  dim(y_pred) <- dim(std_y_pred) <-
+    dim(y_pred_2) <- dim(std_y_pred_2) <- map_int(full_data, length) # set dimension for output matrices
+  dimnames(y_pred) <- dimnames(std_y_pred) <-
+    dimnames(y_pred_2) <- dimnames(std_y_pred_2) <- full_data # set names for output matrices
+
+  object$y_pred <- y_pred
+  object$std_y_pred <- std_y_pred
+  object$y_pred_2 <- y_pred_2
+  object$std_y_pred_2 <- std_y_pred_2
+
+  return(object)
+}
+
+# Mise en forme----
+
+#' Store WH model fit results in a data.frame
+#'
+#' @param object An object returned by one of the WH fitting function
+#' @param dim1 The (optional) name to be given to the first dimension
+#' @param dim2 The (optional) name to be given to the second dimension
+#'
+#' @returns A data.frame gathering information about the fitted and predicted
+#'   values, the model standard deviation, residuals and effective degrees of
+#'   freedom...
+#'
+#' @export
+output_to_df <- function(object, dim1 = "x", dim2 = "t") {
+
+  if ("y_pred" %in% names(object)) {
+    object$y_hat <- object$y_pred
+    object$std_y_hat = object$std_y_pred
+  }
+
+  df <- data.frame(y_hat = c(object$y_hat),
+                   std_y_hat = c(object$std_y_hat))
+
+  if (inherits(object, "WH_1d")) {
+
+    x <- as.numeric(names(object$y))
+    x_pred <- as.numeric(names(object$y_hat))
+
+    df[[dim1]] <- x_pred
+
+    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y[x_pred %in% x] <- c(object$y)
+    df$wt[x_pred %in% x] <- c(object$wt)
+    df$res[x_pred %in% x] <- c(object$res)
+    df$edf[x_pred %in% x] <- c(object$edf)
+
+    if("ec" %in% names(object) && "d" %in% names(object)) {
+
+      df$ec <- df$d <- NA_real_
+
+      df$ec[x_pred %in% x] <- c(object$ec)
+      df$d[x_pred %in% x] <- c(object$d)
+    }
+
+    df[,c(dim1, intersect(
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      names(object)))]
+
+  } else {
+
+    x <- as.numeric(rownames(object$y))
+    x_pred <- as.numeric(rownames(object$y_hat))
+
+    t <- as.numeric(colnames(object$y))
+    t_pred <- as.numeric(colnames(object$y_hat))
+
+    df[[dim1]] <- rep(x_pred, times = length(t_pred))
+    df[[dim2]] <- rep(t_pred, each = length(x_pred))
+
+    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$y)
+    df$wt[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$wt)
+    df$res[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$res)
+    df$edf[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$edf)
+
+    if("ec" %in% names(object) && "d" %in% names(object)) {
+
+      df$ec <- df$d <- NA_real_
+
+      df$ec[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$ec)
+      df$d[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$d)
+    }
+
+    df[,c(dim1, dim2, intersect(
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      names(object)))]
+  }
+}
+
+# Affichage----
+
+#' Summary of 1D WH object
+#'
+#' @param object An object returned by the WH_1d function
+#' @param ... Not used
+#'
+#' @returns A plot representing the given element of the fit...
+#'
+#' @examples
+#' keep <- which(portfolios_mort[[1]]$ec > 0)
+#' d <- portfolios_mort[[1]]$d[keep]
+#' ec <- portfolios_mort[[1]]$ec[keep]
+#'
+#' y <- log(d / ec)
+#' y[d == 0] <- - 20
+#' wt <- d
+#'
+#' WH_1d(d, ec) |> summary()
+#' WH_1d(d, ec, method = "optim") |> summary()
+#' WH_1d(d, ec, criterion = "GCV") |> summary()
+#' WH_1d(y = y, wt = wt) |> summary()
+#'
+#' @export
+summary.WH_1d <- function(object, ...) {
+
+  cat("\n")
+  cat("An object fitted using the WH_1D function\n")
+  cat(paste("Initial data contains", length(object$y), "data points"))
+  cat(paste("Optimal smoothing parameter selected:", format(object$lambda, digits = 3)))
+  cat(paste("Associated degrees of freedom:", format(sum(object$edf, digits = 3))))
+  invisible(object)
+}
+
+#' Summary of 2D WH object
+#'
+#' @param object An object returned by the WH_2d function
+#' @param ... Not used
+#'
+#' @returns A plot representing the given element of the fit...
+#'
+#' @examples
+#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#'
+#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#'
+#' WH_2d(d, ec) |> summary()
+#'
+#' @export
+summary.WH_2d <- function(object, ...) {
+
+  cat("\n")
+  cat("An object fitted using the WH_2D function\n")
+  cat(paste("Initial data contains", prod(dim(object$y)), "data points"))
+  cat(paste("Optimal smoothing parameters selected:", format(object$lambda, digits = 3)))
+  cat(paste("Associated degrees of freedom:", format(sum(object$edf, digits = 3))))
+  invisible(object)
+}
+
+# Plots----
+
+#' Plot 1D WH fit
+#'
+#' @param x An object returned by the WH_1d function
+#' @param what What should be plotted (fit, res, edf)
+#' @param trans An (optional) transformation to be applied to the data
+#' @param ... Not used
+#'
+#' @returns A plot representing the given element of the fit...
+#'
+#' @examples
+#' keep <- which(portfolios_mort[[1]]$ec > 0)
+#' d <- portfolios_mort[[1]]$d[keep]
+#' ec <- portfolios_mort[[1]]$ec[keep]
+#'
+#' WH_1d(d, ec) |> plot()
+#' WH_1d(d, ec) |> plot("res")
+#' WH_1d(d, ec) |> plot("edf")
+#'
+#' @export
+plot.WH_1d <- function(x, what = "fit", trans, ...) {
+
+  df <- output_to_df(x)
+  if (missing(trans)) trans <- \(x) x
+
+  switch(what,
+         fit = {
+           plot(df$x, trans(df$y),
+                xlab = "x",
+                ylab = "log - hazard rate",
+                xlim = range(df$x),
+                ylim = trans(range(c(df$y_hat - 2 * df$std_y_hat),
+                                   c(df$y_hat + 2 * df$std_y_hat))))
+           graphics::lines(df$x, trans(df$y_hat), col = "blue")
+           graphics::lines(df$x, trans(df$y_hat - 2 * df$std_y_hat), col = "red", lty = 3)
+           graphics::lines(df$x, trans(df$y_hat + 2 * df$std_y_hat), col = "red", lty = 3)
+         },
+         res = {
+           plot(df$x, df$res,
+                xlab = "x", ylab = "deviance residuals", type = "b")
+           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
+         },
+         edf = {
+           plot(df$x, df$edf,
+                xlab = "x", ylab = "degrees of freedom", type = "b")
+           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
+           graphics::abline(a = 1, b = 0, lty = 2, col = "blue")
+         })
+}
+
+#' Plot 2D WH fit
+#'
+#' @param x An object returned by the WH_2d function
+#' @param what What should be plotted (y_hat, std_y_hat, res, edf)
+#' @param trans An (optional) transformation to be applied to the data
+#' @param ... Not used
+#'
+#' @returns A plot representing the given element of the fit...
+#'
+#' @examples
+#'
+#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#'
+#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#'
+#' WH_2d(d, ec) |> plot()
+#' WH_2d(d, ec) |> plot("std_y_hat")
+#'
+#' @export
+plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
+
+  df <- output_to_df(x)
+  if (missing(trans)) trans <- \(x) x
+
+  x <- unique(df$x)
+  t <- unique(df$t)
+
+  data <- matrix(c(df[[what]]), length(t), length(x), byrow = TRUE)
+
+  graphics::contour(
+    t, x, data,
+    nlevels = 20,
+    xlab = "x",
+    ylab = "t",
+    main = switch(
+      what,
+      y_hat = "log - hazard rate",
+      std_y_hat = " standard deviation of log - hazard rate",
+      edf = "degrees of freedom"))
+}
+
 # Regression----
 
 ## 1D----
@@ -266,7 +631,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,
 #' @param q Order of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @return A list containing model fit, residuals and associated uncertainty
+#' @returns A list containing model fit, residuals and associated uncertainty
 #'
 #' @export
 WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = length(y), q = 2) {
@@ -337,7 +702,7 @@ WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = 
 #' @param accu_edf Tolerance for the convergence of the outer optimization
 #'   procedure
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen through successive fits, using the
 #'   \code{optimize} function
 #'
@@ -401,7 +766,7 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #'
 #' @inheritParams WH_1d_reg_optim
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen using the generalized Fellner-Schall update
 #'   formula
 #'
@@ -493,7 +858,7 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #' @param q Matrix of orders of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @return A list containing model fit, residuals and associated uncertainty
+#' @returns A list containing model fit, residuals and associated uncertainty
 #'
 #' @export
 WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
@@ -587,7 +952,7 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @param lambda Initial smoothing parameters
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen through successive fits, using the
 #'   \code{optimize} function
 #'
@@ -673,7 +1038,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #'
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen through successive fits, using the
 #'   \code{optimize} function
 #'
@@ -792,7 +1157,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #' @param ec Vector of central exposure
 #' @param accu_dev Tolerance for the convergence of the optimization procedure
 #'
-#' @return A list containing model fit, residuals and associated uncertainty
+#' @returns A list containing model fit, residuals and associated uncertainty
 #'
 #' @export
 WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
@@ -888,7 +1253,7 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 #' @inheritParams WH_1d_reg_optim
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen through successive fits, using the
 #'   \code{optimize} function
 #'
@@ -978,7 +1343,7 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 #'
 #' @inheritParams WH_1d_ml_optim
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen using the generalized Fellner-Schall update
 #'   formula
 #'
@@ -1093,7 +1458,7 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @return A list containing model fit, residuals and associated uncertainty
+#' @returns A list containing model fit, residuals and associated uncertainty
 #'
 #' @export
 WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
@@ -1214,7 +1579,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 #' @inheritParams WH_2d_ml_fixed_lambda
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen through successive fits, using the
 #'   \code{optimize} function
 #'
@@ -1327,7 +1692,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 #'
 #' @inheritParams WH_2d_ml_optim
 #'
-#' @return A list containing model fit, residuals and associated uncertainty.
+#' @returns A list containing model fit, residuals and associated uncertainty.
 #'   Smoothing parameter is chosen using the generalized Fellner-Schall update
 #'   formula
 #'
@@ -1368,9 +1733,6 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
   y_hat <- log(pmax(d, 1e-8)) - off
   new_wt <- exp(y_hat + off)
-  # gamma_hat <- c(t(U) %*% c(y_hat))
-  # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-  # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
   dev_pen <- Inf
   cond_dev_pen <- TRUE
 
@@ -1460,256 +1822,4 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
   return(out)
 }
 
-# Extrapolation----
 
-#' Predict 1D WH values
-#'
-#' @param object An object returned by one of the WH 1D fitting function
-#' @param newdata A list containing a vector indicating the new observation
-#'   positions
-#' @param ... Not used
-#'
-#' @return An WH_1d object with predicted values...
-#'
-#' @export
-predict.WH_1d <- function(object, newdata = NULL, ...) {
-
-  data <- as.numeric(names(object$y))
-  full_data <- sort(union(data, newdata))
-  ind <- order(c(data, setdiff(full_data, data)))
-
-  n <- length(data)
-  n_pred <- length(full_data)
-
-  C <- diag(1L, n, n_pred)[, ind] # constraint matrix
-
-  wt_pred <- c(t(C) %*% object$wt)
-  W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- build_D_mat(n_pred, object$q) # extended difference matrices
-  P_pred <- object$lambda * crossprod(D_mat_pred) # extended penalization matrix
-
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-  Psi_inv <- object$Psi |> chol() |> chol2inv()
-  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
-
-  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
-  y_pred <- c(A_pred %*% object$y_hat)
-  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
-
-  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
-  y_pred_2 <- c(A_pred_2 %*% object$y_hat)
-  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
-
-  names(y_pred) <- names(std_y_pred) <-
-    names(std_y_pred) <- names(std_y_pred_2) <- full_data
-
-  object$y_pred <- y_pred
-  object$std_y_pred <- std_y_pred
-  object$y_pred_2 <- y_pred_2
-  object$std_y_pred_2 <- std_y_pred_2
-
-  return(object)
-}
-
-#' Predict 2D WH values
-#'
-#' @param object An object returned by one of the WH 1D fitting function
-#' @param newdata A list containing two vectors indicating the new observation
-#'   positions
-#' @param ... Not used
-#'
-#' @return An WH_2d object with predicted values...
-#'
-#' @export
-predict.WH_2d <- function(object, newdata = NULL, ...) {
-
-  data <- dimnames(object$y) |> map(as.numeric)
-  full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind <- map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
-
-  n <- map_int(data, length)
-  n_pred <- map_int(full_data, length)
-
-  C <- map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
-    map2(ind, \(x,y) x[,y]) |>
-    rev() |>
-    reduce(kronecker) # constraint matrix
-
-  wt_pred <- c(t(C) %*% c(object$wt))
-  W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- map2(n_pred, object$q, build_D_mat) # extended difference matrices
-  P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
-    object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
-
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-  Psi_inv <- object$Psi |> chol() |> chol2inv()
-  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
-
-  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
-  y_pred <- c(A_pred %*% c(object$y_hat))
-  std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
-
-  A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
-  y_pred_2 <- c(A_pred_2 %*% c(object$y_hat))
-  std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
-
-  dim(y_pred) <- dim(std_y_pred) <-
-    dim(y_pred_2) <- dim(std_y_pred_2) <- map_int(full_data, length) # set dimension for output matrices
-  dimnames(y_pred) <- dimnames(std_y_pred) <-
-    dimnames(y_pred_2) <- dimnames(std_y_pred_2) <- full_data # set names for output matrices
-
-  object$y_pred <- y_pred
-  object$std_y_pred <- std_y_pred
-  object$y_pred_2 <- y_pred_2
-  object$std_y_pred_2 <- std_y_pred_2
-
-  return(object)
-}
-
-# Mise en forme----
-
-#' Convert fitted WH object into a data.frame
-#'
-#' @param object An object returned by one of the WH fitting function
-#' @param dim1 The (optional) name to be given to the first dimension
-#' @param dim2 The (optional) name to be given to the second dimension
-#'
-#' @return A data.frame gathering information about the fitted and predicted
-#'   values, the associated uncertainty, residuals, effective degrees of
-#'   freedom...
-#'
-#' @export
-output_to_df <- function(object, dim1 = "x", dim2 = "t") {
-
-  if ("y_pred" %in% names(object)) {
-    object$y_hat <- object$y_pred
-    object$std_y_hat = object$std_y_pred
-  }
-
-  df <- data.frame(y_hat = c(object$y_hat),
-                   std_y_hat = c(object$std_y_hat))
-
-  if (inherits(object, "WH_1d")) {
-
-    x <- as.numeric(names(object$y))
-    x_pred <- as.numeric(names(object$y_hat))
-
-    df[[dim1]] <- x_pred
-
-    df$y <- df$wt <- df$res <- df$edf <- NA_real_
-    df$y[x_pred %in% x] <- c(object$y)
-    df$wt[x_pred %in% x] <- c(object$wt)
-    df$res[x_pred %in% x] <- c(object$res)
-    df$edf[x_pred %in% x] <- c(object$edf)
-
-    if("ec" %in% names(object) && "d" %in% names(object)) {
-
-      df$ec <- df$d <- NA_real_
-
-      df$ec[x_pred %in% x] <- c(object$ec)
-      df$d[x_pred %in% x] <- c(object$d)
-    }
-
-    df[,c(dim1, intersect(
-      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
-      names(object)))]
-
-  } else {
-
-    x <- as.numeric(rownames(object$y))
-    x_pred <- as.numeric(rownames(object$y_hat))
-
-    t <- as.numeric(colnames(object$y))
-    t_pred <- as.numeric(colnames(object$y_hat))
-
-    df[[dim1]] <- rep(x_pred, times = length(t_pred))
-    df[[dim2]] <- rep(t_pred, each = length(x_pred))
-
-    df$y <- df$wt <- df$res <- df$edf <- NA_real_
-    df$y[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$y)
-    df$wt[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$wt)
-    df$res[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$res)
-    df$edf[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$edf)
-
-    if("ec" %in% names(object) && "d" %in% names(object)) {
-
-      df$ec <- df$d <- NA_real_
-
-      df$ec[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$ec)
-      df$d[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$d)
-    }
-
-    df[,c(dim1, dim2, intersect(
-      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
-      names(object)))]
-  }
-}
-
-# Plots----
-
-#' Plot 1D WH fit
-#'
-#' @param x An object returned by one of the WH 1D fitting function
-#' @param what What should be plotted (fit, res, edf)
-#' @param trans An (optional) transformation to be applied to the data
-#' @param ... Not used
-#'
-#' @return A plot representing the given element of the fit...
-#'
-#' @export
-plot.WH_1d <- function(x, what = "fit", trans, ...) {
-
-  df <- output_to_df(x)
-  if (missing(trans)) trans <- \(x) x
-
-  switch(what,
-         fit = {
-           plot(df$x, trans(df$y),
-                xlab = "x",
-                ylab = "log - hazard rate",
-                xlim = range(df$x),
-                ylim = trans(range(c(df$y_hat - 2 * df$std_y_hat),
-                                   c(df$y_hat + 2 * df$std_y_hat))))
-           graphics::lines(df$x, trans(df$y_hat), col = "blue")
-           graphics::lines(df$x, trans(df$y_hat - 2 * df$std_y_hat), col = "red", lty = 3)
-           graphics::lines(df$x, trans(df$y_hat + 2 * df$std_y_hat), col = "red", lty = 3)
-         },
-         res = {
-           plot(df$x, df$res,
-                xlab = "x", ylab = "deviance residuals", type = "b")
-           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
-         },
-         edf = {
-           plot(df$x, df$edf,
-                xlab = "x", ylab = "degrees of freedom", type = "b")
-           graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
-           graphics::abline(a = 1, b = 0, lty = 2, col = "blue")
-         })
-}
-
-#' Plot 1D WH fit
-#'
-#' @param x An object returned by one of the WH 2D fitting function
-#' @param what What should be plotted (y_hat, std_y_hat, res, edf)
-#' @param trans An (optional) transformation to be applied to the data
-#' @param ... Not used
-#'
-#' @return A plot representing the given element of the fit...
-#'
-#' @export
-plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
-
-  df <- output_to_df(x)
-  if (missing(trans)) trans <- \(x) x
-
-  x <- unique(df$x)
-  t <- unique(df$t)
-
-  data <- matrix(c(df[[what]]), length(t), length(x), byrow = TRUE)
-
-  graphics::contour(t, x, data,
-          nlevels = 20,
-          xlab = "x",
-          ylab = "t",
-          main = what)
-}

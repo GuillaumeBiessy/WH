@@ -92,8 +92,7 @@ WH_2d_ml_optim(d, ec) |> plot.WH_2d("std_y_hat")
 WH_2d_ml_fs(d, ec) |> plot.WH_2d("std_y_hat")
 
 # Extrapolation
-newdata <- list(age = 50:119,
-                duration = 0:29)
+newdata <- list(age = 50:99, duration = 0:19)
 
 expect_equal(WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata),
              WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata),
@@ -109,4 +108,19 @@ WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata) |> plot.WH_2d()
 WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
 WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
 
+# Rank reduction
+keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
+keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
 
+d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+
+y <- log(d / ec) # observation vector
+y[d == 0] <- - 20
+wt <- d
+
+prod(dim(d)) # dimension of problem is 1232
+
+expect_equal(WH_2d(y = y, wt = wt, method = "fs"),
+             WH_2d(y = y, wt = wt, method = "optim"), tolerance = 1e-4)
+expect_equal(WH_2d(d, ec), WH_2d(d, ec, method = "optim"), tolerance = 2e-1)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{output_to_df}
 \alias{output_to_df}
-\title{Convert fitted WH object into a data.frame}
+\title{Store WH model fit results in a data.frame}
 \usage{
 output_to_df(object, dim1 = "x", dim2 = "t")
 }
@@ -15,9 +15,9 @@ output_to_df(object, dim1 = "x", dim2 = "t")
 }
 \value{
 A data.frame gathering information about the fitted and predicted
-values, the associated uncertainty, residuals, effective degrees of
+values, the model standard deviation, residuals and effective degrees of
 freedom...
 }
 \description{
-Convert fitted WH object into a data.frame
+Store WH model fit results in a data.frame
 }

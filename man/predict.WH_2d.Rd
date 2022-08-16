@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{predict.WH_2d}
 \alias{predict.WH_2d}
-\title{Predict 2D WH values}
+\title{Predict new values using a fitted 2D WH model}
 \usage{
 \method{predict}{WH_2d}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{An object returned by one of the WH 1D fitting function}
+\item{object}{An object returned by the WH_2d function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
 positions}
@@ -18,5 +18,16 @@ positions}
 An WH_2d object with predicted values...
 }
 \description{
-Predict 2D WH values
+Extrapolate the model for new values of the covariates in a way that is
+consistent with the fitted values
+}
+\examples{
+keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+
+d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+
+WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
+
 }

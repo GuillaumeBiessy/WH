@@ -14,34 +14,32 @@ sum of the exposure period over the insured population. An individual
 experiencing an event of interest during the year will no longer be exposed
 afterward and the exposure should be reduced accordingly.}
 
-\item{lambda}{Smoothing parameter. If missing, an optimization
-procedure will be used to find the optimal smoothing parameter. If
-supplied, no optimal smoothing parameter search will take place unless the
-\code{criterion} argument is also supplied, in which case \code{lambda}
-will be used as the starting parameter for the optimization procedure.}
+\item{lambda}{Smoothing parameter. If missing, an optimization procedure will
+be used to find the optimal smoothing parameter. If supplied, no optimal
+smoothing parameter search will take place unless the \code{criterion}
+argument is also supplied, in which case \code{lambda} will be used as the
+starting parameter for the optimization procedure.}
 
-\item{criterion}{Criterion to be used for the selection of the
-optimal smoothing parameter. Default is \code{"REML"} which stands for
-restricted maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and
-\code{"GCV"}.}
+\item{criterion}{Criterion to be used for the selection of the optimal
+smoothing parameter. Default is \code{"REML"} which stands for restricted
+maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"GCV"}.}
 
-\item{method}{Method to be used to find the optimal smoothing
-parameter. Default to \code{"fixed_lambda"} if \code{lambda} is supplied,
-meaning no optimization is performed. Otherwise, if \code{criterion =
-  "REML"} or the \code{criterion} argument is missing, default to \code{"fs"}
-which means the generalized Fellner-Schall method is used. For other
-criteria default to \code{"optim"} meaning the \code{optimize} function from
-package \code{stats} will be used.}
+\item{method}{Method to be used to find the optimal smoothing parameter.
+Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
+optimization is performed. Otherwise, if \code{criterion = "REML"} or the
+\code{criterion} argument is missing, default to \code{"fs"} which means the
+generalized Fellner-Schall method is used. For other criteria default to
+\code{"optim"} meaning the \code{optimize} function from package \code{stats}
+will be used.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are
 considered smooth and are therefore unpenalized. Should be left to the
 default of \code{2} for most practical applications.}
 
-\item{framework}{Default framework is \code{"ml"} which stands for
-maximum likelihood unless the \code{y} argument is also provided, in which
-case the \code{"reg"} or regression framework is used. The regression framework
-is an asymptotical approximation of the maximum likelihood likelihood
-framework.}
+\item{framework}{Default framework is \code{"ml"} which stands for maximum
+likelihood unless the \code{y} argument is also provided, in which case the
+\code{"reg"} or regression framework is used. The regression framework is an
+asymptotical approximation of the maximum likelihood likelihood framework.}
 
 \item{y}{Optional vector of observations whose elements should be named. Used
 only in the regression framework and even in this case will be
@@ -58,8 +56,55 @@ framework.}
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
 \value{
-A fitted \code{WH_1d} object.
+An object of class \code{WH_1d}.
 }
 \description{
-1D Whittaker-Henderson Smoothing
+Main package function to apply Whittaker-Henderson smoothing in a
+unidimensional survival analysis framework. It takes as input a vector of
+observed events and a vector of associated central exposure, both depending
+on a single covariate, and build a smooth version of the log-hazard rate.
+Smoothing parameters may be supplied or automatically chosen according to a
+specific criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
+\code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
+framework or an asymptotic (approximate) gaussian framework.
+}
+\examples{
+keep <- which(portfolios_mort[[1]]$ec > 0)
+d <- portfolios_mort[[1]]$d[keep]
+ec <- portfolios_mort[[1]]$ec[keep]
+
+y <- log(d / ec)
+y[d == 0] <- - 20
+wt <- d
+
+# Maximum likelihood
+WH_1d(d, ec, lambda = 1e2)
+WH_1d(d, ec) # default generalized Fellner-Schall method
+WH_1d(d, ec, method = "optim") # alternative method base on optimize function
+
+testthat::expect_equal(WH_1d(d, ec, method = "fs"),
+                       WH_1d(d, ec, method = "optim"),
+                       tolerance = 1e-1)
+# generalized Fellner-Schall method is approximate in maximum likelihood framework
+
+WH_1d(d, ec, criterion = "GCV")
+# alternative optimization criteria for smoothing parameter selection
+
+# Regression
+WH_1d(y = y, wt = wt, lambda = 1e2)
+# regression framework is default when y is supplied
+WH_1d(d, y = y, lambda = 1e2) # d is used as wt
+WH_1d(d, ec, framework = "reg", lambda = 1e2)
+# Setting framework = "reg" forces computation of y from d and ec
+
+WH_1d(y = y, wt = wt)
+WH_1d(y = y, wt = wt, method = "optim")
+testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
+                       WH_1d(y = y, wt = wt, method = "optim"),
+                       tolerance = 1e-6)
+# generalized Fellner-Schall method is exact in regression framework
+
+WH_1d(y = y, wt = wt, criterion = "GCV")
+# alternative optimization criteria for smoothing parameter selection
+
 }

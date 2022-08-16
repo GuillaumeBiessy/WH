@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{predict.WH_1d}
 \alias{predict.WH_1d}
-\title{Predict 1D WH values}
+\title{Predict new values using a fitted 1D WH model}
 \usage{
 \method{predict}{WH_1d}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{An object returned by one of the WH 1D fitting function}
+\item{object}{An object returned by the WH_1d function}
 
 \item{newdata}{A list containing a vector indicating the new observation
 positions}
@@ -18,5 +18,13 @@ positions}
 An WH_1d object with predicted values...
 }
 \description{
-Predict 1D WH values
+Extrapolate the model for new values of the covariates
+}
+\examples{
+keep <- which(portfolios_mort[[1]]$ec > 0)
+d <- portfolios_mort[[1]]$d[keep]
+ec <- portfolios_mort[[1]]$ec[keep]
+
+WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
+
 }

@@ -7,7 +7,7 @@
 \method{plot}{WH_1d}(x, what = "fit", trans, ...)
 }
 \arguments{
-\item{x}{An object returned by one of the WH 1D fitting function}
+\item{x}{An object returned by the WH_1d function}
 
 \item{what}{What should be plotted (fit, res, edf)}
 
@@ -20,4 +20,14 @@ A plot representing the given element of the fit...
 }
 \description{
 Plot 1D WH fit
+}
+\examples{
+keep <- which(portfolios_mort[[1]]$ec > 0)
+d <- portfolios_mort[[1]]$d[keep]
+ec <- portfolios_mort[[1]]$ec[keep]
+
+WH_1d(d, ec) |> plot()
+WH_1d(d, ec) |> plot("res")
+WH_1d(d, ec) |> plot("edf")
+
 }
