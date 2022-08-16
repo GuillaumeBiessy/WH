@@ -1,14 +1,9 @@
 data("portfolios_mort")
 
-get_edf <- \(x) sum(x$edf)
-
 # 1D smoothing----
-d <- portfolios_mort[[1]]$d
-ec <- portfolios_mort[[1]]$ec
-
-keep <- which(ec > 0) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
-d <- d[keep]
-ec <- ec[keep]
+keep <- which(portfolios_mort[[1]]$ec > 0)
+d <- portfolios_mort[[1]]$d[keep]
+ec <- portfolios_mort[[1]]$ec[keep]
 
 y <- log(d / ec)
 y[d == 0] <- - 20
@@ -23,12 +18,10 @@ expect_equal(WH_1d(d, y = y, lambda = 1e2), ref_fixed_lambda)
 
 ref_fs <- WH_1d_reg_fs(y, wt)
 expect_equal(WH_1d(y = y, wt = wt, method = "fs"), ref_fs)
-expect_equal(WH_1d(y = y, wt = wt), ref_fs)
-expect_equal(WH_1d(d, ec, framework = "reg"), ref_fs)
-expect_equal(WH_1d(d, y = y), ref_fs)
 
 ref_optim <- WH_1d_reg_optim(y, wt)
 expect_equal(WH_1d(y = y, wt = wt, method = "optim"), ref_optim)
+
 expect_equal(ref_fs, ref_optim, tolerance = 1e-6)
 
 expect_equal(WH_1d(y = y, wt = wt, method = "optim", criterion = "REML"), ref_optim)

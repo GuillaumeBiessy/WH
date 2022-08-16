@@ -2,35 +2,42 @@
 
 #' 1D Whittaker-Henderson Smoothing
 #'
+#' Main package function to apply Whittaker-Henderson smoothing in a
+#' unidimensional survival analysis framework. It takes as input a vector of
+#' observed events and a vector of associated central exposure, both depending
+#' on a single covariate, and build a smooth version of the log-hazard rate.
+#' Smoothing parameters may be supplied or automatically chosen according to a
+#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
+#' framework or an asymptotic (approximate) gaussian framework.
+#'
 #' @param d Vector of observed events whose elements should be named.
 #' @param ec Vector of central exposure. The central exposure corresponds to the
 #'   sum of the exposure period over the insured population. An individual
 #'   experiencing an event of interest during the year will no longer be exposed
 #'   afterward and the exposure should be reduced accordingly.
-#' @param lambda Smoothing parameter. If missing, an optimization
-#'   procedure will be used to find the optimal smoothing parameter. If
-#'   supplied, no optimal smoothing parameter search will take place unless the
-#'   \code{criterion} argument is also supplied, in which case \code{lambda}
-#'   will be used as the starting parameter for the optimization procedure.
-#' @param criterion Criterion to be used for the selection of the
-#'   optimal smoothing parameter. Default is `"REML"` which stands for
-#'   restricted maximum likelihood. Other options include `"AIC"`, `"BIC"` and
-#'   `"GCV"`.
-#' @param method Method to be used to find the optimal smoothing
-#'   parameter. Default to `"fixed_lambda"` if \code{lambda} is supplied,
-#'   meaning no optimization is performed. Otherwise, if \code{criterion =
-#'   "REML"} or the \code{criterion} argument is missing, default to `"fs"`
-#'   which means the generalized Fellner-Schall method is used. For other
-#'   criteria default to `"optim"` meaning the \code{optimize} function from
-#'   package \code{stats} will be used.
+#' @param lambda Smoothing parameter. If missing, an optimization procedure will
+#'   be used to find the optimal smoothing parameter. If supplied, no optimal
+#'   smoothing parameter search will take place unless the \code{criterion}
+#'   argument is also supplied, in which case \code{lambda} will be used as the
+#'   starting parameter for the optimization procedure.
+#' @param criterion Criterion to be used for the selection of the optimal
+#'   smoothing parameter. Default is `"REML"` which stands for restricted
+#'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
+#' @param method Method to be used to find the optimal smoothing parameter.
+#'   Default to `"fixed_lambda"` if \code{lambda} is supplied, meaning no
+#'   optimization is performed. Otherwise, if \code{criterion = "REML"} or the
+#'   \code{criterion} argument is missing, default to `"fs"` which means the
+#'   generalized Fellner-Schall method is used. For other criteria default to
+#'   `"optim"` meaning the \code{optimize} function from package \code{stats}
+#'   will be used.
 #' @param q Order of penalization. Polynoms of degrees \code{q - 1} are
 #'   considered smooth and are therefore unpenalized. Should be left to the
 #'   default of \code{2} for most practical applications.
-#' @param framework Default framework is `"ml"` which stands for
-#'   maximum likelihood unless the \code{y} argument is also provided, in which
-#'   case the `"reg"` or regression framework is used. The regression framework
-#'   is an asymptotical approximation of the maximum likelihood likelihood
-#'   framework.
+#' @param framework Default framework is `"ml"` which stands for maximum
+#'   likelihood unless the \code{y} argument is also provided, in which case the
+#'   `"reg"` or regression framework is used. The regression framework is an
+#'   asymptotical approximation of the maximum likelihood likelihood framework.
 #' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
 #'   automatically computed from the \code{d} and \code{ec} arguments if those
@@ -44,6 +51,46 @@
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
 #' @return A fitted \code{WH_1d} object.
+#'
+#' @examples
+#' keep <- which(portfolios_mort[[1]]$ec > 0)
+#' d <- portfolios_mort[[1]]$d[keep]
+#' ec <- portfolios_mort[[1]]$ec[keep]
+#'
+#' y <- log(d / ec)
+#' y[d == 0] <- - 20
+#' wt <- d
+#'
+#' # Maximum likelihood
+#' WH_1d(d, ec, lambda = 1e2)
+#' WH_1d(d, ec) # Default generalized Fellner-Schall method
+#' WH_1d(d, ec, method = "optim") # Alternative method base on optimize function
+#'
+#' expect_equal(WH_1d(d, ec, method = "fs"),
+#'              WH_1d(d, ec, method = "optim"),
+#'             tolerance = 1e-1) # generalized Fellner-Schall method  is approximate in maximum likelihood framework
+#'
+#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
+#' WH_1d(d, ec, criterion = "AIC")
+#' WH_1d(d, ec, criterion = "BIC")
+#' WH_1d(d, ec, criterion = "GCV")
+#'
+#' # Regression
+#' WH_1d(y = y, wt = wt, lambda = 1e2) # Regression framework is triggered when y is supplied
+#' WH_1d(d, y = y, lambda = 1e2) # d is used as wt
+#' WH_1d(d, ec, framework = "reg", lambda = 1e2) # Setting framework = "reg" forces computation of y from d and ec
+#'
+#'
+#' WH_1d(y = y, wt = wt)
+#' WH_1d(y = y, wt = wt, method = "optim")
+#' expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
+#'              WH_1d(y = y, wt = wt, method = "optim"),
+#'              tolerance = 1e-6)  # generalized Fellner-Schall method is exact in regression framework
+#'
+#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
+#' WH_1d(y = y, wt = wt, criterion = "AIC")
+#' WH_1d(y = y, wt = wt, criterion = "BIC")
+#' WH_1d(y = y, wt = wt, criterion = "GCV")
 #'
 #' @export
 WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...) {
@@ -75,6 +122,18 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 
 #' 2D Whittaker-Henderson Smoothing
 #'
+#' #' Main package function to apply Whittaker-Henderson smoothing in a
+#' bidimensional survival analysis framework. It takes as input a matrix of
+#' observed events and a matrix of associated central exposure, both depending
+#' on two covariates, and build a smooth version of the log-hazard rate.
+#' Smoothing parameters may be supplied or automatically chosen according to a
+#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
+#' framework or an asymptotic (approximate) gaussian framework. As
+#' Whittaker-Henderson smoothing relies on full-rank smoothers, computation time
+#' and memory usage in the bidimensional case may be overwhelming and the
+#' function integrates an ad hoc rank-reduction procedure to avoid such issues.
+#'
 #' @inheritParams WH_1d
 #' @param d Matrix of observed events whose rows and columns should be named.
 #'   Required in case of maximum likelihood estimation
@@ -83,12 +142,12 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   period over the insured population. An individual experiencing an event of
 #'   interest during the year will no longer be exposed afterward and the
 #'   exposure should be reduced accordingly.
-#' @param lambda Smoothing parameter vector of size \code{2}. If
-#'   missing, an optimization procedure will be used to find the optimal
-#'   smoothing parameter. If provided, no optimal smoothing parameter search
-#'   will take place unless the \code{criterion} argument is also provided, in
-#'   which case \code{lambda} will be used as the starting parameter for the
-#'   optimization procedure.
+#' @param lambda Smoothing parameter vector of size \code{2}. If missing, an
+#'   optimization procedure will be used to find the optimal smoothing
+#'   parameter. If provided, no optimal smoothing parameter search will take
+#'   place unless the \code{criterion} argument is also provided, in which case
+#'   \code{lambda} will be used as the starting parameter for the optimization
+#'   procedure.
 #' @param p Optional vector of size \code{2}. Maximum number of eigenvectors to
 #'   keep on each dimension after performing the eigen decomposition of the
 #'   penalization matrix. If missing, will be automatically computed so that the
@@ -98,10 +157,10 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   matrices that should be involved in the optimization problem. Default is
 #'   \code{500}. Values higher than \code{2000} may cause issues with both
 #'   memory usage and computation times.
-#' @param q Order of penalization vector of size \code{2}. Polynoms of
-#'   degrees \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are
-#'   therefore unpenalized. Should be left to the default of \code{c(2,2)} for
-#'   most practical applications.
+#' @param q Order of penalization vector of size \code{2}. Polynoms of degrees
+#'   \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
+#'   unpenalized. Should be left to the default of \code{c(2,2)} for most
+#'   practical applications.
 #' @param y Optional matrix of observations whose rows and columns should be
 #'   named. Used only in the regression framework and even in this case will be
 #'   automatically computed if the \code{d} and \code{ec} arguments are
@@ -114,6 +173,48 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   framework.
 #'
 #' @return A fitted \code{WH_2d} object.
+#'
+#' @examples
+#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#'
+#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#'
+#' y <- log(d / ec) # observation vector
+#' y[d == 0] <- - 20
+#' wt <- d
+#'
+#' # Maximum likelihood
+#' WH_2d(d, ec, lambda = 1e2)
+#' WH_2d(d, ec) # Default generalized Fellner-Schall method
+#' WH_2d(d, ec, method = "optim") # Alternative method base on optimize function
+#'
+#' expect_equal(WH_2d(d, ec, method = "fs"),
+#'              WH_2d(d, ec, method = "optim"),
+#'              tolerance = 1e-1) # generalized Fellner-Schall method  is approximate in maximum likelihood framework
+#'
+#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
+#' WH_2d(d, ec, criterion = "AIC")
+#' WH_2d(d, ec, criterion = "BIC")
+#' WH_2d(d, ec, criterion = "GCV")
+#'
+#' # Regression
+#' WH_2d(y = y, wt = wt, lambda = 1e2) # Regression framework is triggered when y is supplied
+#' WH_2d(d, y = y, lambda = 1e2) # d is used as wt
+#' WH_2d(d, ec, framework = "reg", lambda = 1e2) # Setting framework = "reg" forces computation of y from d and ec
+#'
+#'
+#' WH_2d(y = y, wt = wt)
+#' WH_2d(y = y, wt = wt, method = "optim")
+#' expect_equal(WH_2d(y = y, wt = wt, method = "fs"),
+#'              WH_2d(y = y, wt = wt, method = "optim"),
+#'              tolerance = 1e-6)  # generalized Fellner-Schall method is exact in regression framework
+#'
+#' # Alternative optimization criteria for smoothing parameter selection using "optim" method
+#' WH_2d(y = y, wt = wt, criterion = "AIC")
+#' WH_2d(y = y, wt = wt, criterion = "BIC")
+#' WH_2d(y = y, wt = wt, criterion = "GCV")
 #'
 #' @export
 WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,

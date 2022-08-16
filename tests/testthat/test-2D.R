@@ -1,16 +1,11 @@
 data("portfolios_LTC")
 
-get_edf <- \(x) sum(x$edf)
-
 # 2D smoothing----
-d  <- portfolios_LTC[[1]]$d
-ec <- portfolios_LTC[[1]]$ec
+keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
+keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
 
-keep_age <- which(rowSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
-keep_duration <- which(colSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
-
-d <- d[keep_age, keep_duration]
-ec <- ec[keep_age, keep_duration]
+d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
+ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
 
 y <- log(d / ec) # observation vector
 y[d == 0] <- - 20
@@ -26,11 +21,10 @@ expect_equal(WH_2d(d, y = y, lambda = c(1e2,1e2)), ref_fixed_lambda)
 ref_fs <- WH_2d_reg_fs(y, wt)
 expect_equal(WH_2d(y = y, wt = wt, method = "fs"), ref_fs)
 expect_equal(WH_2d(y = y, wt = wt), ref_fs)
-expect_equal(WH_2d(d, ec, framework = "reg"), ref_fs)
-expect_equal(WH_2d(d, y = y), ref_fs)
 
 ref_optim <- WH_2d_reg_optim(y, wt)
 expect_equal(WH_2d(y = y, wt = wt, method = "optim"), ref_optim)
+
 expect_equal(ref_fs, ref_optim, tolerance = 1e-4)
 
 expect_equal(WH_2d(y = y, wt = wt, method = "optim", criterion = "REML"), ref_optim)
