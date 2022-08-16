@@ -17,50 +17,72 @@ y[d == 0] <- - 20
 wt <- d
 
 # Regression
-WH_2d_reg_fixed_lambda(y, wt, lambda = c(1e2, 1e2)) |> get_edf()
-WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2)) |> get_edf()
-WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2)) |> get_edf()
 
-WH_2d_reg_fs(y, wt) |> get_edf()
-WH_2d(y = y, wt = wt) |> get_edf()
-WH_2d(d, ec, framework = "reg") |> get_edf()
+ref_fixed_lambda <- WH_2d_reg_fixed_lambda(y, wt, lambda = c(1e2,1e2))
+expect_equal(WH_2d(y = y, wt = wt, lambda = c(1e2,1e2)), ref_fixed_lambda)
+expect_equal(WH_2d(d, ec, framework = "reg", lambda = c(1e2,1e2)), ref_fixed_lambda)
+expect_equal(WH_2d(d, y = y, lambda = c(1e2,1e2)), ref_fixed_lambda)
 
-WH_2d_reg_optim(y, wt) |> get_edf()
-WH_2d(y = y, wt = wt, method = "optim") |> get_edf()
-WH_2d(d, ec, framework = "reg", method = "optim") |> get_edf()
+ref_fs <- WH_2d_reg_fs(y, wt)
+expect_equal(WH_2d(y = y, wt = wt, method = "fs"), ref_fs)
+expect_equal(WH_2d(y = y, wt = wt), ref_fs)
+expect_equal(WH_2d(d, ec, framework = "reg"), ref_fs)
+expect_equal(WH_2d(d, y = y), ref_fs)
 
-WH_2d_reg_optim(y, wt, criterion = "AIC") |> get_edf()
-WH_2d(y = y, wt = wt, method = "optim", criterion = "AIC") |> get_edf()
-WH_2d(d, ec, framework = "reg", method = "optim", criterion = "AIC") |> get_edf()
+ref_optim <- WH_2d_reg_optim(y, wt)
+expect_equal(WH_2d(y = y, wt = wt, method = "optim"), ref_optim)
+expect_equal(ref_fs, ref_optim, tolerance = 1e-4)
 
-WH_2d_reg_optim(y, wt, criterion = "BIC") |> get_edf()
-WH_2d(y = y, wt = wt, method = "optim", criterion = "BIC") |> get_edf()
-WH_2d(d, ec, framework = "reg", method = "optim", criterion = "BIC") |> get_edf()
+expect_equal(WH_2d(y = y, wt = wt, method = "optim", criterion = "REML"), ref_optim)
 
-WH_2d_reg_optim(y, wt, criterion = "GCV") |> get_edf()
-WH_2d(y = y, wt = wt, method = "optim", criterion = "GCV") |> get_edf()
-WH_2d(d, ec, framework = "reg", method = "optim", criterion = "GCV") |> get_edf()
+ref_aic <- WH_2d_reg_optim(y, wt, criterion = "AIC")
+expect_equal(WH_2d(y = y, wt = wt, criterion = "AIC"), ref_aic)
 
-WH_2d_reg_fs(y, wt, p = c(10, 5)) |> get_edf()
-WH_2d(y = y, wt = wt, p = c(10, 5)) |> get_edf()
-WH_2d(d, ec, framework = "reg", p = c(10, 5)) |> get_edf()
+ref_bic <- WH_2d_reg_optim(y, wt, criterion = "BIC")
+expect_equal(WH_2d(y = y, wt = wt, criterion = "BIC"), ref_bic)
 
-WH_2d_reg_optim(y, wt, p = c(10, 5)) |> get_edf()
-WH_2d(y = y, wt = wt, method = "optim", p = c(10, 5)) |> get_edf()
-WH_2d(d, ec, framework = "reg", method = "optim", p = c(10, 5)) |> get_edf()
+ref_gcv <- WH_2d_reg_optim(y, wt, criterion = "GCV")
+expect_equal(WH_2d(y = y, wt = wt, criterion = "GCV"), ref_gcv)
+
+ref_fs_red <- WH_2d_reg_fs(y, wt, p = c(10, 5))
+expect_equal(WH_2d(y = y, wt = wt, p = c(10, 5)), ref_fs_red)
+
+ref_optim_red <- WH_2d_reg_optim(y, wt, p = c(10, 5))
+expect_equal(WH_2d(y = y, wt = wt, method = "optim", p = c(10, 5)), ref_optim_red)
+
+expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-4)
 
 # Maximum likelihood
-WH_2d_ml_fixed_lambda(d, ec, lambda = c(1e2, 1e2)) |> get_edf()
+expect_equal(WH_2d(d, ec, lambda = c(1e2,1e2)),
+             WH_2d_ml_fixed_lambda(d, ec, lambda = c(1e2,1e2)))
 
-WH_2d_ml_fs(d, ec) |> get_edf()
+ref_ml_fs <- WH_2d_ml_fs(d, ec)
+expect_equal(WH_2d(d, ec), ref_ml_fs)
 
-WH_2d_ml_optim(d, ec) |> get_edf()
-WH_2d_ml_optim(d, ec, criterion = "AIC") |> get_edf()
-WH_2d_ml_optim(d, ec, criterion = "BIC") |> get_edf()
-WH_2d_ml_optim(d, ec, criterion = "GCV") |> get_edf()
+ref_ml_optim <- WH_2d_ml_optim(d, ec)
+expect_equal(WH_2d(d, ec, method = "optim"),
+             ref_ml_optim)
+expect_equal(WH_2d_ml_optim(d, ec, criterion = "REML"),
+             ref_ml_optim)
 
-WH_2d(d, ec, p = c(10, 5)) |> get_edf()
-WH_2d(d, ec, method = "optim", p = c(10, 5)) |> get_edf()
+expect_equal(ref_ml_fs, ref_ml_optim, tolerance = 1e-1)
+
+expect_equal(WH_2d(d, ec, criterion = "AIC"),
+             WH_2d_ml_optim(d, ec, criterion = "AIC"))
+
+expect_equal(WH_2d(d, ec, criterion = "BIC"),
+             WH_2d_ml_optim(d, ec, criterion = "BIC"))
+
+expect_equal(WH_2d(d, ec, criterion = "GCV"),
+             WH_2d_ml_optim(d, ec, criterion = "GCV"))
+
+ref_fs_red <- WH_2d_ml_fs(d, ec, p = c(10, 5))
+expect_equal(WH_2d(d, ec, p = c(10, 5)), ref_fs_red)
+
+ref_optim_red <- WH_2d_ml_optim(d, ec, p = c(10, 5))
+expect_equal(WH_2d(d, ec, method = "optim", p = c(10, 5)), ref_optim_red)
+
+expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-1)
 
 # Plots
 WH_2d_reg_optim(y, wt) |> plot.WH_2d()
@@ -76,13 +98,21 @@ WH_2d_ml_optim(d, ec) |> plot.WH_2d("std_y_hat")
 WH_2d_ml_fs(d, ec) |> plot.WH_2d("std_y_hat")
 
 # Extrapolation
-newdata_2d <- list(age = 50:119,
-                   duration = 0:29)
+newdata <- list(age = 50:119,
+                duration = 0:29)
 
-WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
-WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+expect_equal(WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata),
+             WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata),
+             tolerance = 1e-4)
 
-WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
-WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata_2d) |> plot.WH_2d()
+expect_equal(WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata),
+             WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata),
+             tolerance = 1e-1)
+
+WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata) |> plot.WH_2d()
+WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata) |> plot.WH_2d()
+
+WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
+WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
 
 

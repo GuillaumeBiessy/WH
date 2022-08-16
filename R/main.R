@@ -67,7 +67,9 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 
   what <- paste("WH_1d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
-    c(list(q = q, lambda = lambda), list(...))
+    c(list(q = q, lambda = lambda),
+      if (method == "optim") list(criterion = criterion),
+      list(...))
   do.call(what, args)
 }
 
@@ -144,7 +146,9 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,
 
   what <- paste("WH_2d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
-    c(list(p = p, q = q, lambda = lambda), list(...))
+    c(list(p = p, q = q, lambda = lambda),
+      if (method == "optim") list(criterion = criterion),
+      list(...))
   do.call(what, args)
 }
 
