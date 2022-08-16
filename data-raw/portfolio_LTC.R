@@ -30,6 +30,7 @@ portfolios_LTC <- c(1e3, 5e3, 2.5e4) |>
                         duration = list(y = seq(0, 30, 1))),
       covariates = list(Sexe = NULL),
       exits = 1) |>
-  map(\(x) x[c("expo", "exit")])
+  map(\(x) list(d = x$exit |> aperm(c(3,4,1,2)) |> colSums(dims = 2),
+                ec = (x$expo / 365.25)  |> aperm(c(3,1,2)) |> colSums()))
 
 usethis::use_data(portfolios_LTC, overwrite = TRUE)

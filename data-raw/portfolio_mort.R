@@ -22,11 +22,11 @@ portfolio_mort <- read_csv2("data-raw/portefeuille_deces_1M.csv") %>%
 set.seed(1)
 portfolios_mort <- c(2e4, 1e5, 5e5) |>
   map(\(x) portfolio_mort[sample(nrow(portfolio_mort), x),]) |>
-set_names(c("20k", "100k", "500k")) |>
+  set_names(c("20k", "100k", "500k")) |>
   map(slice_portfolio,
       timescales = list(age = list(y = 0:120)),
       covariates = list(Sexe = NULL),
       exits = 1) |>
-  map(\(x) x[c("expo", "exit")])
+  map(\(x) list(d = rowSums(x$exit), ec = rowSums(x$expo / 365.25)))
 
 usethis::use_data(portfolios_mort, overwrite = TRUE)

@@ -1551,7 +1551,7 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
          fit = {
            plot(df$x, trans(df$y),
                 xlab = "x",
-                ylab = "log - hasard rate",
+                ylab = "log - hazard rate",
                 xlim = range(df$x),
                 ylim = trans(range(c(df$y_hat - 2 * df$std_y_hat),
                                    c(df$y_hat + 2 * df$std_y_hat))))

@@ -4,12 +4,12 @@ data("portfolios_LTC")
 get_edf <- \(x) sum(x$edf)
 
 # 1D smoothing----
-ec <- rowSums(portfolios_mort[[1]]$expo) / 365.25
-d <- rowSums(portfolios_mort[[1]]$exit)
+d <- portfolios_mort[[1]]$d
+ec <- portfolios_mort[[1]]$ec
 
 keep <- which(ec > 0) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
-ec <- ec[keep]
 d <- d[keep]
+ec <- ec[keep]
 
 y <- log(d / ec)
 y[d == 0] <- - 20
@@ -92,8 +92,8 @@ WH_1d_ml_optim(d, ec) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
 WH_1d_ml_fs(d, ec) |> predict.WH_1d(newdata_1d) |> plot.WH_1d()
 
 # 2D smoothing----
-d  <- (portfolios_LTC[[1]]$exit) |> aperm(c(3,4,1,2)) |> colSums(dims = 2)
-ec <- (portfolios_LTC[[1]]$expo / 365.25) |> aperm(c(3,1,2)) |> colSums()
+d  <- portfolios_LTC[[1]]$d
+ec <- portfolios_LTC[[1]]$ec
 
 keep_age <- which(rowSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
 keep_duration <- which(colSums(ec) > 1e2) |> range() |> (\(x) seq(x[[1]], x[[2]], 1))()
