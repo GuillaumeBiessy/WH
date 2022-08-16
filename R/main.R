@@ -73,7 +73,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
   do.call(what, args)
 }
 
-#' 1D Whittaker-Henderson Smoothing
+#' 2D Whittaker-Henderson Smoothing
 #'
 #' @inheritParams WH_1d
 #' @param d Matrix of observed events whose rows and columns should be named.

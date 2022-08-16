@@ -2,15 +2,16 @@
 % Please edit documentation in R/main.R
 \name{WH_2d}
 \alias{WH_2d}
-\title{1D Whittaker-Henderson Smoothing}
+\title{2D Whittaker-Henderson Smoothing}
 \usage{
 WH_2d(
   d,
   ec,
   lambda,
+  criterion,
   method,
   p,
-  max_dim = 1000,
+  max_dim = 500,
   q = c(2, 2),
   framework,
   y,
@@ -28,57 +29,59 @@ period over the insured population. An individual experiencing an event of
 interest during the year will no longer be exposed afterward and the
 exposure should be reduced accordingly.}
 
-\item{lambda}{Smoothing parameter vector of size \code{2}. Optional. If
+\item{lambda}{Smoothing parameter vector of size \code{2}. If
 missing, an optimization procedure will be used to find the optimal
 smoothing parameter. If provided, no optimal smoothing parameter search
-will be performed unless the \code{method} argument is also provided, in
+will take place unless the \code{criterion} argument is also provided, in
 which case \code{lambda} will be used as the starting parameter for the
 optimization procedure.}
 
-\item{method}{The method to be used to find an optimal smoothing parameter.
-Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
-optimization is performed. Otherwise, default to \code{"fs"} which means the
-generalized Fellner-Schall method is used. The third option is \code{"optim"}
-meaning the \code{optim} function from package \code{stats} will be used
-with the default Nelder-Mead algorithm. The optimization criterion used for
-the \code{"fs"} method as well as the default of the \code{"optim"} method is is the
-restricted maximum likelihood (REML). For the \code{"optim"} method others
-options such as \code{AIC}, \code{BIC} and \code{GCV} may be used by supplying for example
-\code{criterion = "AIC"} as an extra argument to the function}
+\item{criterion}{Criterion to be used for the selection of the
+optimal smoothing parameter. Default is \code{"REML"} which stands for
+restricted maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and
+\code{"GCV"}.}
+
+\item{method}{Method to be used to find the optimal smoothing
+parameter. Default to \code{"fixed_lambda"} if \code{lambda} is supplied,
+meaning no optimization is performed. Otherwise, if \code{criterion =
+  "REML"} or the \code{criterion} argument is missing, default to \code{"fs"}
+which means the generalized Fellner-Schall method is used. For other
+criteria default to \code{"optim"} meaning the \code{optimize} function from
+package \code{stats} will be used.}
 
 \item{p}{Optional vector of size \code{2}. Maximum number of eigenvectors to
 keep on each dimension after performing the eigen decomposition of the
 penalization matrix. If missing, will be automatically computed so that the
 dimensions of (square) matrices involved in the optimization problem
-remains lower to the \code{max_dim} argument}
+remains lower that the \code{max_dim} argument}
 
 \item{max_dim}{Maximal number of rows (or equivalently columns) of the square
 matrices that should be involved in the optimization problem. Default is
-\code{1000}. Values higher than \code{2000} may result in issues with both
+\code{500}. Values higher than \code{2000} may cause issues with both
 memory usage and computation times.}
 
-\item{q}{Order of penalization vector of size \code{2}. Polynoms of degrees
-\code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
-unpenalized. Should be left to the default of \code{c(2,2)} for most
-practical applications.}
+\item{q}{Order of penalization vector of size \code{2}. Polynoms of
+degrees \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are
+therefore unpenalized. Should be left to the default of \code{c(2,2)} for
+most practical applications.}
 
-\item{framework}{Default framework is \code{"ml"} which stands for maximum
-likelihood unless both the \code{y} and \code{wt} arguments are provided,
-in which case the \code{"reg"} or regression framework is used. The regression
-framework is an asymptotical approximation of the maximum likelihood
-likelihood framework.}
+\item{framework}{Default framework is \code{"ml"} which stands for
+maximum likelihood unless the \code{y} argument is also provided, in which
+case the \code{"reg"} or regression framework is used. The regression framework
+is an asymptotical approximation of the maximum likelihood likelihood
+framework.}
 
-\item{y}{Matrix of observations whose rows and columns should be named. Used
-only in the regression framework and even in this case will be
+\item{y}{Optional matrix of observations whose rows and columns should be
+named. Used only in the regression framework and even in this case will be
 automatically computed if the \code{d} and \code{ec} arguments are
-provided. May be useful when using Whittaker-Henderson smoothing outside of
+supplied. May be useful when using Whittaker-Henderson smoothing outside of
 the survival analysis framework.}
 
-\item{wt}{Matrix of weights. As for the observation vector \code{y}, used
-only in the regression framework and even in this case will be
-automatically computed if the \code{d} and \code{ec} arguments are
-provided. May be useful when using Whittaker-Henderson smoothing outside of
-the survival analysis framework.}
+\item{wt}{Optional matrix of weights. As for the observation vector \code{y},
+used only in the regression framework and even in this case will be
+automatically computed if the \code{d} argument is supplied. May be useful
+when using Whittaker-Henderson smoothing outside of the survival analysis
+framework.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
@@ -86,5 +89,5 @@ the survival analysis framework.}
 A fitted \code{WH_2d} object.
 }
 \description{
-1D Whittaker-Henderson Smoothing
+2D Whittaker-Henderson Smoothing
 }

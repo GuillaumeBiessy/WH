@@ -4,56 +4,56 @@
 \alias{WH_1d}
 \title{1D Whittaker-Henderson Smoothing}
 \usage{
-WH_1d(d, ec, lambda, method, q = 2, framework, y, wt, ...)
+WH_1d(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...)
 }
 \arguments{
-\item{d}{Vector of observed events whose elements should be named. Required
-in case of maximum likelihood estimation}
+\item{d}{Vector of observed events whose elements should be named.}
 
-\item{ec}{Vector of central exposure. Required in case of maximum likelihood
-estimation. The central exposure corresponds to the sum of the exposure
-period over the insured population. An individual experiencing an event of
-interest during the year will no longer be exposed afterward and the
-exposure should be reduced accordingly.}
+\item{ec}{Vector of central exposure. The central exposure corresponds to the
+sum of the exposure period over the insured population. An individual
+experiencing an event of interest during the year will no longer be exposed
+afterward and the exposure should be reduced accordingly.}
 
-\item{lambda}{Smoothing parameter. Optional. If missing, an optimization
+\item{lambda}{Smoothing parameter. If missing, an optimization
 procedure will be used to find the optimal smoothing parameter. If
-provided, no optimal smoothing parameter search will be performed unless
-the \code{method} argument is also provided, in which case \code{lambda}
+supplied, no optimal smoothing parameter search will take place unless the
+\code{criterion} argument is also supplied, in which case \code{lambda}
 will be used as the starting parameter for the optimization procedure.}
 
-\item{method}{The method to be used to find an optimal smoothing parameter.
-Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
-optimization is performed. Otherwise, default to \code{"fs"} which means the
-generalized Fellner-Schall method is used. The third option is \code{"optim"}
-meaning the \code{optim} function from package \code{stats} will be used
-with the default Nelder-Mead algorithm. The optimization criterion used for
-the \code{"fs"} method as well as the default of the \code{"optim"} method is is the
-restricted maximum likelihood (REML). For the \code{"optim"} method others
-options such as \code{AIC}, \code{BIC} and \code{GCV} may be used by supplying for example
-\code{criterion = "AIC"} as an extra argument to the function}
+\item{criterion}{Criterion to be used for the selection of the
+optimal smoothing parameter. Default is \code{"REML"} which stands for
+restricted maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and
+\code{"GCV"}.}
+
+\item{method}{Method to be used to find the optimal smoothing
+parameter. Default to \code{"fixed_lambda"} if \code{lambda} is supplied,
+meaning no optimization is performed. Otherwise, if \code{criterion =
+  "REML"} or the \code{criterion} argument is missing, default to \code{"fs"}
+which means the generalized Fellner-Schall method is used. For other
+criteria default to \code{"optim"} meaning the \code{optimize} function from
+package \code{stats} will be used.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are
 considered smooth and are therefore unpenalized. Should be left to the
 default of \code{2} for most practical applications.}
 
-\item{framework}{Default framework is \code{"ml"} which stands for maximum
-likelihood unless both the \code{y} and \code{wt} arguments are provided,
-in which case the \code{"reg"} or regression framework is used. The regression
-framework is an asymptotical approximation of the maximum likelihood
-likelihood framework.}
+\item{framework}{Default framework is \code{"ml"} which stands for
+maximum likelihood unless the \code{y} argument is also provided, in which
+case the \code{"reg"} or regression framework is used. The regression framework
+is an asymptotical approximation of the maximum likelihood likelihood
+framework.}
 
-\item{y}{Vector of observations whose elements should be named. Used only in
-the regression framework and even in this case will be automatically
-computed if the \code{d} and \code{ec} arguments are provided. May be
-useful when using Whittaker-Henderson smoothing outside of the survival
-analysis framework.}
-
-\item{wt}{Vector of weights. As for the observation vector \code{y}, used
+\item{y}{Optional vector of observations whose elements should be named. Used
 only in the regression framework and even in this case will be
-automatically computed if the \code{d} and \code{ec} arguments are
-provided. May be useful when using Whittaker-Henderson smoothing outside of
-the survival analysis framework.}
+automatically computed from the \code{d} and \code{ec} arguments if those
+are supplied. May be useful when using Whittaker-Henderson smoothing
+outside of the survival analysis framework.}
+
+\item{wt}{Optional vector of weights. As for the observation vector \code{y},
+used only in the regression framework and even in this case will be
+automatically computed if the \code{d} argument is supplied. May be useful
+when using Whittaker-Henderson smoothing outside of the survival analysis
+framework.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }

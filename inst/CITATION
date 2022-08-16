@@ -1,0 +1,12 @@
+citHeader("To cite WH in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Une vision moderne du lissage de whittaker-Henderson",
+  author   = person("Guillaume Biessy"),
+  journal  = "Working Paper",
+  year     = "2022",
+  textVersion = paste("Guillaume Biessy (2022).",
+                 "Une vision moderne du lissage de whittaker-Henderson",
+                 "Working Paper")
+)

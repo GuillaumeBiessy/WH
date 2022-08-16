@@ -5,11 +5,11 @@
 \alias{portfolios_mort}
 \title{Simulated Mortality Datasets}
 \format{
-A list of 3 datasets of increasing sizes, each one containing :
-\describe{ \item{expo}{An array containing the portfolio central exposure
-in years for each combination of age and gender} \item{exit}{An array
-containing the number of observed deaths for each combination of age and
-gender}}
+A list of 3 agregated datasets obtained from fictive annuity
+portfolios of increasing sizes, each one containing :
+\describe{\item{exit}{A vector containing the portfolio number of observed
+deaths for each age} \item{expo}{A vector containing the portfolio central
+exposure in person-years for each age}}
 }
 \usage{
 portfolios_mort

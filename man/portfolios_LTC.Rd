@@ -5,11 +5,12 @@
 \alias{portfolios_LTC}
 \title{Simulated Long-Term Care Datasets}
 \format{
-A list of 3 datasets of increasing sizes, each one containing :
-\describe{ \item{expo}{An array containing the portfolio central exposure
-in years for each combination of age, duration in LTC and gender}
-\item{exit}{An array containing the number of observed deaths for each
-combination of age, duration in LTC and gender}}
+A list of 3 agregated datasets obtained from fictive LTC annuity
+portfolios of increasing sizes, each one containing :
+\describe{\item{exit}{A matrix containing the portfolio number of observed
+deaths for each combination of age and duration in LTC} \item{expo}{A
+matrix containing the portfolio central exposure in person-years for each
+combination of age and duration in LTC}}
 }
 \usage{
 portfolios_LTC
