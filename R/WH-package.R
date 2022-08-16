@@ -48,7 +48,8 @@ NULL
 # use_data_raw("portfolio_LTC")
 
 # Tests----
-# use_test("mort")
+# use_test("1D")
+# use_test("2D")
 
 # Patchnotes----
 # use_news_md()

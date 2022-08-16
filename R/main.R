@@ -2,57 +2,53 @@
 
 #' 1D Whittaker-Henderson Smoothing
 #'
-#' @param d Vector of observed events whose elements should be named. Required
-#'   in case of maximum likelihood estimation
-#' @param ec Vector of central exposure. Required in case of maximum likelihood
-#'   estimation. The central exposure corresponds to the sum of the exposure
-#'   period over the insured population. An individual experiencing an event of
-#'   interest during the year will no longer be exposed afterward and the
-#'   exposure should be reduced accordingly.
-#' @param lambda Smoothing parameter. Optional. If missing, an optimization
+#' @param d Vector of observed events whose elements should be named.
+#' @param ec Vector of central exposure. The central exposure corresponds to the
+#'   sum of the exposure period over the insured population. An individual
+#'   experiencing an event of interest during the year will no longer be exposed
+#'   afterward and the exposure should be reduced accordingly.
+#' @param lambda Smoothing parameter. If missing, an optimization
 #'   procedure will be used to find the optimal smoothing parameter. If
-#'   provided, no optimal smoothing parameter search will be performed unless
-#'   the \code{method} argument is also provided, in which case \code{lambda}
+#'   supplied, no optimal smoothing parameter search will take place unless the
+#'   \code{criterion} argument is also supplied, in which case \code{lambda}
 #'   will be used as the starting parameter for the optimization procedure.
-#' @param method The method to be used to find an optimal smoothing parameter.
-#'   Default to `"fixed_lambda"` if \code{lambda} is supplied, meaning no
-#'   optimization is performed. Otherwise, default to `"fs"` which means the
-#'   generalized Fellner-Schall method is used. The third option is `"optim"`
-#'   meaning the \code{optim} function from package \code{stats} will be used
-#'   with the default Nelder-Mead algorithm. The optimization criterion used for
-#'   the `"fs"` method as well as the default of the `"optim"` method is is the
-#'   restricted maximum likelihood (REML). For the `"optim"` method others
-#'   options such as `AIC`, `BIC` and `GCV` may be used by supplying for example
-#'   \code{criterion = "AIC"} as an extra argument to the function
+#' @param criterion Criterion to be used for the selection of the
+#'   optimal smoothing parameter. Default is `"REML"` which stands for
+#'   restricted maximum likelihood. Other options include `"AIC"`, `"BIC"` and
+#'   `"GCV"`.
+#' @param method Method to be used to find the optimal smoothing
+#'   parameter. Default to `"fixed_lambda"` if \code{lambda} is supplied,
+#'   meaning no optimization is performed. Otherwise, if \code{criterion =
+#'   "REML"} or the \code{criterion} argument is missing, default to `"fs"`
+#'   which means the generalized Fellner-Schall method is used. For other
+#'   criteria default to `"optim"` meaning the \code{optimize} function from
+#'   package \code{stats} will be used.
 #' @param q Order of penalization. Polynoms of degrees \code{q - 1} are
 #'   considered smooth and are therefore unpenalized. Should be left to the
 #'   default of \code{2} for most practical applications.
-#' @param framework Default framework is `"ml"` which stands for maximum
-#'   likelihood unless both the \code{y} and \code{wt} arguments are provided,
-#'   in which case the `"reg"` or regression framework is used. The regression
-#'   framework is an asymptotical approximation of the maximum likelihood
-#'   likelihood framework.
-#' @param y Vector of observations whose elements should be named. Used only in
-#'   the regression framework and even in this case will be automatically
-#'   computed if the \code{d} and \code{ec} arguments are provided. May be
-#'   useful when using Whittaker-Henderson smoothing outside of the survival
-#'   analysis framework.
-#' @param wt Vector of weights. As for the observation vector \code{y}, used
+#' @param framework Default framework is `"ml"` which stands for
+#'   maximum likelihood unless the \code{y} argument is also provided, in which
+#'   case the `"reg"` or regression framework is used. The regression framework
+#'   is an asymptotical approximation of the maximum likelihood likelihood
+#'   framework.
+#' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
-#'   automatically computed if the \code{d} and \code{ec} arguments are
-#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
-#'   the survival analysis framework.
+#'   automatically computed from the \code{d} and \code{ec} arguments if those
+#'   are supplied. May be useful when using Whittaker-Henderson smoothing
+#'   outside of the survival analysis framework.
+#' @param wt Optional vector of weights. As for the observation vector \code{y},
+#'   used only in the regression framework and even in this case will be
+#'   automatically computed if the \code{d} argument is supplied. May be useful
+#'   when using Whittaker-Henderson smoothing outside of the survival analysis
+#'   framework.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
 #' @return A fitted \code{WH_1d} object.
 #'
 #' @export
-WH_1d <- function(d, ec, lambda, method, q = 2, framework, y, wt, ...) {
+WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...) {
 
-  if (missing(framework)) framework <- if (!missing(y) && !missing(wt)) "reg" else "ml"
-  if (missing(method)) method <- if (missing(lambda)) "fs" else "fixed_lambda"
-  if (missing(lambda)) lambda <- 1e3
-
+  if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
   if (framework == "reg") {
     if (missing(y) && !missing(d) && !missing(ec)) {
       y <- log(d / ec)
@@ -60,6 +56,14 @@ WH_1d <- function(d, ec, lambda, method, q = 2, framework, y, wt, ...) {
     }
     if (missing(wt) && !missing(d)) wt <- d
   }
+
+  if (missing(criterion)) criterion <- "REML"
+  if (missing(method)) {
+    method <- if (!missing(lambda)) "fixed_lambda" else {
+      if (criterion != "REML") "optim" else "fs"
+    }
+  }
+  if (missing(lambda)) lambda <- 1e3
 
   what <- paste("WH_1d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
@@ -77,45 +81,43 @@ WH_1d <- function(d, ec, lambda, method, q = 2, framework, y, wt, ...) {
 #'   period over the insured population. An individual experiencing an event of
 #'   interest during the year will no longer be exposed afterward and the
 #'   exposure should be reduced accordingly.
-#' @param lambda Smoothing parameter vector of size \code{2}. Optional. If
+#' @param lambda Smoothing parameter vector of size \code{2}. If
 #'   missing, an optimization procedure will be used to find the optimal
 #'   smoothing parameter. If provided, no optimal smoothing parameter search
-#'   will be performed unless the \code{method} argument is also provided, in
+#'   will take place unless the \code{criterion} argument is also provided, in
 #'   which case \code{lambda} will be used as the starting parameter for the
 #'   optimization procedure.
 #' @param p Optional vector of size \code{2}. Maximum number of eigenvectors to
 #'   keep on each dimension after performing the eigen decomposition of the
 #'   penalization matrix. If missing, will be automatically computed so that the
 #'   dimensions of (square) matrices involved in the optimization problem
-#'   remains lower to the \code{max_dim} argument
+#'   remains lower that the \code{max_dim} argument
 #' @param max_dim Maximal number of rows (or equivalently columns) of the square
 #'   matrices that should be involved in the optimization problem. Default is
-#'   \code{1000}. Values higher than \code{2000} may result in issues with both
+#'   \code{500}. Values higher than \code{2000} may cause issues with both
 #'   memory usage and computation times.
-#' @param q Order of penalization vector of size \code{2}. Polynoms of degrees
-#'   \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
-#'   unpenalized. Should be left to the default of \code{c(2,2)} for most
-#'   practical applications.
-#' @param y Matrix of observations whose rows and columns should be named. Used
-#'   only in the regression framework and even in this case will be
+#' @param q Order of penalization vector of size \code{2}. Polynoms of
+#'   degrees \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are
+#'   therefore unpenalized. Should be left to the default of \code{c(2,2)} for
+#'   most practical applications.
+#' @param y Optional matrix of observations whose rows and columns should be
+#'   named. Used only in the regression framework and even in this case will be
 #'   automatically computed if the \code{d} and \code{ec} arguments are
-#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
+#'   supplied. May be useful when using Whittaker-Henderson smoothing outside of
 #'   the survival analysis framework.
-#' @param wt Matrix of weights. As for the observation vector \code{y}, used
-#'   only in the regression framework and even in this case will be
-#'   automatically computed if the \code{d} and \code{ec} arguments are
-#'   provided. May be useful when using Whittaker-Henderson smoothing outside of
-#'   the survival analysis framework.
+#' @param wt Optional matrix of weights. As for the observation vector \code{y},
+#'   used only in the regression framework and even in this case will be
+#'   automatically computed if the \code{d} argument is supplied. May be useful
+#'   when using Whittaker-Henderson smoothing outside of the survival analysis
+#'   framework.
 #'
 #' @return A fitted \code{WH_2d} object.
 #'
 #' @export
-WH_2d <- function(d, ec, lambda, method, p, max_dim = 1e3, q = c(2, 2), framework, y, wt, ...) {
+WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 500,
+                  q = c(2, 2), framework, y, wt, ...) {
 
-  if (missing(framework)) framework <- if (!missing(y) && !missing(wt)) "reg" else "ml"
-  if (missing(method)) method <- if (missing(lambda)) "fs" else "fixed_lambda"
-  if (missing(lambda)) lambda <- c(1e3, 1e3)
-
+  if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
   if (framework == "reg") {
     if (missing(y) && !missing(d) && !missing(ec)) {
       y <- log(d / ec)
@@ -123,6 +125,14 @@ WH_2d <- function(d, ec, lambda, method, p, max_dim = 1e3, q = c(2, 2), framewor
     }
     if (missing(wt) && !missing(d)) wt <- d
   }
+
+  if (missing(criterion)) criterion <- "REML"
+  if (missing(method)) {
+    method <- if (!missing(lambda)) "fixed_lambda" else {
+      if (criterion != "REML") "optim" else "fs"
+    }
+  }
+  if (missing(lambda)) lambda <- c(1e3, 1e3)
 
   dims <- if (!missing(y)) dim(y) else dim(d)
   if (missing(p)) {
