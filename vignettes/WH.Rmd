@@ -21,7 +21,7 @@ library(WH)
 
 # Comment utiliser le package ?
 
-Le package `WH` contient deux principales fonctions [WH_1d()] et [WH_2d()] correspondant respectivement aux lissages unidimensionnel et bidimensionnel. Celles-ci ne nécessitent que deux arguments pour fonctionner :
+Le package `WH` contient deux principales fonctions `WH_1d` et `WH_2d` correspondant respectivement aux lissages unidimensionnel et bidimensionnel. Celles-ci ne nécessitent que deux arguments pour fonctionner :
 
 * Le vecteur (ou la matrice dans le cas bidimensionnel) `d` correspondant au nombre d'évènements observés pour chaque âge (ou chaque couple âge / ancienneté dans le cas bidimensionnel) 
 
@@ -29,9 +29,9 @@ Le package `WH` contient deux principales fonctions [WH_1d()] et [WH_2d()] corre
 
 Dans le cas où seuls ces deux arguments sont spécifiés, ces fonctions vont maximiser la vraisemblance pénalisée associée aux observations du portefeuille afin d'estimer le logarithme de la fonction de hasard, ce qui revient à construire une suite d'approximations normales de la vraisemblance et à appliquer le lissage de Whittaker-Henderson à chaque étape de celle-ci. A chaque application du lissage, un paramètre de lissage optimal est sélectionné lui aussi de manière itérative en utilisant la méthode de Fellner-Schall généralisée. Dans le cas bidimensionnel, une méthode de réduction de rang est également appliquée de manière automatique dans le cas où la taille du problème est trop important pour résoudre celui-ci en un temps raisonnable ou dépasse la capacité mémoire disponible. La documentation des fonctions `WH_1d` et `WH_2d` pourra être consultée pour découvrir les options supplémentaires disponibles ainsi que des exemples d'utilisation.
 
-Le package contient également deux jeux de données agrégés fictifs [portfolios_mort] et [portfolios_LTC] obtenus respectivement en agrégeant un portefeuille de rentiers classique et un portefeuille de rentiers en situation de dépendance. L'évènement d'intérêt correspond dans les deux cas au décès.
+Le package contient également deux jeux de données agrégés fictifs `portfolios_mort` et `portfolios_LTC` obtenus respectivement en agrégeant un portefeuille de rentiers classique et un portefeuille de rentiers en situation de dépendance. L'évènement d'intérêt correspond dans les deux cas au décès.
 
-Plusieurs fonctions complémentaires peuvent être appliquées aux sorties des fonctions [WH_1d()] et [WH_2d()] :
+Plusieurs fonctions complémentaires peuvent être appliquées aux sorties des fonctions `WH_1d` et `WH_2d` :
 
 * La fonction `summary` permet d'avoir un aperçu du modèle
 
