@@ -64,7 +64,7 @@ Les critère de régularité et de fidélité se réécrivent sous forme matrici
 $$
 \begin{aligned}
 F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \Vert \sqrt{W}(y - \theta)\Vert^2 = (y - \theta)^TW(y - \theta) \\
-R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\Vert D_{n,q} \theta\Vert^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
+R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\Vert D_{n,q}\theta\Vert^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
 \end{aligned}
 $$ 
 
@@ -86,7 +86,8 @@ où
 
 -   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$ représente un critère de fidélité aux observations
 
--   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ est un critère de régularité bidimensionnel s'écrivant comme la somme :
+-   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ 
+est un critère de régularité bidimensionnel s'écrivant comme la somme :
 
     -   d'un critère de régularité unidimensionnel appliqué à toutes les lignes de $\Theta$ et
 
