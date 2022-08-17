@@ -2,7 +2,7 @@ Package: WH
 Type: Package
 Title: Apply Whittaker-Henderson Smoothing to Survival Data
 Version: 0.1.0
-Authors@R: person("Biessy", "Guillaume", email = "guillaume.biessy78@gmail.com",
+Authors@R: utils::person("Guillaume", "Biessy", email = "guillaume.biessy78@gmail.com",
   role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3756-7345"))
 Description: Implementation of Whittaker-Henderson Smoothing for the gradation 
     of actuarial tables for person insurance risks such as mortality, disability, 

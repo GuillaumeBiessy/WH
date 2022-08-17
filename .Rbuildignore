@@ -5,3 +5,4 @@
 ^README\.Rmd$
 ^tests/benchmark\.R$
 ^\.github$
+^cran-comments\.md$
