@@ -1,5 +1,13 @@
 #' Compute Block Kronecket Product Matrix
 #'
+#' @inheritParams eigen_dec
+#'
+#' @returns Difference matrix of order \code{q} for a vector containing \code{n}
+#'   observations.
+build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
+
+#' Compute Block Kronecket Product Matrix
+#'
 #' @param XZ A list whose components are list of 2 matrices
 #'
 #' @returns A matrix obtained by applying the Kronecker product to the 2 matrices
