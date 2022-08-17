@@ -1,5 +1,6 @@
 ---
 output: github_document
+bibliography: "vignettes/biblio.bib"
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -18,7 +19,83 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of WH is to ...
+## Notations
+
+Dans cette note, des caractères gras seront utilisés pour désigner les vecteurs et des lettres majuscules pour les matrices. Si $\mathbf{y}$ est un vecteur et $A$ une matrice, on désignera par $\text{Var}(\mathbf{y})$ la matrice de variance-covariance associée à $\mathbf{y}$, $\textbf{diag}(A)$ la diagonale de la matrice $A$ et $\text{Diag}(\mathbf{y})$ la matrice diagonale telle que $\textbf{diag}(\text{Diag}(\mathbf{y})) = y$, par $\text{tr}(A)$ la somme des valeurs diagonales de $A$, par $A^{T}$ sa transposée et dans le cas où $A$ est inversible, par $A^{- 1}$ son inverse, par $A^{- T}$ l'inverse de sa transposée et par $|A|$ le produit des valeurs propres de $A$. Le produit de Kronecker de deux matrices $A$ et $B$ sera noté $A \otimes B$ et $A \odot B$ désignera le produit de Hadamard *i.e.* le produit élément par élément. Enfin, $\text{vec}(A)$ désignera le vecteur construit en mettant bout à bout les colonnes de $A$.
+
+## Origine du lissage
+
+Le lissage de Whittaker-Henderson est une méthode de régularisation qui corrige les observations obtenues pour tenir compte des fluctuations d'échantillonnage. Proposé initialement par @whittaker1922new pour la construction des tables de mortalité et enrichi par les travaux de @henderson1924new, il demeure à ce jour l'une des méthodes les plus populaires parmi les actuaires pour la construction de tables d'expérience pour les risques d'assurance de personne : décès, arrêt de travail, dépendance, perte d'emploi. Le lissage de Whittaker-Henderson se généralise en effet aux tables en deux dimensions mais nécessite dans tous les cas de disposer d'observations discrètes régulièrement espacées.
+
+## Lissage dans le cas unidimensionnel
+
+Soit $y$ un vecteur d'observations et $w \ge 0$ un vecteur de poids positifs ou nuls, tous deux de taille $n$. L'estimateur associé au lissage de Whittaker-Henderson s'écrit :
+
+$$\hat{y} = \underset{\theta}{\text{argmin}}\{F(y,w,\theta) + R_{\lambda,q}(\theta)\}$$
+
+où :
+
+-   $F(y,w,\theta) = \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2$ représente un critère de fidélité aux observations
+
+-   $R(\theta,\lambda,q) = \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2$ est un critère de régularité
+
+$\Delta^q$ représente dans cette dernière expression l'opérateur de différence avant d'ordre $q$ tel que pour tout $i\in[1,n - q]$ :
+
+$$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}$$ Définissons $W = \text{Diag}(w)$ la matrice diagonale des poids et $D_{n,q}$ la matrice des différences d'ordre $q$, de dimensions $(n - q,n)$, telle que $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$. En pratique, on se limitera aux différences d'ordre $q\in\{1,2\}$ représentées ci-dessous :
+
+$$
+D_1 = \begin{pmatrix}
+1 & - 1 &  & 0 \\
+& \ddots & \ddots & \\
+0 & & 1 & - 1
+\end{pmatrix}
+\quad\quad
+D_2 = \begin{pmatrix}
+1 & - 2 & 1 & & 0 \\
+& \ddots & \ddots & \ddots & \\
+0 & & 1 & - 2 & 1
+\end{pmatrix}.
+$$ Les critère de régularité et de fidélité se réécrivent sous forme matricielle :
+
+$$
+\begin{aligned}
+F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \|\sqrt{W}(y - \theta)\|^2 = (y - \theta)^TW(y - \theta) \\
+R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\|D_{n,q}\theta\|^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
+\end{aligned}
+$$ et l'estimateur associé au lissage devient :
+
+$$\hat{y} = \underset{\theta}{\text{argmin}} \left\lbrace(y - \theta)^TW(y - \theta) + \theta^TP_\lambda\theta\right\rbrace$$
+
+en notant dans le cas unidimensionnel $P_\lambda = \lambda D_{n,q}^TD_{n,q}$.
+
+## Lissage dans le cas bidimensionnel
+
+Dans le cas bidimensionnel, l'on considère une matrice $Y$ d'observations et une matrice $\Omega$ de poids positifs ou nuls, toutes deux de dimensions $n_x \times n_z$.
+
+L'estimateur associé au lissage de Whittaker-Henderson s'écrit :
+
+$$\widehat{Y} = \underset{\Theta}{\text{argmin}}\{F(Y,\Omega, \Theta) + R_{\lambda,q}(\Theta)\}$$ où
+
+-   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$ représente un critère de fidélité aux observations
+
+-   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ est un critère de régularité bidimensionnel s'écrivant comme la somme :
+
+    -   d'un critère de régularité unidimensionnel appliqué à toutes les lignes de $\Theta$ et
+
+    -   d'un critère de régularité unidimensionnel appliqué à toutes les colonnes de $\Theta$.
+
+Là encore il est souhaitable d'adopter une forme matricielle en définissant $y = \text{vec}(Y)$, $w = \text{vec}(\Omega)$, $\theta = \text{vec}(\Theta)$ les vecteurs obtenus en mettant bout à bout les colonnes des matrices $Y$, $\Omega$ et $\Theta$ respectivement et en notant $W = \text{Diag}(w)$ et $n = n_x \times n_z$.
+
+Les critère de régularité et de fidélité se réécrivent sous forme matricielle, en fonction de $y$, $w$ et $\theta$ :
+
+$$
+\begin{aligned}
+F(y,w, \theta) &= \underset{i = 1}{\overset{n}{\sum}}w_i(y_i - \theta_i)^2 = (y - \theta)^TW(y - \theta) \\
+R(\theta,\lambda,q) &= \theta^{T}(\lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}) \theta
+\end{aligned}
+$$ 
+
+et l'on retrouve la même forme que pour le cas unidimensionnel avec dans le cas bidimensionnel $P_\lambda = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}$.
 
 ## Installation
 
