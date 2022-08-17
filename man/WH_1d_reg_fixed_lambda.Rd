@@ -25,7 +25,9 @@ WH_1d_reg_fixed_lambda(
 smooth and are therefore unpenalized}
 }
 \value{
-A list containing model fit, residuals and associated uncertainty
+An object of class \code{WH_1d} i.e. a list containing model fit,
+variance, residuals and degrees of freedom as well as diagnosis to asses
+the quality of the fit.
 }
 \description{
 Whittaker-Henderson Smoothing (Regression, fixed lambda)

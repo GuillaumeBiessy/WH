@@ -33,9 +33,9 @@ displayed}
 procedure}
 }
 \value{
-A list containing model fit, residuals and associated uncertainty.
-Smoothing parameter is chosen using the generalized Fellner-Schall update
-formula
+An object of class \code{WH_1d} i.e. a list containing model fit,
+variance, residuals and degrees of freedom as well as diagnosis to asses
+the quality of the fit.
 }
 \description{
 Whittaker-Henderson Smoothing (Regression, Generalized Fellner-Schall update)

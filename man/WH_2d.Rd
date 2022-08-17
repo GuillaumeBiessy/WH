@@ -84,7 +84,9 @@ framework.}
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
 \value{
-An object of class \code{WH_2d}.
+An object of class \code{WH_2d} i.e. a list containing model fit,
+variance, residuals and degrees of freedom as well as diagnosis to asses
+the quality of the fit.
 }
 \description{
 #' Main package function to apply Whittaker-Henderson smoothing in a
@@ -92,12 +94,13 @@ bidimensional survival analysis framework. It takes as input a matrix of
 observed events and a matrix of associated central exposure, both depending
 on two covariates, and build a smooth version of the log-hazard rate.
 Smoothing parameters may be supplied or automatically chosen according to a
-specific criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
-\code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
-framework or an asymptotic (approximate) gaussian framework. As
-Whittaker-Henderson smoothing relies on full-rank smoothers, computation time
-and memory usage in the bidimensional case may be overwhelming and the
-function integrates an ad hoc rank-reduction procedure to avoid such issues.
+specific criterion such as \code{"REML"} (the default), \code{"AIC"},
+\code{"BIC"} or \code{"GCV"}. Whittaker-Henderson may be applied in a full
+maximum likelihood framework or an asymptotic (approximate) gaussian
+framework. As Whittaker-Henderson smoothing relies on full-rank smoothers,
+computation time and memory usage in the bidimensional case may be
+overwhelming and the function integrates an ad hoc rank-reduction procedure
+to avoid such issues.
 }
 \examples{
 keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -143,7 +146,7 @@ d  <- portfolios_LTC[[1]]$d[keep_age2, keep_duration2]
 ec <- portfolios_LTC[[1]]$ec[keep_age2, keep_duration2]
 
 prod(dim(d)) # problem dimension is 1,262 !
-WH_2d(d, ec, max_dim = 100)
+WH_2d(d, ec)
 # rank-reduction may be used to quickly find an approximate solution
 
 }

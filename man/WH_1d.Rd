@@ -56,7 +56,9 @@ framework.}
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
 \value{
-An object of class \code{WH_1d}.
+An object of class \code{WH_1d} i.e. a list containing model fit,
+variance, residuals and degrees of freedom as well as diagnosis to asses
+the quality of the fit.
 }
 \description{
 Main package function to apply Whittaker-Henderson smoothing in a

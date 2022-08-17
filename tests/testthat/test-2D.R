@@ -79,34 +79,34 @@ expect_equal(WH_2d(d, ec, method = "optim", p = c(10, 5)), ref_optim_red)
 expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-1)
 
 # Plots
-WH_2d_reg_optim(y, wt) |> plot.WH_2d()
-WH_2d_reg_fs(y, wt) |> plot.WH_2d()
+WH_2d_reg_optim(y, wt) |> plot()
+WH_2d_reg_fs(y, wt) |> plot()
 
-WH_2d_ml_optim(d, ec) |> plot.WH_2d()
-WH_2d_ml_fs(d, ec) |> plot.WH_2d()
+WH_2d_ml_optim(d, ec) |> plot()
+WH_2d_ml_fs(d, ec) |> plot()
 
-WH_2d_reg_optim(y, wt) |> plot.WH_2d("std_y_hat")
-WH_2d_reg_fs(y, wt) |> plot.WH_2d("std_y_hat")
+WH_2d_reg_optim(y, wt) |> plot("std_y_hat")
+WH_2d_reg_fs(y, wt) |> plot("std_y_hat")
 
-WH_2d_ml_optim(d, ec) |> plot.WH_2d("std_y_hat")
-WH_2d_ml_fs(d, ec) |> plot.WH_2d("std_y_hat")
+WH_2d_ml_optim(d, ec) |> plot("std_y_hat")
+WH_2d_ml_fs(d, ec) |> plot("std_y_hat")
 
 # Extrapolation
 newdata <- list(age = 50:99, duration = 0:19)
 
-expect_equal(WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata),
-             WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata),
+expect_equal(WH_2d_reg_fs(y, wt) |> predict(newdata),
+             WH_2d_reg_optim(y, wt) |> predict(newdata),
              tolerance = 1e-4)
 
-expect_equal(WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata),
-             WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata),
+expect_equal(WH_2d_ml_fs(d, ec) |> predict(newdata),
+             WH_2d_ml_optim(d, ec) |> predict(newdata),
              tolerance = 1e-1)
 
-WH_2d_reg_fs(y, wt) |> predict.WH_2d(newdata) |> plot.WH_2d()
-WH_2d_reg_optim(y, wt) |> predict.WH_2d(newdata) |> plot.WH_2d()
+WH_2d_reg_fs(y, wt) |> predict(newdata) |> plot()
+WH_2d_reg_optim(y, wt) |> predict(newdata) |> plot()
 
-WH_2d_ml_fs(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
-WH_2d_ml_optim(d, ec) |> predict.WH_2d(newdata) |> plot.WH_2d()
+WH_2d_ml_fs(d, ec) |> predict(newdata) |> plot()
+WH_2d_ml_optim(d, ec) |> predict(newdata) |> plot()
 
 # Rank reduction
 keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)

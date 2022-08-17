@@ -15,7 +15,8 @@ positions}
 \item{...}{Not used}
 }
 \value{
-An WH_1d object with predicted values...
+An object of class \code{WH_1d} with additional components for model
+prediction.
 }
 \description{
 Extrapolate the model for new values of the covariates

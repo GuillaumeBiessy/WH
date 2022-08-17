@@ -32,7 +32,9 @@ displayed}
 \item{accu_dev}{Tolerance for the convergence of the optimization procedure}
 }
 \value{
-A list containing model fit, residuals and associated uncertainty
+An object of class \code{WH_1d} i.e. a list containing model fit,
+variance, residuals and degrees of freedom as well as diagnosis to asses
+the quality of the fit.
 }
 \description{
 Whittaker-Henderson Smoothing (Maximum Likelihood, fixed lambda)

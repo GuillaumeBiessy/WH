@@ -15,7 +15,7 @@ output_to_df(object, dim1 = "x", dim2 = "t")
 }
 \value{
 A data.frame gathering information about the fitted and predicted
-values, the model standard deviation, residuals and effective degrees of
+values, the model variance, residuals and effective degrees of
 freedom...
 }
 \description{

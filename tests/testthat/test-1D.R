@@ -76,38 +76,38 @@ expect_equal(WH_1d(d, ec, method = "optim", p = 20), ref_optim_red)
 expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-1)
 
 # Plots
-WH_1d_reg_optim(y, wt) |> plot.WH_1d()
-WH_1d_reg_fs(y, wt) |> plot.WH_1d()
+WH_1d_reg_optim(y, wt) |> plot()
+WH_1d_reg_fs(y, wt) |> plot()
 
-WH_1d_ml_optim(d, ec) |> plot.WH_1d()
-WH_1d_ml_fs(d, ec) |> plot.WH_1d()
+WH_1d_ml_optim(d, ec) |> plot()
+WH_1d_ml_fs(d, ec) |> plot()
 
-WH_1d_reg_optim(y, wt) |> plot.WH_1d("res")
-WH_1d_reg_fs(y, wt) |> plot.WH_1d("res")
+WH_1d_reg_optim(y, wt) |> plot("res")
+WH_1d_reg_fs(y, wt) |> plot("res")
 
-WH_1d_ml_optim(d, ec) |> plot.WH_1d("res")
-WH_1d_ml_fs(d, ec) |> plot.WH_1d("res")
+WH_1d_ml_optim(d, ec) |> plot("res")
+WH_1d_ml_fs(d, ec) |> plot("res")
 
-WH_1d_reg_optim(y, wt) |> plot.WH_1d("edf")
-WH_1d_reg_fs(y, wt) |> plot.WH_1d("edf")
+WH_1d_reg_optim(y, wt) |> plot("edf")
+WH_1d_reg_fs(y, wt) |> plot("edf")
 
-WH_1d_ml_optim(d, ec) |> plot.WH_1d("edf")
-WH_1d_ml_fs(d, ec) |> plot.WH_1d("edf")
+WH_1d_ml_optim(d, ec) |> plot("edf")
+WH_1d_ml_fs(d, ec) |> plot("edf")
 
 # Extrapolation
 newdata <- 18:99
 
-expect_equal(WH_1d_reg_fs(y, wt) |> predict.WH_1d(newdata),
-             WH_1d_reg_optim(y, wt) |> predict.WH_1d(newdata),
+expect_equal(WH_1d_reg_fs(y, wt) |> predict(newdata),
+             WH_1d_reg_optim(y, wt) |> predict(newdata),
              tolerance = 1e-6)
 
-expect_equal(WH_1d_ml_fs(d, ec) |> predict.WH_1d(newdata),
-             WH_1d_ml_optim(d, ec) |> predict.WH_1d(newdata),
+expect_equal(WH_1d_ml_fs(d, ec) |> predict(newdata),
+             WH_1d_ml_optim(d, ec) |> predict(newdata),
              tolerance = 1e-1)
 
-WH_1d_reg_fs(y, wt) |> predict.WH_1d(newdata) |> plot.WH_1d()
-WH_1d_reg_optim(y, wt) |> predict.WH_1d(newdata) |> plot.WH_1d()
+WH_1d_reg_fs(y, wt) |> predict(newdata) |> plot()
+WH_1d_reg_optim(y, wt) |> predict(newdata) |> plot()
 
-WH_1d_ml_fs(d, ec) |> predict.WH_1d(newdata) |> plot.WH_1d()
-WH_1d_ml_optim(d, ec) |> predict.WH_1d(newdata) |> plot.WH_1d()
+WH_1d_ml_fs(d, ec) |> predict(newdata) |> plot()
+WH_1d_ml_optim(d, ec) |> predict(newdata) |> plot()
 

@@ -7,8 +7,8 @@
 #' observed events and a vector of associated central exposure, both depending
 #' on a single covariate, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
-#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
+#' specific criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
+#' \code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
 #' framework or an asymptotic (approximate) gaussian framework.
 #'
 #' @param d Vector of observed events whose elements should be named.
@@ -22,21 +22,21 @@
 #'   argument is also supplied, in which case \code{lambda} will be used as the
 #'   starting parameter for the optimization procedure.
 #' @param criterion Criterion to be used for the selection of the optimal
-#'   smoothing parameter. Default is `"REML"` which stands for restricted
-#'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
+#'   smoothing parameter. Default is \code{"REML"} which stands for restricted
+#'   maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"GCV"}.
 #' @param method Method to be used to find the optimal smoothing parameter.
-#'   Default to `"fixed_lambda"` if \code{lambda} is supplied, meaning no
+#'   Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 #'   optimization is performed. Otherwise, if \code{criterion = "REML"} or the
-#'   \code{criterion} argument is missing, default to `"fs"` which means the
+#'   \code{criterion} argument is missing, default to \code{"fs"} which means the
 #'   generalized Fellner-Schall method is used. For other criteria default to
-#'   `"optim"` meaning the \code{optimize} function from package \code{stats}
+#'   \code{"optim"} meaning the \code{optimize} function from package \code{stats}
 #'   will be used.
 #' @param q Order of penalization. Polynoms of degrees \code{q - 1} are
 #'   considered smooth and are therefore unpenalized. Should be left to the
 #'   default of \code{2} for most practical applications.
-#' @param framework Default framework is `"ml"` which stands for maximum
+#' @param framework Default framework is \code{"ml"} which stands for maximum
 #'   likelihood unless the \code{y} argument is also provided, in which case the
-#'   `"reg"` or regression framework is used. The regression framework is an
+#'   \code{"reg"} or regression framework is used. The regression framework is an
 #'   asymptotical approximation of the maximum likelihood likelihood framework.
 #' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
@@ -50,7 +50,9 @@
 #'   framework.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
-#' @returns An object of class \code{WH_1d}.
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -126,12 +128,13 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #' observed events and a matrix of associated central exposure, both depending
 #' on two covariates, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
-#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
-#' framework or an asymptotic (approximate) gaussian framework. As
-#' Whittaker-Henderson smoothing relies on full-rank smoothers, computation time
-#' and memory usage in the bidimensional case may be overwhelming and the
-#' function integrates an ad hoc rank-reduction procedure to avoid such issues.
+#' specific criterion such as \code{"REML"} (the default), \code{"AIC"},
+#' \code{"BIC"} or \code{"GCV"}. Whittaker-Henderson may be applied in a full
+#' maximum likelihood framework or an asymptotic (approximate) gaussian
+#' framework. As Whittaker-Henderson smoothing relies on full-rank smoothers,
+#' computation time and memory usage in the bidimensional case may be
+#' overwhelming and the function integrates an ad hoc rank-reduction procedure
+#' to avoid such issues.
 #'
 #' @inheritParams WH_1d
 #' @param d Matrix of observed events whose rows and columns should be named.
@@ -171,7 +174,9 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   when using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #'
-#' @returns An object of class \code{WH_2d}.
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -268,7 +273,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An WH_1d object with predicted values...
+#' @returns An object of class \code{WH_1d} with additional components for model
+#'   prediction.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -327,7 +333,8 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An WH_2d object with predicted values...
+#' @returns An object of class \code{WH_2d} with additional components for model
+#'   prediction.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -393,7 +400,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #' @param dim2 The (optional) name to be given to the second dimension
 #'
 #' @returns A data.frame gathering information about the fitted and predicted
-#'   values, the model standard deviation, residuals and effective degrees of
+#'   values, the model variance, residuals and effective degrees of
 #'   freedom...
 #'
 #' @export
@@ -465,12 +472,12 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 
 # Affichage----
 
-#' Summary of 1D WH object
+#' Display of 1D WH object
 #'
-#' @param object An object returned by the WH_1d function
+#' @param x An object returned by the \code{WH_1d} function
 #' @param ... Not used
 #'
-#' @returns A plot representing the given element of the fit...
+#' @returns Invisibly returns \code{x}.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -487,22 +494,22 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' WH_1d(y = y, wt = wt) |> summary()
 #'
 #' @export
-summary.WH_1d <- function(object, ...) {
+print.WH_1d <- function(x, ...) {
 
   cat("\n")
   cat("An object fitted using the WH_1D function\n")
-  cat(paste("Initial data contains", length(object$y), "data points"))
-  cat(paste("Optimal smoothing parameter selected:", format(object$lambda, digits = 3)))
-  cat(paste("Associated degrees of freedom:", format(sum(object$edf, digits = 3))))
-  invisible(object)
+  cat(paste("Initial data contains", length(x$y), "data points"))
+  cat(paste("Optimal smoothing parameter selected:", format(x$lambda, digits = 3)))
+  cat(paste("Associated degrees of freedom:", format(sum(x$edf, digits = 3))))
+  invisible(x)
 }
 
-#' Summary of 2D WH object
+#' Display of 2D WH object
 #'
-#' @param object An object returned by the WH_2d function
+#' @param x An object returned by the \code{WH_2d} function
 #' @param ... Not used
 #'
-#' @returns A plot representing the given element of the fit...
+#' @returns Invisibly returns \code{x}.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -514,26 +521,29 @@ summary.WH_1d <- function(object, ...) {
 #' WH_2d(d, ec) |> summary()
 #'
 #' @export
-summary.WH_2d <- function(object, ...) {
+print.WH_2d <- function(x, ...) {
 
   cat("\n")
   cat("An object fitted using the WH_2D function\n")
-  cat(paste("Initial data contains", prod(dim(object$y)), "data points"))
-  cat(paste("Optimal smoothing parameters selected:", format(object$lambda, digits = 3)))
-  cat(paste("Associated degrees of freedom:", format(sum(object$edf, digits = 3))))
-  invisible(object)
+  cat(paste("Initial data contains", prod(dim(x$y)), "data points"))
+  cat(paste("Optimal smoothing parameters selected:", format(x$lambda, digits = 3)))
+  cat(paste("Associated degrees of freedom:", format(sum(x$edf, digits = 3))))
+  invisible(x)
 }
 
 # Plots----
 
 #' Plot 1D WH fit
 #'
-#' @param x An object returned by the WH_1d function
-#' @param what What should be plotted (fit, res, edf)
-#' @param trans An (optional) transformation to be applied to the data
+#' @param x An object returned by the \code{WH_1d} function
+#' @param what What should be plotted. Should be one of \code{fit} (the
+#'   default), \code{res} for residuals and \code{edf} for the effective degrees
+#'   of freedom.
+#' @param trans An (optional) transformation to be applied to the data. By
+#'   default the identity function
 #' @param ... Not used
 #'
-#' @returns A plot representing the given element of the fit...
+#' @returns A plot representing the desired element of the fit...
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -577,7 +587,7 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 
 #' Plot 2D WH fit
 #'
-#' @param x An object returned by the WH_2d function
+#' @param x An object returned by the \code{WH_2d} function
 #' @param what What should be plotted (y_hat, std_y_hat, res, edf)
 #' @param trans An (optional) transformation to be applied to the data
 #' @param ... Not used
@@ -631,9 +641,9 @@ plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
 #' @param q Order of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = length(y), q = 2) {
 
   n <- length(y)
@@ -702,11 +712,9 @@ WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = 
 #' @param accu_edf Tolerance for the convergence of the outer optimization
 #'   procedure
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen through successive fits, using the
-#'   \code{optimize} function
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
                             criterion = "REML", lambda = 1e3,
                             verbose = FALSE, accu_edf = 1e-10) {
@@ -766,11 +774,9 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #'
 #' @inheritParams WH_1d_reg_optim
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
-#'   formula
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
                              lambda = 1e3, verbose = FALSE, accu_edf = 1e-10) {
 
@@ -858,9 +864,9 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #' @param q Matrix of orders of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                                    lambda = c(1e3, 1e3), p = dim(y), q = c(2, 2)) {
 
@@ -952,11 +958,9 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @param lambda Initial smoothing parameters
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen through successive fits, using the
-#'   \code{optimize} function
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                             q = c(2, 2), p = dim(y), criterion = "REML",
                             lambda = c(1e3, 1e3), verbose = FALSE, accu_edf = 1e-10) {
@@ -1038,11 +1042,9 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #'
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen through successive fits, using the
-#'   \code{optimize} function
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                          q = c(2, 2), p = dim(y), lambda = c(1e3, 1e3),
                          verbose = FALSE, accu_edf = 1e-10) {
@@ -1157,9 +1159,9 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #' @param ec Vector of central exposure
 #' @param accu_dev Tolerance for the convergence of the optimization procedure
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
                                   verbose = FALSE, accu_dev = 1e-12) {
 
@@ -1253,11 +1255,9 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 #' @inheritParams WH_1d_reg_optim
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen through successive fits, using the
-#'   \code{optimize} function
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lambda = 1e3,
                              verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
@@ -1343,11 +1343,9 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 #'
 #' @inheritParams WH_1d_ml_optim
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
-#'   formula
-#'
-#' @export
+#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
                         lambda = 1e3, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
@@ -1458,9 +1456,9 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
                                   verbose = FALSE, accu_dev = 1e-12) {
 
@@ -1579,11 +1577,9 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 #' @inheritParams WH_2d_ml_fixed_lambda
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen through successive fits, using the
-#'   \code{optimize} function
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", lambda = c(1e3, 1e3),
                              verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
@@ -1692,11 +1688,9 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 #'
 #' @inheritParams WH_2d_ml_optim
 #'
-#' @returns A list containing model fit, residuals and associated uncertainty.
-#'   Smoothing parameter is chosen using the generalized Fellner-Schall update
-#'   formula
-#'
-#' @export
+#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#'   variance, residuals and degrees of freedom as well as diagnosis to asses
+#'   the quality of the fit.
 WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
                           lambda = c(1e3, 1e3), accu_edf = 1e-10, accu_dev = 1e-12) {
 

@@ -7,16 +7,19 @@
 \method{plot}{WH_1d}(x, what = "fit", trans, ...)
 }
 \arguments{
-\item{x}{An object returned by the WH_1d function}
+\item{x}{An object returned by the \code{WH_1d} function}
 
-\item{what}{What should be plotted (fit, res, edf)}
+\item{what}{What should be plotted. Should be one of \code{fit} (the
+default), \code{res} for residuals and \code{edf} for the effective degrees
+of freedom.}
 
-\item{trans}{An (optional) transformation to be applied to the data}
+\item{trans}{An (optional) transformation to be applied to the data. By
+default the identity function}
 
 \item{...}{Not used}
 }
 \value{
-A plot representing the given element of the fit...
+A plot representing the desired element of the fit...
 }
 \description{
 Plot 1D WH fit

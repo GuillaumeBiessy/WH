@@ -3,8 +3,7 @@
 \docType{package}
 \name{WH-package}
 \alias{WH-package}
-\title{WH : a modern take on Whittaker-Henderson smoothing}
+\title{WH : A Modern Take on Whittaker-Henderson Smoothing}
 \description{
-The package implements the popular (at least among actuaries)
-Whittaker-Henderson smoothing relying on the latest developments.
+This package implements the popular Whittaker-Henderson Smoothing relying on the latest developments.
 }
