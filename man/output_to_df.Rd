@@ -7,7 +7,8 @@
 output_to_df(object, dim1 = "x", dim2 = "t")
 }
 \arguments{
-\item{object}{An object returned by one of the WH fitting function}
+\item{object}{An object of class  \code{"WH_1d"} or \code{"WH_2d"} returned
+by one of the eponymous functions \code{\link[=WH_1d]{WH_1d()}} or \code{\link[=WH_2d]{WH_2d()}}}
 
 \item{dim1}{The (optional) name to be given to the first dimension}
 
@@ -15,8 +16,7 @@ output_to_df(object, dim1 = "x", dim2 = "t")
 }
 \value{
 A data.frame gathering information about the fitted and predicted
-values, the model variance, residuals and effective degrees of
-freedom...
+values, the model variance, residuals and effective degrees of freedom...
 }
 \description{
 Store WH model fit results in a data.frame

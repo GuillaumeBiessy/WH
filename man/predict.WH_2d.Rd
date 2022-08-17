@@ -7,7 +7,7 @@
 \method{predict}{WH_2d}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{An object returned by the WH_2d function}
+\item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
 positions}
@@ -15,7 +15,7 @@ positions}
 \item{...}{Not used}
 }
 \value{
-An object of class \code{WH_2d} with additional components for model
+An object of class \code{"WH_2d"} with additional components for model
 prediction.
 }
 \description{

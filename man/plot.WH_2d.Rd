@@ -7,7 +7,7 @@
 \method{plot}{WH_2d}(x, what = "y_hat", trans, ...)
 }
 \arguments{
-\item{x}{An object returned by the \code{WH_2d} function}
+\item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
 
 \item{what}{What should be plotted (y_hat, std_y_hat, res, edf)}
 

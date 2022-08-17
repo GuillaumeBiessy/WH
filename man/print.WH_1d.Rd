@@ -7,7 +7,7 @@
 \method{print}{WH_1d}(x, ...)
 }
 \arguments{
-\item{x}{An object returned by the \code{WH_1d} function}
+\item{x}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH_1d]{WH_1d()}} function}
 
 \item{...}{Not used}
 }

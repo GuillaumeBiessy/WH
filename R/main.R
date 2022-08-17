@@ -268,12 +268,12 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #'
 #' Extrapolate the model for new values of the covariates
 #'
-#' @param object An object returned by the WH_1d function
+#' @param object An object of class \code{"WH_1d"} returned by the [WH_1d()] function
 #' @param newdata A list containing a vector indicating the new observation
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An object of class \code{WH_1d} with additional components for model
+#' @returns An object of class \code{"WH_1d"} with additional components for model
 #'   prediction.
 #'
 #' @examples
@@ -328,12 +328,12 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' Extrapolate the model for new values of the covariates in a way that is
 #' consistent with the fitted values
 #'
-#' @param object An object returned by the WH_2d function
+#' @param object An object of class \code{"WH_2d"} returned by the [WH_2d()] function
 #' @param newdata A list containing two vectors indicating the new observation
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An object of class \code{WH_2d} with additional components for model
+#' @returns An object of class \code{"WH_2d"} with additional components for model
 #'   prediction.
 #'
 #' @examples
@@ -395,13 +395,13 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 
 #' Store WH model fit results in a data.frame
 #'
-#' @param object An object returned by one of the WH fitting function
+#' @param object An object of class  \code{"WH_1d"} or \code{"WH_2d"} returned
+#'   by one of the eponymous functions [WH_1d()] or [WH_2d()]
 #' @param dim1 The (optional) name to be given to the first dimension
 #' @param dim2 The (optional) name to be given to the second dimension
 #'
 #' @returns A data.frame gathering information about the fitted and predicted
-#'   values, the model variance, residuals and effective degrees of
-#'   freedom...
+#'   values, the model variance, residuals and effective degrees of freedom...
 #'
 #' @export
 output_to_df <- function(object, dim1 = "x", dim2 = "t") {
@@ -474,7 +474,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 
 #' Display of 1D WH object
 #'
-#' @param x An object returned by the \code{WH_1d} function
+#' @param x An object of class \code{"WH_1d"} returned by the [WH_1d()] function
 #' @param ... Not used
 #'
 #' @returns Invisibly returns \code{x}.
@@ -506,7 +506,7 @@ print.WH_1d <- function(x, ...) {
 
 #' Display of 2D WH object
 #'
-#' @param x An object returned by the \code{WH_2d} function
+#' @param x An object of class \code{"WH_2d"} returned by the [WH_2d()] function
 #' @param ... Not used
 #'
 #' @returns Invisibly returns \code{x}.
@@ -535,7 +535,7 @@ print.WH_2d <- function(x, ...) {
 
 #' Plot 1D WH fit
 #'
-#' @param x An object returned by the \code{WH_1d} function
+#' @param x An object of class \code{"WH_1d"} returned by the [WH_1d()] function
 #' @param what What should be plotted. Should be one of \code{fit} (the
 #'   default), \code{res} for residuals and \code{edf} for the effective degrees
 #'   of freedom.
@@ -543,7 +543,7 @@ print.WH_2d <- function(x, ...) {
 #'   default the identity function
 #' @param ... Not used
 #'
-#' @returns A plot representing the desired element of the fit...
+#' @returns A plot representing the desired element of the fit
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -587,7 +587,7 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 
 #' Plot 2D WH fit
 #'
-#' @param x An object returned by the \code{WH_2d} function
+#' @param x An object of class \code{"WH_2d"} returned by the [WH_2d()] function
 #' @param what What should be plotted (y_hat, std_y_hat, res, edf)
 #' @param trans An (optional) transformation to be applied to the data
 #' @param ... Not used
@@ -641,13 +641,13 @@ plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
 #' @param q Order of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = length(y), q = 2) {
 
   n <- length(y)
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -712,7 +712,7 @@ WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = 
 #' @param accu_edf Tolerance for the convergence of the outer optimization
 #'   procedure
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
@@ -721,7 +721,7 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 
   n <- length(y)
   n_pos <- sum(wt != 0)
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -774,7 +774,7 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #'
 #' @inheritParams WH_1d_reg_optim
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
@@ -782,7 +782,7 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 
   # Initialization
   n <- length(y)
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -864,7 +864,7 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #' @param q Matrix of orders of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
@@ -872,7 +872,7 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 
   n <- dim(y)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
@@ -958,7 +958,7 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @param lambda Initial smoothing parameters
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
@@ -968,7 +968,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   n <- dim(y)
   n_pos <- sum(wt != 0)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
@@ -1042,7 +1042,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #'
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
@@ -1052,7 +1052,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   # Initialization
   n <- dim(y)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
@@ -1159,7 +1159,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #' @param ec Vector of central exposure
 #' @param accu_dev Tolerance for the convergence of the optimization procedure
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
@@ -1171,7 +1171,7 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -1255,7 +1255,7 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 #' @inheritParams WH_1d_reg_optim
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lambda = 1e3,
@@ -1267,7 +1267,7 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -1343,7 +1343,7 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 #'
 #' @inheritParams WH_1d_ml_optim
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
@@ -1355,7 +1355,7 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, p, q)
+  SVD <- eigen_dec(n, q, p)
 
   X <- SVD$X
   Z <- SVD$Z
@@ -1456,7 +1456,7 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
@@ -1469,7 +1469,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
@@ -1577,7 +1577,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 #' @inheritParams WH_2d_ml_fixed_lambda
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", lambda = c(1e3, 1e3),
@@ -1589,7 +1589,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
@@ -1688,7 +1688,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 #'
 #' @inheritParams WH_2d_ml_optim
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
+#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
@@ -1701,7 +1701,7 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, p = p, q = q), eigen_dec)
+  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
 
   X_SVD <- map(SVD, "X")
   Z_SVD <- map(SVD, "Z")
