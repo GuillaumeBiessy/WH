@@ -56,7 +56,8 @@ où :
 $\Delta^q$ représente dans cette dernière expression l’opérateur de
 différence avant d’ordre $q$ tel que pour tout $i\in[1,n - q]$ :
 
-$$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}$$
+$$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.$$
+
 Définissons $W = \text{Diag}(w)$ la matrice diagonale des poids et
 $D_{n,q}$ la matrice des différences d’ordre $q$, de dimensions
 $(n - q,n)$, telle que $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$. En
@@ -75,7 +76,9 @@ D_2 = \begin{pmatrix}
 & \ddots & \ddots & \ddots & \\
 0 & & 1 & - 2 & 1
 \end{pmatrix}.
-$$ Les critère de régularité et de fidélité se réécrivent sous forme
+$$
+
+Les critère de régularité et de fidélité se réécrivent sous forme
 matricielle :
 
 $$
@@ -83,7 +86,9 @@ $$
 F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \|\sqrt{W}(y - \theta)\|^2 = (y - \theta)^TW(y - \theta) \\
 R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\|D_{n,q}\theta\|^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
 \end{aligned}
-$$ et l’estimateur associé au lissage devient :
+$$
+
+et l’estimateur associé au lissage devient :
 
 $$\hat{y} = \underset{\theta}{\text{argmin}} \left\lbrace(y - \theta)^TW(y - \theta) + \theta^TP_\lambda\theta\right\rbrace$$
 
@@ -99,6 +104,7 @@ deux de dimensions $n_x \times n_z$.
 L’estimateur associé au lissage de Whittaker-Henderson s’écrit :
 
 $$\widehat{Y} = \underset{\Theta}{\text{argmin}}\{F(Y,\Omega, \Theta) + R_{\lambda,q}(\Theta)\}$$
+
 où
 
 -   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
