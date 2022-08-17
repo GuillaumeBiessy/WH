@@ -83,8 +83,8 @@ matricielle :
 
 $$
 \begin{aligned}
-F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \|\sqrt{W}(y - \theta)\|^2 = (y - \theta)^TW(y - \theta) \\
-R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\|D_{n,q}\theta\|^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
+F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \Vert \sqrt{W}(y - \theta)\Vert^2 = (y - \theta)^TW(y - \theta) \\
+R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\Vert D_{n,q} \theta\Vert^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
 \end{aligned}
 $$
 
