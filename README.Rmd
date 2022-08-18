@@ -88,6 +88,7 @@ F(Y,\Omega, \Theta) &= \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\ov
 R(\Theta,\lambda,q) &= \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2 \quad \text{is a regularity criterion.}
 \end{aligned}
 $$
+
 The latter criterion may be decomposed as the sum of:
 
 -   a one-dimension regularity criterion applied to all rows of $\Theta$ and
