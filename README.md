@@ -571,10 +571,9 @@ Those estimators are defined by:
 
 $$
 \begin{aligned}
-\beta_{k + 1} &= 
-\beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ &= 
-\beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right]  \\ &= 
-\Psi_k X^{T}W_k z_k
+\beta_{k + 1} &= \beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ 
+&= \beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right] \\ 
+&= \Psi_k X^{T}W_k z_k
 \end{aligned}
 $$
 
