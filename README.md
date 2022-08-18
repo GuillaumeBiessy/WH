@@ -338,14 +338,14 @@ smoothing is trying to estimate.
 In the cas of 0 weights, the matrix $W^{- 1}$ is not properly defined.
 By defining $w_*$ the subvector of stricly positive weights and $y_*$
 the associated observation vector and noting $W_* = \text{Diag}(w_*)$,
-the previous quantity may be rewritten
+the previous quantity may be rewritten:
 
-$$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_*}y_* \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_*} \\ B\end{pmatrix}\theta\right\Vert^2$$
+$$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_{*}}y_{*} \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_{*}} \\ B\end{pmatrix}\theta\right\Vert^2$$
 
-and the problem may now be expressed properly in terms of $y_*$ and
-$w_*$. Nevertheless to keep things simple we stick with $y$ and $w$ and
-consider that $W^{- 1}$ contains infinite values associated with initial
-0 weights in $w$.
+and the problem may now be expressed properly in terms of $y_{*}$ and
+$w_{*}$. Nevertheless to keep things simple we stick with $y$ and $w$
+and consider that $W^{- 1}$ contains infinite values associated with
+initial 0 weights in $w$.
 
 The previous explicit solution to the smoothing equation garanties the
 normality of $\hat{y}$. In the framework of regression, the law of error
