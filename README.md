@@ -91,17 +91,17 @@ $$\widehat{Y} = \underset{\Theta}{\text{argmin}}\{F(Y,\Omega, \Theta) + R_{\lamb
 
 where:
 
--   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
-    is a fidelity criterion
+$F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
+is a fidelity criterion
 
--   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{.,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,.})_j^2$
-    is a regularity criterion which may be decomposed as the sum of:
+$R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
+is a regularity criterion which may be decomposed as the sum of:
 
-    -   a one-dimension regularity criterion applied to all rows of
-        $\Theta$ and
+-   a one-dimension regularity criterion applied to all rows of $\Theta$
+    and
 
-    -   a one-dimension regularity criterion applied to all columns of
-        $\Theta$.
+-   a one-dimension regularity criterion applied to all columns of
+    $\Theta$.
 
 Once again it is more convenient to adopt matrix notations by defining
 $y = \text{vec}(Y)$, $w = \text{vec}(\Omega)$,
@@ -566,12 +566,14 @@ $\hat{\beta} = \underset{\beta}{\text{argmin}}\:l_P(\beta)$.
 
 Those estimators are defined by:
 
-$$\begin{aligned}
+$$
+\begin{aligned}
 \beta_{k + 1} &= 
 \beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ &= 
 \beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right]  \\ &= 
 \Psi_k X^{T}W_k z_k
-\end{aligned}$$
+\end{aligned}
+$$
 
 by noting $\eta_k = X\beta_k$, $\Psi_k = (X^{T}W_kX + P_\lambda)^{- 1}$,
 $W_k = \text{Diag}(\exp(\eta_k) \odot e_c)$ and
