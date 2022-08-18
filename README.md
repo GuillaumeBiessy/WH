@@ -1,6 +1,8 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+# Whittaker-Henderson smoothing
+
 ## What is Whittaker-Henderson smoothing ?
 
 <!-- badges: start -->
@@ -122,6 +124,161 @@ $$\hat{y} = \underset{\theta}{\text{argmin}} \left\lbrace(y - \theta)^TW(y - \th
 except in this case:
 
 $$P_\lambda = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}.$$
+
+## Installation
+
+You can install the development version of WH from
+[GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("GuillaumeBiessy/WH")
+```
+
+## How to use the package ?
+
+The `WH` package features two main functions `WH_1d` and `WH_2d`
+corresponding to the one-dimension and two-dimension cases respectively.
+There are only two arguments for those functions:
+
+-   The vector (or matrix in the two-dimension case) `d` corresponding
+    to the number of observed events of interest by age (or by age and
+    duration in the two-dimension case). `d` should have named elements
+    (or rows and columns) for the model results to be extrapolated.
+
+-   The vector (or matrix in the two-dimension case) `ec` corresponding
+    to the portfolio central exposure by age (or by age and duration in
+    the two-dimension case) whose dimensions should match those of `d`.
+    The contribution of each individual to the portfolio central
+    exposure corresponds to the time the individual was actually
+    observed with corresponding age (and duration in the two-dimension
+    cas). It always ranges from 0 to 1 and is affected by individuals
+    leaving the portfolio, no matter the cause, as well as censoring and
+    truncating phenomena.
+
+Additional arguments are described in the documentations of those
+functions.
+
+The package also embed two fictive agregated datasets to illustrate how
+to use it:
+
+-   `portfolio_mortality` contains the agregated number of deaths and
+    associated central exposure by age for an annuity portfolio.
+
+-   `portfolio_LTC` contains the agregated number of deaths and
+    associated central exposure by age and duration (in years) since the
+    onset of LTC for the annuitant database of a long-term care
+    portfolio.
+
+``` r
+# One-dimension case
+keep <- which(portfolio_mort$ec > 0) # observations with no data
+d <- portfolio_mort$d[keep]
+ec <- portfolio_mort$ec[keep]
+
+WH_1d_fit <- WH_1d(d, ec)
+```
+
+``` r
+# Two_dimension case
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
+
+WH_2d_fit <- WH_2d(d, ec)
+```
+
+Functions `WH_1d` and `WH_2d` output objects of class `"WH_1d"` and
+`"WH_2d"` to which additional functions (including generic S3 methods)
+may be applied:
+
+-   The `print` function provides a glimpse of the fitted results
+
+``` r
+WH_1d_fit
+
+An object fitted using the WH_1D function
+Initial data contains 74 data points
+Optimal smoothing parameter selected: 22770 
+Associated degrees of freedom: 7.659107 
+WH_2d_fit
+
+An object fitted using the WH_2D function
+Initial data contains 176 data points
+Optimal smoothing parameters selected: 126.18 
+ Optimal smoothing parameters selected:   9.43 
+Associated degrees of freedom: 12.22664 
+```
+
+-   The `plot` function generates rough plots of the model fit, the
+    associated standard deviation, the model residuals or the associated
+    degrees of freedom. See the `plot.WH_1d` and `plot.WH_2d` functions
+    help for more details.
+
+``` r
+plot(WH_1d_fit)
+```
+
+<img src="man/figures/README-plot-1.png" width="100%" />
+
+``` r
+plot(WH_1d_fit, "res")
+```
+
+<img src="man/figures/README-plot-2.png" width="100%" />
+
+``` r
+plot(WH_1d_fit, "edf")
+```
+
+<img src="man/figures/README-plot-3.png" width="100%" />
+
+``` r
+
+plot(WH_2d_fit)
+```
+
+<img src="man/figures/README-plot-4.png" width="100%" />
+
+``` r
+plot(WH_2d_fit, "std_y_hat")
+```
+
+<img src="man/figures/README-plot-5.png" width="100%" />
+
+-   The `predict` function generates an extrapolation of the model. It
+    requires a `newdata` argument, a named list with one or two elements
+    corresponding to the positions of the new observations. In the
+    two-dimension case constraints are used so that the predicted values
+    matches the fitted values for the initial observations (see
+    Carballo, Durbán, and Lee 2021 to understand why this is required).
+
+``` r
+WH_1d_fit |> predict(newdata = 18:99) |> plot()
+```
+
+<img src="man/figures/README-predict-1.png" width="100%" />
+
+``` r
+WH_2d_fit |> predict(newdata = list(age = 50:99,
+                                    duration = 0:19)) |> plot()
+```
+
+<img src="man/figures/README-predict-2.png" width="100%" />
+
+-   Finally the `output_to_df` converts an `"WH_1d"` or `"WH_2d"` object
+    into a `data.frame`. Information about the fit is lost in the
+    process. This may be useful to produce better visualizations, for
+    example using the ggplot2 package.
+
+``` r
+WH_1d_df <- WH_1d_fit |> output_to_df()
+WH_2d_df <- WH_2d_fit |> output_to_df()
+```
+
+## Further WH smoothing theory
 
 ### Explicit solution
 
@@ -482,73 +639,6 @@ according to the selected criterion:
 ### Long answer
 
 See the upcoming paper !
-
-## How to use the package ?
-
-The `WH` package features two main functions `WH_1d` and `WH_2d`
-corresponding to the one-dimension and two-dimension cases respectively.
-There are only two arguments for those functions:
-
--   The vector (or matrix in the two-dimension case) `d` corresponding
-    to the number of observed events of interest by age (or by age and
-    duration in the two-dimension case). `d` should have named elements
-    (or rows and columns) for the model results to be extrapolated.
-
--   The vector (or matrix in the two-dimension case) `ec` corresponding
-    to the portfolio central exposure by age (or by age and duration in
-    the two-dimension case) whose dimensions should match those of `d`.
-    The contribution of each individual to the portfolio central
-    exposure corresponds to the time the individual was actually
-    observed with corresponding age (and duration in the two-dimension
-    cas). It always ranges from 0 to 1 and is affected by individuals
-    leaving the portfolio, no matter the cause, as well as censoring and
-    truncating phenomena.
-
-Additional arguments are described in the documentations of those
-functions. Examples are also provided.
-
-The package also embed two fictive agregated datasets to illustrate the
-use of the package:
-
--   `portfolio_mortality` contains the agregated number of deaths and
-    associated central exposure by age for an annuity portfolio.
-
--   `portfolio_LTC` contains the agregated number of deaths and
-    associated central exposure by age and duration since the LTC claim
-    was made for the annuitant database of a long-term care portfolio.
-
-Use of functions `WH_1d` and `WH_2d` generate objects of class `"WH_1d"`
-and `"WH_2d"` to which additional functions (including generic S3
-methods) may be applied:
-
--   The `print` function provides a glimpse of the fitted results
-
--   The `plot` function generates rough plots of the model fit, the
-    associated standard deviation, the model residuals or associated
-    degrees of freedom. See the `plot.WH_1d` and `plot.WH_2d` functions
-    help for more details.
-
--   The `predict` function generates an extrapolation of the model. It
-    requires a `newdata` argument, a named list with one or two elements
-    corresponding to the positions of the new observations. In the
-    two-dimension case constraints are used so that the predicted values
-    matches the fitted values for the initial observations (see
-    Carballo, Durbán, and Lee 2021 to understand why this is required).
-
--   Finally the `output_to_df` converts an `"WH_1d"` or `"WH_2d"` object
-    into a `data.frame`. Information about the fit is lost in the
-    process. This may be useful to produce better visualizations, for
-    example using the ggplot2 package.
-
-## Installation
-
-You can install the development version of WH from
-[GitHub](https://github.com/) with:
-
-``` r
-# install.packages("devtools")
-devtools::install_github("GuillaumeBiessy/WH")
-```
 
 ## References
 

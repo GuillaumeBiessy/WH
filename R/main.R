@@ -67,9 +67,9 @@
 #' * `q` The supplied order for the penalization.
 #'
 #' @examples
-#' keep <- which(portfolios_mort[[1]]$ec > 0)
-#' d <- portfolios_mort[[1]]$d[keep]
-#' ec <- portfolios_mort[[1]]$ec[keep]
+#' keep <- which(portfolio_mort$ec > 0)
+#' d <- portfolio_mort$d[keep]
+#' ec <- portfolio_mort$ec[keep]
 #'
 #' y <- log(d / ec)
 #' y[d == 0] <- - 20
@@ -205,11 +205,11 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #' * `q` The supplied vector of orders for the penalization.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 #'
-#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
 #' y <- log(d / ec) # observation vector
 #' y[d == 0] <- - 20
@@ -237,15 +237,17 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #' testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-4)
 #' # generalized Fellner-Schall method is exact in regression framework
 #'
+#' WH_2d(y = y, wt = wt, criterion = "AIC")
+#' WH_2d(y = y, wt = wt, criterion = "BIC")
 #' WH_2d(y = y, wt = wt, criterion = "GCV")
 #' # alternative optimization criteria for smoothing parameter selection
 #'
-#' keep_age2 <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
-#' keep_duration2 <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
+#' keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
+#' keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
 #'
 #' # Rank reduction
-#' d  <- portfolios_LTC[[1]]$d[keep_age2, keep_duration2]
-#' ec <- portfolios_LTC[[1]]$ec[keep_age2, keep_duration2]
+#' d  <- portfolio_LTC$d[keep_age2, keep_duration2]
+#' ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
 #'
 #' prod(dim(d)) # problem dimension is 1,262 !
 #' WH_2d(d, ec)
@@ -305,9 +307,9 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #'   prediction.
 #'
 #' @examples
-#' keep <- which(portfolios_mort[[1]]$ec > 0)
-#' d <- portfolios_mort[[1]]$d[keep]
-#' ec <- portfolios_mort[[1]]$ec[keep]
+#' keep <- which(portfolio_mort$ec > 0)
+#' d <- portfolio_mort$d[keep]
+#' ec <- portfolio_mort$ec[keep]
 #'
 #' WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
 #'
@@ -365,11 +367,11 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #'   prediction.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 #'
-#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
 #' WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
 #'
@@ -508,9 +510,9 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' keep <- which(portfolios_mort[[1]]$ec > 0)
-#' d <- portfolios_mort[[1]]$d[keep]
-#' ec <- portfolios_mort[[1]]$ec[keep]
+#' keep <- which(portfolio_mort$ec > 0)
+#' d <- portfolio_mort$d[keep]
+#' ec <- portfolio_mort$ec[keep]
 #'
 #' y <- log(d / ec)
 #' y[d == 0] <- - 20
@@ -540,11 +542,11 @@ print.WH_1d <- function(x, ...) {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 #'
-#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
 #' WH_2d(d, ec) |> summary()
 #'
@@ -574,9 +576,9 @@ print.WH_2d <- function(x, ...) {
 #' @returns A plot representing the desired element of the fit
 #'
 #' @examples
-#' keep <- which(portfolios_mort[[1]]$ec > 0)
-#' d <- portfolios_mort[[1]]$d[keep]
-#' ec <- portfolios_mort[[1]]$ec[keep]
+#' keep <- which(portfolio_mort$ec > 0)
+#' d <- portfolio_mort$d[keep]
+#' ec <- portfolio_mort$ec[keep]
 #'
 #' WH_1d(d, ec) |> plot()
 #' WH_1d(d, ec) |> plot("res")
@@ -624,11 +626,11 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 #'
 #' @examples
 #'
-#' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 #'
-#' d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-#' ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
 #' WH_2d(d, ec) |> plot()
 #' WH_2d(d, ec) |> plot("std_y_hat")

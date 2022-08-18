@@ -5,5 +5,14 @@
 \alias{WH-package}
 \title{WH : A Modern Take on Whittaker-Henderson Smoothing}
 \description{
-This package implements the popular Whittaker-Henderson Smoothing relying on the latest developments.
+Implementation of the popular Whittaker-Henderson smoothing method for the
+gradation of actuarial tables for person insurance risks such as mortality,
+disability, long-term care and unemployment. The package handles tables in 1
+or 2 dimensions and performs automatic selection of the smoothing parameters.
+Smoothing is applied to vectors / matrices containing the number of observed
+events and the associated central risk exposure in the framework of maximum
+likelihood estimation or an approximate regression framework. Optimal
+parameter selection relies on \code{\link[stats:optimize]{stats::optimize()}} function and the
+Nelder-Mead algorithm from the \code{\link[stats:optim]{stats::optim()}} function in the stats package
+or uses the generalized Fellner-Schall method.
 }

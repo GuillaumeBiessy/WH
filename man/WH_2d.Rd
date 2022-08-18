@@ -117,11 +117,11 @@ overwhelming and the function integrates an ad hoc rank-reduction procedure
 to avoid such issues.
 }
 \examples{
-keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 
-d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 y <- log(d / ec) # observation vector
 y[d == 0] <- - 20
@@ -149,15 +149,17 @@ fit_optim <- WH_2d(y = y, wt = wt, method = "optim") # alternative method base o
 testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-4)
 # generalized Fellner-Schall method is exact in regression framework
 
+WH_2d(y = y, wt = wt, criterion = "AIC")
+WH_2d(y = y, wt = wt, criterion = "BIC")
 WH_2d(y = y, wt = wt, criterion = "GCV")
 # alternative optimization criteria for smoothing parameter selection
 
-keep_age2 <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
-keep_duration2 <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
+keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
+keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
 
 # Rank reduction
-d  <- portfolios_LTC[[1]]$d[keep_age2, keep_duration2]
-ec <- portfolios_LTC[[1]]$ec[keep_age2, keep_duration2]
+d  <- portfolio_LTC$d[keep_age2, keep_duration2]
+ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
 
 prod(dim(d)) # problem dimension is 1,262 !
 WH_2d(d, ec)

@@ -22,9 +22,9 @@ prediction.
 Extrapolate the model for new values of the covariates
 }
 \examples{
-keep <- which(portfolios_mort[[1]]$ec > 0)
-d <- portfolios_mort[[1]]$d[keep]
-ec <- portfolios_mort[[1]]$ec[keep]
+keep <- which(portfolio_mort$ec > 0)
+d <- portfolio_mort$d[keep]
+ec <- portfolio_mort$ec[keep]
 
 WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
 

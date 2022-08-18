@@ -1,11 +1,11 @@
 data("portfolios_LTC")
 
 # 2D smoothing----
-keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 
-d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 y <- log(d / ec) # observation vector
 y[d == 0] <- - 20
@@ -76,11 +76,11 @@ plot(extra_fs)
 plot(extra_optim)
 
 # Rank reduction
-keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
-keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 0)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 0)
 
-d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 prod(dim(d)) # dimension of problem is 1232
 

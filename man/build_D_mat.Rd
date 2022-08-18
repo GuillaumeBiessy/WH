@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{build_D_mat}
 \alias{build_D_mat}
-\title{Compute Block Kronecket Product Matrix}
+\title{Build difference matrix of order q}
 \usage{
 build_D_mat(n, q)
 }
@@ -16,6 +16,6 @@ Difference matrix of order \code{q} for a vector containing \code{n}
 observations.
 }
 \description{
-Compute Block Kronecket Product Matrix
+Build difference matrix of order q
 }
 \keyword{internal}

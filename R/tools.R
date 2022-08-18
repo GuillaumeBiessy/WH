@@ -1,4 +1,4 @@
-#' Compute Block Kronecket Product Matrix
+#' Build difference matrix of order q
 #'
 #' @inheritParams eigen_dec
 #'
@@ -7,7 +7,7 @@
 #' @keywords internal
 build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
-#' Compute Block Kronecket Product Matrix
+#' Compute block Kronecker product matrix
 #'
 #' @param XZ A list whose components are list of 2 matrices
 #'
@@ -18,7 +18,7 @@ build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 compute_XZ_mat <- function(XZ) {
   lapply(XZ, \(X) {X[[2]] %x% X[[1]]}) |> do.call(what = cbind)}
 
-#' Eigen Decomposition of Penalization Matrix
+#' Eigen decomposition of penalization matrix
 #'
 #' @param n Number of observations in the problem
 #' @param q Order of the penalization matrix
@@ -52,7 +52,7 @@ eigen_dec <- function(n, q, p) {
   return(out)
 }
 
-#' Deviance Residuals for Poisson GLM
+#' Deviance residuals for Poisson GLM
 #'
 #' @param D Vector or matrix containing the number of observed events
 #' @param D_hat Vector or matrix containing the number of predicted events

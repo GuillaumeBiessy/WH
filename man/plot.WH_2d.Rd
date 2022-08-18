@@ -23,11 +23,11 @@ Plot 2D WH fit
 }
 \examples{
 
-keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
-keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 
-d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
-ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 WH_2d(d, ec) |> plot()
 WH_2d(d, ec) |> plot("std_y_hat")

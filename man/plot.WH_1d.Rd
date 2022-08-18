@@ -25,9 +25,9 @@ A plot representing the desired element of the fit
 Plot 1D WH fit
 }
 \examples{
-keep <- which(portfolios_mort[[1]]$ec > 0)
-d <- portfolios_mort[[1]]$d[keep]
-ec <- portfolios_mort[[1]]$ec[keep]
+keep <- which(portfolio_mort$ec > 0)
+d <- portfolio_mort$d[keep]
+ec <- portfolio_mort$ec[keep]
 
 WH_1d(d, ec) |> plot()
 WH_1d(d, ec) |> plot("res")

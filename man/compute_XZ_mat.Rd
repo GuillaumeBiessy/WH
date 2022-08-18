@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{compute_XZ_mat}
 \alias{compute_XZ_mat}
-\title{Compute Block Kronecket Product Matrix}
+\title{Compute block Kronecker product matrix}
 \usage{
 compute_XZ_mat(XZ)
 }
@@ -15,6 +15,6 @@ contained in each element of \code{XZ} and then horizontally concatenating
 the result
 }
 \description{
-Compute Block Kronecket Product Matrix
+Compute block Kronecker product matrix
 }
 \keyword{internal}
