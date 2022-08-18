@@ -23,7 +23,7 @@ library(WH)
 
 ## Origin
 
-The Whittaker-Henderson (WH) smoothing is a graduation method which attenuates the impact of sample fluctuations. Initially introduced by @whittaker1922new for the construction of mortality tables and improved by the work of @henderson1924new, it remains as of today one of the most popular smoothing method among actuaries working on the modelling of person insurance risks such as death, disability, long-term care and unemployement. Whittaker-Henderson smoothing generalizes to two-dimension smoothing but requires in all cases that the observation be equally spaced on each dimension.
+The Whittaker-Henderson (WH) smoothing is a graduation method which attenuates the impact of sample fluctuations. Initially introduced by @whittaker1922new for the construction of mortality tables and improved by the work of @henderson1924new, it remains to date one of the most popular smoothing method among actuaries working on the modelling of person insurance risks such as death, disability, long-term care and unemployement. Whittaker-Henderson smoothing generalizes to two-dimension smoothing but requires in all cases that the observation be equally spaced on each dimension.
 
 ## The one-dimension case
 

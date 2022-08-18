@@ -25,7 +25,7 @@ library(WH)
 
 ### Origin
 
-The Whittaker-Henderson (WH) smoothing is a graduation method which attenuates the impact of sample fluctuations. Initially introduced by @whittaker1922new for the construction of mortality tables and improved by the work of @henderson1924new, it remains as of today one of the most popular smoothing method among actuaries working on the modelling of person insurance risks such as death, disability, long-term care and unemployement. Whittaker-Henderson smoothing generalizes to two-dimension smoothing but requires in all cases that the observation be equally spaced on each dimension.
+The Whittaker-Henderson (WH) smoothing is a graduation method which attenuates the impact of sample fluctuations. Initially introduced by @whittaker1922new for the construction of mortality tables and improved by the work of @henderson1924new, it remains to date one of the most popular smoothing method among actuaries working on the modelling of person insurance risks such as death, disability, long-term care and unemployement. Whittaker-Henderson smoothing generalizes to two-dimension smoothing but requires in all cases that the observation be equally spaced on each dimension.
 
 ### The one-dimension case
 
@@ -84,7 +84,7 @@ where:
 
 -   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$ is a fidelity criterion
 
--   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ is a regularity criterion which may be decomposed as the sum of:
+-   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{.,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,.})_j^2$ is a regularity criterion which may be decomposed as the sum of:
 
     -   a one-dimension regularity criterion applied to all rows of $\Theta$ and
 
