@@ -528,8 +528,8 @@ print.WH_1d <- function(x, ...) {
 
   cat("An object fitted using the WH_1D function\n")
   cat("Initial data contains", length(x$y), "data points\n")
-  cat("Optimal smoothing parameter selected:", format(x$lambda, digits = 3), "\n")
-  cat("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n\n")
+  cat("Optimal smoothing parameter selected:", format(x$lambda, digits = 2), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf), digits = 2), "\n\n")
   invisible(x)
 }
 
@@ -554,8 +554,8 @@ print.WH_2d <- function(x, ...) {
 
   cat("An object fitted using the WH_2D function\n")
   cat("Initial data contains", prod(dim(x$y)), "data points\n")
-  cat("Optimal smoothing parameters selected:", format(x$lambda, digits = 3), "\n")
-  cat("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n\n")
+  cat("Optimal smoothing parameters selected:", format(x$lambda, digits = 2), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf), digits = 2), "\n\n")
   invisible(x)
 }
 
