@@ -11,7 +11,11 @@ bibliography: biblio.bib
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = ""
+  comment = "",
+  fig.width = 10, 
+  fig.asp = 0.618,
+  fig.align = "center",
+  out.width = "100%"
 )
 
 library(WH)

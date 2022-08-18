@@ -11,8 +11,11 @@ bibliography: "vignettes/biblio.bib"
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "",
-  fig.path = "man/figures/README-",
-  out.width = "100%"
+  fig.width = 10, 
+  fig.asp = 0.618,
+  out.width = "100%",
+  fig.align = "center",
+  fig.path = "man/figures/README-"
 )
 
 library(WH)
