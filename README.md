@@ -339,9 +339,9 @@ is in this case both the parameter vector and the underlying law WH
 smoothing is trying to estimate.
 
 In the cas of 0 weights, the matrix $W^{- 1}$ is not properly defined.
-By defining $w_*$ the subvector of stricly positive weights and $y_*$
-the associated observation vector and noting $W_* = \text{Diag}(w_*)$,
-the previous quantity may be rewritten:
+By defining $w_{*}$ the subvector of stricly positive weights and
+$y_{*}$ the associated observation vector and noting
+$W_{*} = \text{Diag}(w_{*})$, the previous quantity may be rewritten:
 
 $$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_{*}}y_{*} \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_{*}} \\ B\end{pmatrix}\theta\right\Vert^2$$
 
@@ -570,7 +570,12 @@ $\hat{\beta} = \underset{\beta}{\text{argmin}}\:l_P(\beta)$.
 Those estimators are defined by:
 
 $$
-\beta_{k + 1} = \beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} = \beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right] = \Psi_k X^{T}W_k z_k
+\begin{aligned}
+\beta_{k + 1} &= 
+\beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ &= 
+\beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right]  \\ &= 
+\Psi_k X^{T}W_k z_k
+\end{aligned}
 $$
 
 by noting $\eta_k = X\beta_k$, $\Psi_k = (X^{T}W_kX + P_\lambda)^{- 1}$,
