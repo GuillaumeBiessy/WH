@@ -41,7 +41,9 @@ where:
 $\Delta^q$ represents in the above expression the difference operator of
 order $q$ such that for all $i\in[1,n - q]$:
 
-$$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.$$
+$$
+(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix} (- 1)^{q - k} \theta_{i + k}.
+$$
 
 Let us define $W = \text{Diag}(w)$ the diagonal matrix of weights and
 $D_{n,q}$ the matrix of differences of order $q$, of dimensions
@@ -66,10 +68,12 @@ $$
 The fidelity and regularity criteria may be rewritten using matrix
 notations:
 
-$$\begin{aligned}
-F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \|\sqrt{W}(y - \theta)\|^2 = (y - \theta)^TW(y - \theta) \\
-R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\|D_{n,q}\theta\|^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
-\end{aligned}$$
+$$
+\begin{aligned}
+F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \Vert\sqrt{W}(y - \theta)\Vert^2 = (y - \theta)^TW(y - \theta) \\
+R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\Vert D_{n,q}\theta\Vert^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
+\end{aligned}
+$$
 
 and the associated estimator becomes:
 
@@ -385,7 +389,7 @@ $\mathcal{N}(\hat{y}, \sigma^2(W + P_\lambda)^{- 1})$.
 
 An unbiased estimator of $\sigma^2$ is then given by:
 
-$$\hat{\sigma}^2 = \frac{\|\sqrt{W}(y - \hat{y})\|^2}{n_* - \text{edf}}$$
+$$\hat{\sigma}^2 = \frac{\Vert\sqrt{W}(y - \hat{y})\Vert^2}{n_* - \text{edf}}$$
 where $n_*$ corresponds to the number of non 0 weights and
 $\text{edf} = \text{tr}(H) = \text{tr}[(W + P_\lambda)^{- 1}W]$.
 
