@@ -526,11 +526,10 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' @export
 print.WH_1d <- function(x, ...) {
 
-  cat("\n")
   cat("An object fitted using the WH_1D function\n")
-  cat(paste("Initial data contains", length(x$y), "data points\n"))
-  cat(paste("Optimal smoothing parameter selected:", format(x$lambda, digits = 3), "\n"))
-  cat(paste("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n"))
+  cat("Initial data contains", length(x$y), "data points\n")
+  cat("Optimal smoothing parameter selected:", format(x$lambda, digits = 3), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n\n")
   invisible(x)
 }
 
@@ -553,11 +552,10 @@ print.WH_1d <- function(x, ...) {
 #' @export
 print.WH_2d <- function(x, ...) {
 
-  cat("\n")
   cat("An object fitted using the WH_2D function\n")
-  cat(paste("Initial data contains", prod(dim(x$y)), "data points\n"))
-  cat(paste("Optimal smoothing parameters selected:", format(x$lambda, digits = 3), "\n"))
-  cat(paste("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n"))
+  cat("Initial data contains", prod(dim(x$y)), "data points\n")
+  cat("Optimal smoothing parameters selected:", format(x$lambda, digits = 3), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf, digits = 3)), "\n\n")
   invisible(x)
 }
 
