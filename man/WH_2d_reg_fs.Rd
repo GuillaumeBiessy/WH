@@ -40,3 +40,4 @@ the quality of the fit.
 \description{
 2D Whittaker-Henderson Smoothing (Regression, Fellner-Schall update)
 }
+\keyword{internal}

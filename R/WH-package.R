@@ -2,8 +2,6 @@
 #'
 #' This package implements the popular Whittaker-Henderson Smoothing relying on the latest developments.
 #'
-#' @import purrr
-#'
 #' @docType package
 #' @name WH-package
 NULL

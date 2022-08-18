@@ -43,3 +43,4 @@ the quality of the fit.
 \description{
 2D Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
 }
+\keyword{internal}

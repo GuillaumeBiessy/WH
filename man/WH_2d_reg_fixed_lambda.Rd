@@ -32,3 +32,4 @@ the quality of the fit.
 \description{
 2D Whittaker-Henderson Smoothing (Regression, fixed lambda)
 }
+\keyword{internal}

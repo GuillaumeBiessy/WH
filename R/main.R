@@ -7,8 +7,8 @@
 #' observed events and a vector of associated central exposure, both depending
 #' on a single covariate, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
-#' \code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
+#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
 #' framework or an asymptotic (approximate) gaussian framework.
 #'
 #' @param d Vector of observed events whose elements should be named.
@@ -18,41 +18,53 @@
 #'   afterward and the exposure should be reduced accordingly.
 #' @param lambda Smoothing parameter. If missing, an optimization procedure will
 #'   be used to find the optimal smoothing parameter. If supplied, no optimal
-#'   smoothing parameter search will take place unless the \code{criterion}
-#'   argument is also supplied, in which case \code{lambda} will be used as the
+#'   smoothing parameter search will take place unless the `criterion`
+#'   argument is also supplied, in which case `lambda` will be used as the
 #'   starting parameter for the optimization procedure.
 #' @param criterion Criterion to be used for the selection of the optimal
-#'   smoothing parameter. Default is \code{"REML"} which stands for restricted
-#'   maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"GCV"}.
+#'   smoothing parameter. Default is `"REML"` which stands for restricted
+#'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
 #' @param method Method to be used to find the optimal smoothing parameter.
-#'   Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
-#'   optimization is performed. Otherwise, if \code{criterion = "REML"} or the
-#'   \code{criterion} argument is missing, default to \code{"fs"} which means the
+#'   Default to `"fixed_lambda"` if `lambda` is supplied, meaning no
+#'   optimization is performed. Otherwise, if `criterion = "REML"` or the
+#'   `criterion` argument is missing, default to `"fs"` which means the
 #'   generalized Fellner-Schall method is used. For other criteria default to
-#'   \code{"optim"} meaning the \code{optimize} function from package \code{stats}
+#'   `"optim"` meaning the `optimize` function from package `stats`
 #'   will be used.
-#' @param q Order of penalization. Polynoms of degrees \code{q - 1} are
+#' @param q Order of penalization. Polynoms of degrees `q - 1` are
 #'   considered smooth and are therefore unpenalized. Should be left to the
-#'   default of \code{2} for most practical applications.
-#' @param framework Default framework is \code{"ml"} which stands for maximum
-#'   likelihood unless the \code{y} argument is also provided, in which case the
-#'   \code{"reg"} or regression framework is used. The regression framework is an
+#'   default of `2` for most practical applications.
+#' @param framework Default framework is `"ml"` which stands for maximum
+#'   likelihood unless the `y` argument is also provided, in which case the
+#'   `"reg"` or regression framework is used. The regression framework is an
 #'   asymptotical approximation of the maximum likelihood likelihood framework.
 #' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
-#'   automatically computed from the \code{d} and \code{ec} arguments if those
+#'   automatically computed from the `d` and `ec` arguments if those
 #'   are supplied. May be useful when using Whittaker-Henderson smoothing
 #'   outside of the survival analysis framework.
-#' @param wt Optional vector of weights. As for the observation vector \code{y},
+#' @param wt Optional vector of weights. As for the observation vector `y`,
 #'   used only in the regression framework and even in this case will be
-#'   automatically computed if the \code{d} argument is supplied. May be useful
+#'   automatically computed if the `d` argument is supplied. May be useful
 #'   when using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
-#' @returns An object of class \code{WH_1d} i.e. a list containing model fit,
-#'   variance, residuals and degrees of freedom as well as diagnosis to asses
-#'   the quality of the fit.
+#' @returns An object of class `WH_1d` i.e. a list containing :
+#' * `d` The inputed vector of observed events (if supplied as input)
+#' * `ec` The inputed vector of central exposure (if supplied as input)
+#' * `y` The observation vector (either supplied or computed as y = log(d) - log(ec))
+#' * `wt` The inputed vector of weights (either supplied or computed as `d`)
+#' * `z` The working vector obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
+#' * `y_hat` The vector of fitted value
+#' * `std_y_hat` The vector of standard deviation associated with the fitted value
+#' * `res` The vector of model deviance residuals
+#' * `edf` The vector of effective degrees of freedom associated with each observation
+#' * `edf_par` The vector of effective degrees of freedom associated with each eigenvector
+#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+#' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
+#' * `lambda` The smoothing parameter used, either supplied. or computed.
+#' * `q` The supplied order for the penalization.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -118,7 +130,9 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
     c(list(q = q, lambda = lambda),
       if (method == "optim") list(criterion = criterion),
       list(...))
-  do.call(what, args)
+
+  out <- do.call(what, args)
+  return(out)
 }
 
 #' 2D Whittaker-Henderson Smoothing
@@ -128,8 +142,8 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #' observed events and a matrix of associated central exposure, both depending
 #' on two covariates, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as \code{"REML"} (the default), \code{"AIC"},
-#' \code{"BIC"} or \code{"GCV"}. Whittaker-Henderson may be applied in a full
+#' specific criterion such as `"REML"` (the default), `"AIC"`,
+#' `"BIC"` or `"GCV"`. Whittaker-Henderson may be applied in a full
 #' maximum likelihood framework or an asymptotic (approximate) gaussian
 #' framework. As Whittaker-Henderson smoothing relies on full-rank smoothers,
 #' computation time and memory usage in the bidimensional case may be
@@ -144,39 +158,51 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'   period over the insured population. An individual experiencing an event of
 #'   interest during the year will no longer be exposed afterward and the
 #'   exposure should be reduced accordingly.
-#' @param lambda Smoothing parameter vector of size \code{2}. If missing, an
+#' @param lambda Smoothing parameter vector of size `2`. If missing, an
 #'   optimization procedure will be used to find the optimal smoothing
 #'   parameter. If provided, no optimal smoothing parameter search will take
-#'   place unless the \code{criterion} argument is also provided, in which case
-#'   \code{lambda} will be used as the starting parameter for the optimization
+#'   place unless the `criterion` argument is also provided, in which case
+#'   `lambda` will be used as the starting parameter for the optimization
 #'   procedure.
-#' @param p Optional vector of size \code{2}. Maximum number of eigenvectors to
+#' @param p Optional vector of size `2`. Maximum number of eigenvectors to
 #'   keep on each dimension after performing the eigen decomposition of the
 #'   penalization matrix. If missing, will be automatically computed so that the
 #'   dimensions of (square) matrices involved in the optimization problem
-#'   remains lower that the \code{max_dim} argument
+#'   remains lower that the `max_dim` argument
 #' @param max_dim Maximal number of rows (or equivalently columns) of the square
 #'   matrices that should be involved in the optimization problem. Default is
-#'   \code{500}. Values higher than \code{2000} may cause issues with both
+#'   `500`. Values higher than `2000` may cause issues with both
 #'   memory usage and computation times.
-#' @param q Order of penalization vector of size \code{2}. Polynoms of degrees
-#'   \code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
-#'   unpenalized. Should be left to the default of \code{c(2,2)} for most
+#' @param q Order of penalization vector of size `2`. Polynoms of degrees
+#'   `(q[[1]] - 1,q[[2]] - 1)` are considered smooth and are therefore
+#'   unpenalized. Should be left to the default of `c(2,2)` for most
 #'   practical applications.
 #' @param y Optional matrix of observations whose rows and columns should be
 #'   named. Used only in the regression framework and even in this case will be
-#'   automatically computed if the \code{d} and \code{ec} arguments are
+#'   automatically computed if the `d` and `ec` arguments are
 #'   supplied. May be useful when using Whittaker-Henderson smoothing outside of
 #'   the survival analysis framework.
-#' @param wt Optional matrix of weights. As for the observation vector \code{y},
+#' @param wt Optional matrix of weights. As for the observation vector `y`,
 #'   used only in the regression framework and even in this case will be
-#'   automatically computed if the \code{d} argument is supplied. May be useful
+#'   automatically computed if the `d` argument is supplied. May be useful
 #'   when using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #'
-#' @returns An object of class \code{WH_2d} i.e. a list containing model fit,
-#'   variance, residuals and degrees of freedom as well as diagnosis to asses
-#'   the quality of the fit.
+#' @returns An object of class `WH_2d` i.e. a list containing :
+#' * `d` The inputed matrix of observed events (if supplied as input)
+#' * `ec` The inputed matrix of central exposure (if supplied as input)
+#' * `y` The observation matrix (either supplied or computed as y = log(d) - log(ec))
+#' * `wt` The inputed matrix of weights (either supplied or computed as `d`)
+#' * `z` The working matrix obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
+#' * `y_hat` The matrix of fitted value
+#' * `std_y_hat` The matrix of standard deviation associated with the fitted value
+#' * `res` The matrix of model deviance residuals
+#' * `edf` The matrix of effective degrees of freedom associated with each observation
+#' * `edf_par` The matrix of effective degrees of freedom associated with each eigenvector
+#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+#' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
+#' * `lambda` The vector of smoothing parameters used, either supplied. or computed.
+#' * `q` The supplied vector of orders for the penalization.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -259,7 +285,9 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
     c(list(p = p, q = q, lambda = lambda),
       if (method == "optim") list(criterion = criterion),
       list(...))
-  do.call(what, args)
+
+  out <- do.call(what, args)
+  return(out)
 }
 
 # Extrapolation----
@@ -268,12 +296,12 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #'
 #' Extrapolate the model for new values of the covariates
 #'
-#' @param object An object of class \code{"WH_1d"} returned by the [WH_1d()] function
+#' @param object An object of class `"WH_1d"` returned by the [WH_1d()] function
 #' @param newdata A list containing a vector indicating the new observation
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An object of class \code{"WH_1d"} with additional components for model
+#' @returns An object of class `"WH_1d"` with additional components for model
 #'   prediction.
 #'
 #' @examples
@@ -328,12 +356,12 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' Extrapolate the model for new values of the covariates in a way that is
 #' consistent with the fitted values
 #'
-#' @param object An object of class \code{"WH_2d"} returned by the [WH_2d()] function
+#' @param object An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param newdata A list containing two vectors indicating the new observation
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An object of class \code{"WH_2d"} with additional components for model
+#' @returns An object of class `"WH_2d"` with additional components for model
 #'   prediction.
 #'
 #' @examples
@@ -348,21 +376,21 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' @export
 predict.WH_2d <- function(object, newdata = NULL, ...) {
 
-  data <- dimnames(object$y) |> map(as.numeric)
-  full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind <- map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
+  data <- dimnames(object$y) |> purrr::map(as.numeric)
+  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
+  ind <- purrr::map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
 
-  n <- map_int(data, length)
-  n_pred <- map_int(full_data, length)
+  n <- purrr::map_int(data, length)
+  n_pred <- purrr::map_int(full_data, length)
 
-  C <- map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
-    map2(ind, \(x,y) x[,y]) |>
+  C <- purrr::map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
+    purrr::map2(ind, \(x,y) x[,y]) |>
     rev() |>
-    reduce(kronecker) # constraint matrix
+    purrr::reduce(kronecker) # constraint matrix
 
   wt_pred <- c(t(C) %*% c(object$wt))
   W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- map2(n_pred, object$q, build_D_mat) # extended difference matrices
+  D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
 
@@ -379,7 +407,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
 
   dim(y_pred) <- dim(std_y_pred) <-
-    dim(y_pred_2) <- dim(std_y_pred_2) <- map_int(full_data, length) # set dimension for output matrices
+    dim(y_pred_2) <- dim(std_y_pred_2) <- purrr::map_int(full_data, length) # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <-
     dimnames(y_pred_2) <- dimnames(std_y_pred_2) <- full_data # set names for output matrices
 
@@ -391,11 +419,11 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   return(object)
 }
 
-# Mise en forme----
+# Formatting----
 
 #' Store WH model fit results in a data.frame
 #'
-#' @param object An object of class  \code{"WH_1d"} or \code{"WH_2d"} returned
+#' @param object An object of class  `"WH_1d"` or `"WH_2d"` returned
 #'   by one of the eponymous functions [WH_1d()] or [WH_2d()]
 #' @param dim1 The (optional) name to be given to the first dimension
 #' @param dim2 The (optional) name to be given to the second dimension
@@ -470,14 +498,14 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
   }
 }
 
-# Affichage----
+# Display----
 
 #' Display of 1D WH object
 #'
-#' @param x An object of class \code{"WH_1d"} returned by the [WH_1d()] function
+#' @param x An object of class `"WH_1d"` returned by the [WH_1d()] function
 #' @param ... Not used
 #'
-#' @returns Invisibly returns \code{x}.
+#' @returns Invisibly returns `x`.
 #'
 #' @examples
 #' keep <- which(portfolios_mort[[1]]$ec > 0)
@@ -506,10 +534,10 @@ print.WH_1d <- function(x, ...) {
 
 #' Display of 2D WH object
 #'
-#' @param x An object of class \code{"WH_2d"} returned by the [WH_2d()] function
+#' @param x An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param ... Not used
 #'
-#' @returns Invisibly returns \code{x}.
+#' @returns Invisibly returns `x`.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 1e2)
@@ -535,9 +563,9 @@ print.WH_2d <- function(x, ...) {
 
 #' Plot 1D WH fit
 #'
-#' @param x An object of class \code{"WH_1d"} returned by the [WH_1d()] function
-#' @param what What should be plotted. Should be one of \code{fit} (the
-#'   default), \code{res} for residuals and \code{edf} for the effective degrees
+#' @param x An object of class `"WH_1d"` returned by the [WH_1d()] function
+#' @param what What should be plotted. Should be one of `fit` (the
+#'   default), `res` for residuals and `edf` for the effective degrees
 #'   of freedom.
 #' @param trans An (optional) transformation to be applied to the data. By
 #'   default the identity function
@@ -587,7 +615,7 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 
 #' Plot 2D WH fit
 #'
-#' @param x An object of class \code{"WH_2d"} returned by the [WH_2d()] function
+#' @param x An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param what What should be plotted (y_hat, std_y_hat, res, edf)
 #' @param trans An (optional) transformation to be applied to the data
 #' @param ... Not used
@@ -641,19 +669,20 @@ plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
 #' @param q Order of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = length(y), q = 2) {
 
   n <- length(y)
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   tUWU <- t(U) %*% (wt * U)
@@ -712,22 +741,23 @@ WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = 
 #' @param accu_edf Tolerance for the convergence of the outer optimization
 #'   procedure
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
                             criterion = "REML", lambda = 1e3,
                             verbose = FALSE, accu_edf = 1e-10) {
 
   n <- length(y)
   n_pos <- sum(wt != 0)
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   tUWU <- t(U) %*% (wt * U)
@@ -774,21 +804,22 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #'
 #' @inheritParams WH_1d_reg_optim
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
-                             lambda = 1e3, verbose = FALSE, accu_edf = 1e-10) {
+                         lambda = 1e3, verbose = FALSE, accu_edf = 1e-10) {
 
   # Initialization
   n <- length(y)
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   tUWU <- t(U) %*% (wt * U)
@@ -864,35 +895,36 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 #' @param q Matrix of orders of penalization. Polynoms of degrees q - 1 are considered
 #'   smooth and are therefore unpenalized
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                                    lambda = c(1e3, 1e3), p = dim(y), q = c(2, 2)) {
 
   n <- dim(y)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
@@ -902,7 +934,7 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
   tUWU <- t(U_pos) %*% (wt_pos * U_pos)
   tUWy <- t(U_pos) %*% (wt_pos * y_pos)
 
-  s_lambda <- map2(lambda, s, `*`)
+  s_lambda <- purrr::map2(lambda, s, `*`)
   sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
   Psi_chol <- tUWU
@@ -912,9 +944,9 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 
   gamma_hat <- c(Psi %*% tUWy)
 
-  RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+  RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
   edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
-  omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+  omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   y_hat <- c(U %*% gamma_hat)
   Psi <- U %*% Psi %*% t(U)
@@ -925,11 +957,11 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
-  pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
+  pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
   dev_pen <- dev + pen
   sum_edf <- sum(edf) # effective degrees of freedom
 
-  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   AIC <- dev + 2 * sum_edf
@@ -958,9 +990,10 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @param lambda Initial smoothing parameters
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                             q = c(2, 2), p = dim(y), criterion = "REML",
                             lambda = c(1e3, 1e3), verbose = FALSE, accu_edf = 1e-10) {
@@ -968,27 +1001,27 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   n <- dim(y)
   n_pos <- sum(wt != 0)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
@@ -1003,7 +1036,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
     lambda <- exp(log_lambda)
     if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
-    s_lambda <- map2(lambda, s, `*`)
+    s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     Psi_chol <- tUWU
@@ -1013,7 +1046,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 
     gamma_hat <- c(Psi %*% tUWy)
 
-    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
     edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
 
     y_hat <- c(U %*% gamma_hat)
@@ -1027,7 +1060,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
            BIC = dev + log(prod(n_pos)) * sum_edf,
            GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
            REML = {
-             tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+             tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
              dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
@@ -1042,9 +1075,10 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #'
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
                          q = c(2, 2), p = dim(y), lambda = c(1e3, 1e3),
                          verbose = FALSE, accu_edf = 1e-10) {
@@ -1052,27 +1086,27 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   # Initialization
   n <- dim(y)
   which_pos <- which(wt != 0)
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
@@ -1089,7 +1123,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 
     if (!init) lambda <- edf_random / RESS
 
-    s_lambda <- map2(lambda, s, `*`)
+    s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     Psi_chol <- tUWU
@@ -1099,12 +1133,12 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 
     gamma_hat <- c(Psi %*% tUWy)
 
-    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
     edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
-    omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+    omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
     old_edf_random <- if (init) NA else edf_random
-    edf_random <- map_dbl(omega_j, \(x) sum(x * edf_par))
+    edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
     if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
                      "=>", format(edf_random + q, digits = 3), "\n")
     cond_edf_random <- if (init) TRUE else{
@@ -1124,7 +1158,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   dev <- sum(res * res) # residuals sum of squares
   sum_edf <- sum(edf) # effective degrees of freedom
 
-  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   AIC <- dev + 2 * sum_edf
@@ -1159,9 +1193,10 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #' @param ec Vector of central exposure
 #' @param accu_dev Tolerance for the convergence of the optimization procedure
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
                                   verbose = FALSE, accu_dev = 1e-12) {
 
@@ -1171,20 +1206,17 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   y_hat <- log(pmax(d, 1e-8)) - off
   new_wt <- exp(y_hat + off)
-  # gamma_hat <- c(t(U) %*% y_hat)
-  # RESS <- sum(gamma_hat * s * gamma_hat)
-  # dev_pen <- compute_deviance(d, new_wt) + lambda * RESS
   dev_pen <- Inf
   cond_dev_pen <- TRUE
 
@@ -1255,11 +1287,12 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 #' @inheritParams WH_1d_reg_optim
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lambda = 1e3,
-                             verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                           verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
   n <- length(d)
@@ -1267,13 +1300,13 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   WH_1d_ml_aux <- function(log_lambda) {
@@ -1283,9 +1316,6 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
-    # gamma_hat <- c(t(U) %*% y_hat)
-    # RESS <- sum(gamma_hat * s * gamma_hat)
-    # dev_pen <- compute_deviance(d, new_wt) + lambda * RESS
     dev_pen <- Inf
     cond_dev_pen <- TRUE
 
@@ -1343,9 +1373,10 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 #'
 #' @inheritParams WH_1d_ml_optim
 #'
-#' @returns An object of class \code{"WH_1d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
                         lambda = 1e3, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
@@ -1355,13 +1386,13 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- eigen_dec(n, q, p)
+  eig <- eigen_dec(n, q, p)
 
-  X <- SVD$X
-  Z <- SVD$Z
+  X <- eig$X
+  Z <- eig$Z
   U <- cbind(X, Z)
 
-  s <- SVD$s
+  s <- eig$s
   s_tilde <- s[- seq_len(q)]
 
   y_hat <- log(pmax(d, 1e-8)) - off
@@ -1456,9 +1487,10 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 #' @inheritParams WH_2d_reg_fixed_lambda
 #' @inheritParams WH_1d_ml_fixed_lambda
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
                                   verbose = FALSE, accu_dev = 1e-12) {
 
@@ -1469,38 +1501,35 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
-  s_lambda <- map2(lambda, s, `*`)
+  s_lambda <- purrr::map2(lambda, s, `*`)
   sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
   y_hat <- log(pmax(d, 1e-8)) - off
   new_wt <- exp(y_hat + off)
-  # gamma_hat <- c(t(U) %*% c(y_hat))
-  # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-  # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
   dev_pen <- Inf
   cond_dev_pen <- TRUE
 
@@ -1524,7 +1553,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 
     gamma_hat <- c(Psi %*% tUWz) # fitted value
 
-    RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
 
     y_hat <- c(U %*% gamma_hat)
     new_wt <- exp(y_hat + off)
@@ -1532,7 +1561,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
     # update of convergence check
     old_dev_pen <- dev_pen
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1549,7 +1578,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
 
-  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   AIC <- dev + 2 * sum_edf
@@ -1577,11 +1606,12 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 #' @inheritParams WH_2d_ml_fixed_lambda
 #' @inheritParams WH_2d_reg_optim
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", lambda = c(1e3, 1e3),
-                             verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                           verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   n <- dim(d)
   which_pos <- which(ec != 0)
@@ -1589,27 +1619,27 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
@@ -1618,14 +1648,11 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
     lambda <- exp(log_lambda)
     if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
-    s_lambda <- map2(lambda, s, `*`)
+    s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
-    # gamma_hat <- c(t(U) %*% c(y_hat))
-    # RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-    # dev_pen <- compute_deviance(d, new_wt) + map2(lambda, RESS, `*`) |> do.call(what = `+`)
     dev_pen <- Inf
     cond_dev_pen <- TRUE
 
@@ -1649,7 +1676,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
-      RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+      RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
 
       y_hat <- c(U %*% gamma_hat)
       new_wt <- exp(y_hat + off)
@@ -1657,7 +1684,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
       # update of convergence check
       old_dev_pen <- dev_pen
       dev <- compute_deviance(d, new_wt)
-      dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+      dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                        "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
       cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1671,7 +1698,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
            BIC = dev + log(prod(n_pos)) * sum_edf,
            GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
            REML = {
-             tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+             tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
              dev_pen - tr_log_P + tr_log_Psi
@@ -1679,8 +1706,8 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
   }
 
   lambda <- exp(stats::optim(par = log(lambda),
-                      fn = WH_2d_ml_aux,
-                      control = list(reltol = accu_edf))$par)
+                             fn = WH_2d_ml_aux,
+                             control = list(reltol = accu_edf))$par)
   WH_2d_ml_fixed_lambda(d, ec, lambda, p, q)
 }
 
@@ -1688,11 +1715,12 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 #'
 #' @inheritParams WH_2d_ml_optim
 #'
-#' @returns An object of class \code{"WH_2d"} i.e. a list containing model fit,
+#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
+#' @keywords internal
 WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
-                          lambda = c(1e3, 1e3), accu_edf = 1e-10, accu_dev = 1e-12) {
+                        lambda = c(1e3, 1e3), accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
   n <- dim(d)
@@ -1701,27 +1729,27 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
   off <- log(pmax(ec, 1e-4))
   y <- ifelse(d == 0, NA, log(d)) - off
 
-  SVD <- pmap(list(n = n, q = q, p = p), eigen_dec)
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_SVD <- map(SVD, "X")
-  Z_SVD <- map(SVD, "Z")
-  X <- list(XX = list(X_SVD[[1]], X_SVD[[2]])) |>
+  X_eig <- purrr::map(eig, "X")
+  Z_eig <- purrr::map(eig, "Z")
+  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
     compute_XZ_mat()
-  Z <- list(ZX = list(Z_SVD[[1]], X_SVD[[2]]),
-            XZ = list(X_SVD[[1]], Z_SVD[[2]]),
-            ZZ = list(Z_SVD[[1]], Z_SVD[[2]])) |>
+  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
+            XZ = list(X_eig[[1]], Z_eig[[2]]),
+            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
     compute_XZ_mat()
   U <- cbind(X, Z)
   U_pos <- U[which_pos,]
 
-  s_SVD <- map(SVD, "s")
-  s_tilde_SVD <- map2(s_SVD, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_SVD[[1]], q[[2]]),
+  s_eig <- purrr::map(eig, "s")
+  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
+  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
                     rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_SVD[[1]], p[[2]] - q[[2]])),
+                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
                   c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_SVD[[2]], each = q[[1]]),
-                    rep(s_tilde_SVD[[2]], each = p[[1]] - q[[1]])))
+                    rep(s_tilde_eig[[2]], each = q[[1]]),
+                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
   s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
             c(rep(0, prod(q)), s_tilde[[2]]))
 
@@ -1750,7 +1778,7 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
       if (!init_lambda) lambda <- edf_random / RESS
 
-      s_lambda <- map2(lambda, s, `*`)
+      s_lambda <- purrr::map2(lambda, s, `*`)
       sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
       Psi_chol <- tUWU
@@ -1760,12 +1788,12 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
-      RESS <- map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+      RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
       edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
-      omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+      omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
       old_edf_random <- if (init_lambda) NA else edf_random
-      edf_random <- map_dbl(omega_j, \(x) sum(x * edf_par))
+      edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
       if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
                        "=>", format(edf_random + q, digits = 3), "\n")
       cond_edf_random <- if (init_lambda) TRUE else any(abs(edf_random - old_edf_random) > accu_edf * (old_edf_random + q))
@@ -1778,7 +1806,7 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
     # update of convergence check
     old_dev_pen <- dev_pen
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1793,7 +1821,7 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
 
-  tr_log_P <- map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   AIC <- dev + 2 * sum_edf

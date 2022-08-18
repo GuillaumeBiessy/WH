@@ -50,26 +50,6 @@ expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-4)
 expect_equal(WH_2d(d, ec, lambda = c(1e2,1e2)),
              WH_2d_ml_fixed_lambda(d, ec, lambda = c(1e2,1e2)))
 
-ref_ml_fs <- WH_2d_ml_fs(d, ec)
-expect_equal(WH_2d(d, ec), ref_ml_fs)
-
-ref_ml_optim <- WH_2d_ml_optim(d, ec)
-expect_equal(WH_2d(d, ec, method = "optim"),
-             ref_ml_optim)
-expect_equal(WH_2d_ml_optim(d, ec, criterion = "REML"),
-             ref_ml_optim)
-
-expect_equal(ref_ml_fs, ref_ml_optim, tolerance = 1e-1)
-
-expect_equal(WH_2d(d, ec, criterion = "AIC"),
-             WH_2d_ml_optim(d, ec, criterion = "AIC"))
-
-expect_equal(WH_2d(d, ec, criterion = "BIC"),
-             WH_2d_ml_optim(d, ec, criterion = "BIC"))
-
-expect_equal(WH_2d(d, ec, criterion = "GCV"),
-             WH_2d_ml_optim(d, ec, criterion = "GCV"))
-
 ref_fs_red <- WH_2d_ml_fs(d, ec, p = c(10, 5))
 expect_equal(WH_2d(d, ec, p = c(10, 5)), ref_fs_red)
 
@@ -79,34 +59,21 @@ expect_equal(WH_2d(d, ec, method = "optim", p = c(10, 5)), ref_optim_red)
 expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-1)
 
 # Plots
-WH_2d_reg_optim(y, wt) |> plot()
-WH_2d_reg_fs(y, wt) |> plot()
-
-WH_2d_ml_optim(d, ec) |> plot()
-WH_2d_ml_fs(d, ec) |> plot()
-
-WH_2d_reg_optim(y, wt) |> plot("std_y_hat")
-WH_2d_reg_fs(y, wt) |> plot("std_y_hat")
-
-WH_2d_ml_optim(d, ec) |> plot("std_y_hat")
-WH_2d_ml_fs(d, ec) |> plot("std_y_hat")
+WH_2d(d, ec) |> plot()
+WH_2d(d, ec) |> plot("std_y_hat")
 
 # Extrapolation
 newdata <- list(age = 50:99, duration = 0:19)
 
-expect_equal(WH_2d_reg_fs(y, wt) |> predict(newdata),
-             WH_2d_reg_optim(y, wt) |> predict(newdata),
-             tolerance = 1e-4)
+extra_fs <- WH_2d(d, ec) |> predict(newdata)
+extra_optim <- WH_2d(d, ec, method = "optim") |> predict(newdata)
 
-expect_equal(WH_2d_ml_fs(d, ec) |> predict(newdata),
-             WH_2d_ml_optim(d, ec) |> predict(newdata),
-             tolerance = 1e-1)
+expect_equal(extra_fs,
+             extra_optim,
+             tolerance = 2e-1)
 
-WH_2d_reg_fs(y, wt) |> predict(newdata) |> plot()
-WH_2d_reg_optim(y, wt) |> predict(newdata) |> plot()
-
-WH_2d_ml_fs(d, ec) |> predict(newdata) |> plot()
-WH_2d_ml_optim(d, ec) |> predict(newdata) |> plot()
+plot(extra_fs)
+plot(extra_optim)
 
 # Rank reduction
 keep_age <- which(rowSums(portfolios_LTC[[1]]$ec) > 0)
@@ -115,12 +82,8 @@ keep_duration <- which(colSums(portfolios_LTC[[1]]$ec) > 0)
 d  <- portfolios_LTC[[1]]$d[keep_age, keep_duration]
 ec <- portfolios_LTC[[1]]$ec[keep_age, keep_duration]
 
-y <- log(d / ec) # observation vector
-y[d == 0] <- - 20
-wt <- d
-
 prod(dim(d)) # dimension of problem is 1232
 
-expect_equal(WH_2d(y = y, wt = wt, method = "fs"),
-             WH_2d(y = y, wt = wt, method = "optim"), tolerance = 1e-4)
-expect_equal(WH_2d(d, ec), WH_2d(d, ec, method = "optim"), tolerance = 2e-1)
+expect_equal(WH_2d(y = y, wt = wt, method = "fs", max_dim = 100),
+             WH_2d(y = y, wt = wt, method = "optim", max_dim = 100), tolerance = 1e-4)
+expect_equal(WH_2d(d, ec, max_dim = 100), WH_2d(d, ec, method = "optim", max_dim = 100), tolerance = 2e-1)

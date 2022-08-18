@@ -56,9 +56,23 @@ framework.}
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
 \value{
-An object of class \code{WH_1d} i.e. a list containing model fit,
-variance, residuals and degrees of freedom as well as diagnosis to asses
-the quality of the fit.
+An object of class \code{WH_1d} i.e. a list containing :
+\itemize{
+\item \code{d} The inputed vector of observed events (if supplied as input)
+\item \code{ec} The inputed vector of central exposure (if supplied as input)
+\item \code{y} The observation vector (either supplied or computed as y = log(d) - log(ec))
+\item \code{wt} The inputed vector of weights (either supplied or computed as \code{d})
+\item \code{z} The working vector obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
+\item \code{y_hat} The vector of fitted value
+\item \code{std_y_hat} The vector of standard deviation associated with the fitted value
+\item \code{res} The vector of model deviance residuals
+\item \code{edf} The vector of effective degrees of freedom associated with each observation
+\item \code{edf_par} The vector of effective degrees of freedom associated with each eigenvector
+\item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+\item \code{Psi} The variance-covariance matrix associated with the fit, required for extrapolation.
+\item \code{lambda} The smoothing parameter used, either supplied. or computed.
+\item \code{q} The supplied order for the penalization.
+}
 }
 \description{
 Main package function to apply Whittaker-Henderson smoothing in a

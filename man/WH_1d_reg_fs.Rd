@@ -40,3 +40,4 @@ the quality of the fit.
 \description{
 Whittaker-Henderson Smoothing (Regression, Generalized Fellner-Schall update)
 }
+\keyword{internal}

@@ -47,3 +47,4 @@ the quality of the fit.
 \description{
 Whittaker-Henderson Smoothing (Maximum Likelihood, optimize function)
 }
+\keyword{internal}

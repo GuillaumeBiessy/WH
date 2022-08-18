@@ -4,6 +4,7 @@
 #'
 #' @returns Difference matrix of order \code{q} for a vector containing \code{n}
 #'   observations.
+#' @keywords internal
 build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
 #' Compute Block Kronecket Product Matrix
@@ -13,6 +14,7 @@ build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 #' @returns A matrix obtained by applying the Kronecker product to the 2 matrices
 #'   contained in each element of \code{XZ} and then horizontally concatenating
 #'   the result
+#' @keywords internal
 compute_XZ_mat <- function(XZ) {
   lapply(XZ, \(X) {X[[2]] %x% X[[1]]}) |> do.call(what = cbind)}
 
@@ -27,6 +29,7 @@ compute_XZ_mat <- function(XZ) {
 #'   columns are the eigenvectors associated with non-0 eigenvalues sorted in
 #'   ascending order - \code{s} a vector containing the eigenvalues sorted in
 #'   ascending order
+#' @keywords internal
 eigen_dec <- function(n, q, p) {
 
   D_mat <- build_D_mat(n, q)
@@ -44,7 +47,9 @@ eigen_dec <- function(n, q, p) {
     do.call(what = cbind)
   Z <- U[, q + seq_len(p - q), drop = FALSE]
 
-  list(X = X, Z = Z, s = s)
+  out <- list(X = X, Z = Z, s = s)
+
+  return(out)
 }
 
 #' Deviance Residuals for Poisson GLM
@@ -54,12 +59,15 @@ eigen_dec <- function(n, q, p) {
 #'
 #' @returns A vector or matrix (depending on the input type, will be a matrix
 #'   if at least one of the input is) containing the deviance residuals
+#' @keywords internal
 compute_res_deviance <- function(D, D_hat) {
 
   D_diff <- D - D_hat
   log_D_diff <- ifelse(D == 0, 0, D * (log(D) - log(D_hat)))
 
-  sign(D_diff) * sqrt(2 * pmax(log_D_diff - D_diff, 0))
+  out <- sign(D_diff) * sqrt(2 * pmax(log_D_diff - D_diff, 0))
+
+  return(out)
 }
 
 #' Deviance for Poisson GLM
@@ -67,9 +75,11 @@ compute_res_deviance <- function(D, D_hat) {
 #' @inheritParams compute_res_deviance
 #'
 #' @returns The model deviance
+#' @keywords internal
 compute_deviance <- function(D, D_hat) {
 
   res_deviance <- compute_res_deviance(D, D_hat)
+  out <- sum(res_deviance * res_deviance)
 
-  sum(res_deviance * res_deviance)
+  return(out)
 }

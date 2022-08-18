@@ -44,3 +44,4 @@ the quality of the fit.
 \description{
 Whittaker-Henderson Smoothing (Regression, optimize function)
 }
+\keyword{internal}

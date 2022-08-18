@@ -60,7 +60,7 @@ matrices that should be involved in the optimization problem. Default is
 memory usage and computation times.}
 
 \item{q}{Order of penalization vector of size \code{2}. Polynoms of degrees
-\code{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
+\verb{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
 unpenalized. Should be left to the default of \code{c(2,2)} for most
 practical applications.}
 
@@ -84,9 +84,23 @@ framework.}
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
 \value{
-An object of class \code{WH_2d} i.e. a list containing model fit,
-variance, residuals and degrees of freedom as well as diagnosis to asses
-the quality of the fit.
+An object of class \code{WH_2d} i.e. a list containing :
+\itemize{
+\item \code{d} The inputed matrix of observed events (if supplied as input)
+\item \code{ec} The inputed matrix of central exposure (if supplied as input)
+\item \code{y} The observation matrix (either supplied or computed as y = log(d) - log(ec))
+\item \code{wt} The inputed matrix of weights (either supplied or computed as \code{d})
+\item \code{z} The working matrix obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
+\item \code{y_hat} The matrix of fitted value
+\item \code{std_y_hat} The matrix of standard deviation associated with the fitted value
+\item \code{res} The matrix of model deviance residuals
+\item \code{edf} The matrix of effective degrees of freedom associated with each observation
+\item \code{edf_par} The matrix of effective degrees of freedom associated with each eigenvector
+\item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+\item \code{Psi} The variance-covariance matrix associated with the fit, required for extrapolation.
+\item \code{lambda} The vector of smoothing parameters used, either supplied. or computed.
+\item \code{q} The supplied vector of orders for the penalization.
+}
 }
 \description{
 #' Main package function to apply Whittaker-Henderson smoothing in a

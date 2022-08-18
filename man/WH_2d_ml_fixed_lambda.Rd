@@ -39,3 +39,4 @@ the quality of the fit.
 \description{
 2D Whittaker-Henderson Smoothing (Maximum Likelihood, fixed lambda)
 }
+\keyword{internal}
