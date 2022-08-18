@@ -205,18 +205,15 @@ may be applied:
 
 ``` r
 WH_1d_fit
-
 An object fitted using the WH_1D function
 Initial data contains 74 data points
 Optimal smoothing parameter selected: 22770 
-Associated degrees of freedom: 7.659107 
+Associated degrees of freedom: 4.7 
 WH_2d_fit
-
 An object fitted using the WH_2D function
 Initial data contains 176 data points
-Optimal smoothing parameters selected: 126.18 
- Optimal smoothing parameters selected:   9.43 
-Associated degrees of freedom: 12.22664 
+Optimal smoothing parameters selected: 126.2   9.4 
+Associated degrees of freedom: 9.2 
 ```
 
 -   The `plot` function generates rough plots of the model fit, the

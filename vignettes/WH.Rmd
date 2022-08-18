@@ -8,14 +8,12 @@ vignette: >
 bibliography: biblio.bib  
 ---
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = ""
 )
-```
 
-```{r setup}
 library(WH)
 ```
 
