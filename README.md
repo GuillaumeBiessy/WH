@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# Whittaker-Henderson smoothing
+# A Modern Take on Whittaker-Henderson smoothing
 
 ## What is Whittaker-Henderson smoothing ?
 

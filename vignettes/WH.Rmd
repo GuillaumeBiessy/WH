@@ -1,8 +1,8 @@
 ---
-title: "Whittaker-Henderson Smoothing"
+title: "A Modern Take on Whittaker-Henderson smoothing"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Whittaker-Henderson Smoothing}
+  %\VignetteIndexEntry{A Modern Take on Whittaker-Henderson smoothing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: biblio.bib  
