@@ -1,6 +1,6 @@
-data("portfolios_LTC")
+data("portfolio_LTC")
 
-# 2D smoothing----
+# Data----
 keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
 keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 
@@ -11,79 +11,87 @@ y <- log(d / ec) # observation vector
 y[d == 0] <- - 20
 wt <- d
 
-# Regression
+# Regression----
 
+## Various way of calling regresion work and method with fixed lambda as well----
 ref_fixed_lambda <- WH_2d_reg_fixed_lambda(y, wt, lambda = c(1e2,1e2))
 expect_equal(WH_2d(y = y, wt = wt, lambda = c(1e2,1e2)), ref_fixed_lambda)
 expect_equal(WH_2d(d, ec, framework = "reg", lambda = c(1e2,1e2)), ref_fixed_lambda)
 expect_equal(WH_2d(d, y = y, lambda = c(1e2,1e2)), ref_fixed_lambda)
 
+## FS is the default method and call FS----
 ref_fs <- WH_2d_reg_fs(y, wt)
 expect_equal(WH_2d(y = y, wt = wt, method = "fs"), ref_fs)
 expect_equal(WH_2d(y = y, wt = wt), ref_fs)
 
+## optim method call optim----
 ref_optim <- WH_2d_reg_optim(y, wt)
 expect_equal(WH_2d(y = y, wt = wt, method = "optim"), ref_optim)
 
+## optim and fs method match for regression----
 expect_equal(ref_fs, ref_optim, tolerance = 1e-4)
 
+## REML is default criterion for optim----
 expect_equal(WH_2d(y = y, wt = wt, method = "optim", criterion = "REML"), ref_optim)
 
-ref_aic <- WH_2d_reg_optim(y, wt, criterion = "AIC")
-expect_equal(WH_2d(y = y, wt = wt, criterion = "AIC"), ref_aic)
+## other criteria work----
+expect_equal(WH_2d(y = y, wt = wt, criterion = "AIC"),
+             WH_2d_reg_optim(y, wt, criterion = "AIC"))
+expect_equal(WH_2d(y = y, wt = wt, criterion = "BIC"),
+             WH_2d_reg_optim(y, wt, criterion = "BIC"))
+expect_equal(WH_2d(y = y, wt = wt, criterion = "GCV"),
+             WH_2d_reg_optim(y, wt, criterion = "GCV"))
 
-ref_bic <- WH_2d_reg_optim(y, wt, criterion = "BIC")
-expect_equal(WH_2d(y = y, wt = wt, criterion = "BIC"), ref_bic)
-
-ref_gcv <- WH_2d_reg_optim(y, wt, criterion = "GCV")
-expect_equal(WH_2d(y = y, wt = wt, criterion = "GCV"), ref_gcv)
-
+## rank reduction works----
 ref_fs_red <- WH_2d_reg_fs(y, wt, p = c(10, 5))
-expect_equal(WH_2d(y = y, wt = wt, p = c(10, 5)), ref_fs_red)
-
 ref_optim_red <- WH_2d_reg_optim(y, wt, p = c(10, 5))
-expect_equal(WH_2d(y = y, wt = wt, method = "optim", p = c(10, 5)), ref_optim_red)
 
+expect_equal(WH_2d(y = y, wt = wt, p = c(10, 5)), ref_fs_red)
+expect_equal(WH_2d(y = y, wt = wt, method = "optim", p = c(10, 5)), ref_optim_red)
 expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-4)
 
-# Maximum likelihood
+expect_equal(WH_2d(y = y, wt = wt, method = "fs", max_dim = 100),
+             WH_2d(y = y, wt = wt, method = "optim", max_dim = 100), tolerance = 1e-4)
+
+# Maximum likelihood----
+
+## fixed lambda method works----
 expect_equal(WH_2d(d, ec, lambda = c(1e2,1e2)),
              WH_2d_ml_fixed_lambda(d, ec, lambda = c(1e2,1e2)))
 
+## FS method with rank reduction works----
 ref_fs_red <- WH_2d_ml_fs(d, ec, p = c(10, 5))
 expect_equal(WH_2d(d, ec, p = c(10, 5)), ref_fs_red)
 
+## optim method with rank reduction works----
 ref_optim_red <- WH_2d_ml_optim(d, ec, p = c(10, 5))
 expect_equal(WH_2d(d, ec, method = "optim", p = c(10, 5)), ref_optim_red)
 
-expect_equal(ref_fs_red, ref_optim_red, tolerance = 1e-1)
+## optim and fs method are not too far away for ML----
+expect_equal(ref_fs_red, ref_optim_red, tolerance = 2e-1)
 
-# Plots
-WH_2d(d, ec) |> plot()
-WH_2d(d, ec) |> plot("std_y_hat")
+## automatic rank reduction works----
+rr_fs <- WH_2d(d, ec, max_dim = 100)
+rr_optim <- WH_2d(d, ec, method = "optim", max_dim = 100)
+expect_equal(rr_fs, rr_optim, tolerance = 2e-1)
 
-# Extrapolation
+# Extrapolation----
+
 newdata <- list(age = 50:99, duration = 0:19)
 
-extra_fs <- WH_2d(d, ec) |> predict(newdata)
-extra_optim <- WH_2d(d, ec, method = "optim") |> predict(newdata)
+extra_fs <- rr_fs |> predict(newdata)
+extra_optim <- rr_optim |> predict(newdata)
 
 expect_equal(extra_fs,
              extra_optim,
              tolerance = 2e-1)
 
-plot(extra_fs)
-plot(extra_optim)
+# Plots----
 
-# Rank reduction
-keep_age <- which(rowSums(portfolio_LTC$ec) > 0)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 0)
+rr_fs |> plot()
+rr_fs |> plot("std_y_hat")
 
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
+extra_fs |> plot()
+extra_fs |> plot("std_y_hat")
 
-prod(dim(d)) # dimension of problem is 1232
 
-expect_equal(WH_2d(y = y, wt = wt, method = "fs", max_dim = 100),
-             WH_2d(y = y, wt = wt, method = "optim", max_dim = 100), tolerance = 1e-4)
-expect_equal(WH_2d(d, ec, max_dim = 100), WH_2d(d, ec, method = "optim", max_dim = 100), tolerance = 2e-1)
