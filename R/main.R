@@ -109,21 +109,89 @@
 WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
+  if (length(framework) != 1 || !(framework %in% c("reg", "ml"))) {
+    stop("framework should be one of ml (the default) or reg")
+  }
   if (framework == "reg") {
-    if (missing(y) && !missing(d) && !missing(ec)) {
-      y <- log(d / ec)
-      y[d == 0] <- - 20
+    if (missing(y)) {
+      if (!missing(d) && !missing(ec)) {
+        if (!is.numeric(d)) stop("d should be a numeric vector")
+        if (!is.numeric(ec)) stop("ec should be a numeric vector")
+        if (length(d) != length(ec)) stop("Length of d and ec must match")
+        message("Computing y as y = log(d / ec)")
+        y <- log(d / ec)
+        y[d == 0] <- - 20
+      } else {
+        stop("Either y or both d and ec required in the regression framework")
+      }
+    } else {
+      if (!is.numeric(y)) stop("y should be a numeric vector")
     }
-    if (missing(wt) && !missing(d)) wt <- d
+    if (missing(wt)) {
+      if (!missing(d)) {
+        message("Using d as weights")
+        wt <- d
+      } else {
+        stop("Either wt or d needs to be supplied in the regression framework")
+      }
+    } else {
+      if (!is.numeric(wt)) stop("wt should be a numeric vector")
+    }
+    if (length(y) != length(wt)) stop("Length of y and wt must match")
+    if (is.null(names(y))) {
+      y_names <- seq_along(y)
+      warning("No names found for y, setting names to: ", paste(range(y_names), collapse = " - "))
+    }
+  } else {
+    if (missing(d)) stop("d argument required in the maximum likelihood framework")
+    if (missing(ec)) stop("ec argument required in the maximum likelihood framework")
+    if (!is.numeric(d)) stop("d should be a numeric vector")
+    if (!is.numeric(ec)) stop("ec should be a numeric vector")
+    if (length(d) != length(ec)) stop("Length of d and ec must match")
+    if (is.null(names(d))) {
+      d_names <- seq_along(d)
+      warning("No names found for d, setting names to: ", paste(range(d_names), collapse = " - "))
+    }
   }
 
   if (missing(criterion)) criterion <- "REML"
+  criteria <- c("REML", "AIC", "BIC", "GCV")
+  if (length(criterion) != 1 || !(criterion %in% criteria)) stop(
+    "criterion should be one of ", paste(criteria, collapse = ", "))
+
   if (missing(method)) {
-    method <- if (!missing(lambda)) "fixed_lambda" else {
-      if (criterion != "REML") "optim" else "fs"
+    if (!missing(lambda)) {
+      if (length(lambda) != 1) stop("smoothing parameter lambda should be of length 1")
+      if (!is.numeric(lambda) || lambda <= 0) stop(
+        "smoothing parameter lambda should be a strictly positive number")
+      method <- "fixed_lambda"
+    } else {
+      if (criterion == "REML") {
+        message("Using FS method")
+        method <- "fs"
+      } else {
+        message("Using optimize method")
+        method = "optim"
+      }
     }
   }
-  if (missing(lambda)) lambda <- 1e3
+  methods <- c("fixed_lambda", "fs", "optim")
+  if (length("method") != 1 || !(method %in% methods)) stop(
+    "method should be one of ", paste(methods, collapse = ", "))
+
+  if (method == "fs" && criterion != "REML") stop("Only REML method available for the FS algorithm")
+  if (missing(lambda)) {
+    lambda <- 1e3
+  } else {
+    if (method != "fixed_lambda") message ("Both method and lambda specified, lambda used as starting parameter")
+  }
+
+  if (!is.numeric(q) || length(q) != 1 || q <= 0 ||
+      (abs(q - round(q)) > .Machine$double.eps ^ 0.5)) stop(
+        "q should be a strictly positive integer"
+      )
+  if (q > 3) warning("Differences of order q > 3 have no meaningful interpretation.\n",
+                     "Consider using a lower value for q")
 
   what <- paste("WH_1d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
@@ -258,29 +326,111 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
                   q = c(2, 2), framework, y, wt, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
+  if (length(framework) != 1 || !(framework %in% c("reg", "ml"))) {
+    stop("framework should be one of ml (the default) or reg")
+  }
   if (framework == "reg") {
-    if (missing(y) && !missing(d) && !missing(ec)) {
-      y <- log(d / ec)
-      y[d == 0] <- - 20
+    if (missing(y)) {
+      if (!missing(d) && !missing(ec)) {
+        if (is.null(dim(d)) || length(dim(d)) != 2) stop("d should be a numeric matrix")
+        if (is.null(dim(ec)) || length(dim(ec)) != 2) stop("ec should be a numeric matrix")
+        if (any(dim(d) != dim(ec))) stop("Dimensions of d and ec must match")
+        message("Computing y as y = log(d / ec)")
+        y <- log(d / ec)
+        y[d == 0] <- - 20
+      } else {
+        stop("Either y or both d and ec required in the regression framework")
+      }
+    } else {
+      if (is.null(dim(y)) || length(dim(y)) != 2) stop("y should be a numeric matrix")
     }
-    if (missing(wt) && !missing(d)) wt <- d
+    if (missing(wt)) {
+      if (!missing(d)) {
+        message("Using d as weights")
+        wt <- d
+      } else {
+        stop("Either wt or d needs to be supplied in the regression framework")
+      }
+    } else {
+      if (is.null(dim(wt)) || length(dim(wt)) != 2) stop("wt should be a numeric matrix")
+    }
+    if (any(dim(y) != dim(wt))) stop("Dimensions of y and wt must match")
+    if (is.null(rownames(y))) {
+      y_rownames <- seq_along(dim(y)[[1]])
+      warning("No names found for y rows, setting names to: ", paste(range(y_rownames), collapse = " - "))
+    }
+    if (is.null(colnames(y))) {
+      y_colnames <- seq_along(dim(y)[[2]])
+      warning("No names found for y columns, setting names to: ", paste(range(y_colnames), collapse = " - "))
+    }
+  } else {
+    if (missing(d)) stop("d argument required in the maximum likelihood framework")
+    if (missing(ec)) stop("ec argument required in the maximum likelihood framework")
+    if (is.null(dim(d)) || length(dim(d)) != 2) stop("d should be a numeric matrix")
+    if (is.null(dim(ec)) || length(dim(ec)) != 2) stop("ec should be a numeric matrix")
+    if (any(dim(d) != dim(ec))) stop("Dimensions of d and ec must match")
+    if (is.null(rownames(d))) {
+      d_rownames <- seq_along(dim(d)[[1]])
+      warning("No names found for d rows, setting names to: ", paste(range(d_rownames), collapse = " - "))
+    }
+    if (is.null(colnames(d))) {
+      d_colnames <- seq_along(dim(d)[[2]])
+      warning("No names found for d columns, setting names to: ", paste(range(d_colnames), collapse = " - "))
+    }
   }
 
   if (missing(criterion)) criterion <- "REML"
+  criteria <- c("REML", "AIC", "BIC", "GCV")
+  if (length(criterion) != 1 || !(criterion %in% criteria)) stop(
+    "criterion should be one of ", paste(criteria, collapse = ", "))
+
   if (missing(method)) {
-    method <- if (!missing(lambda)) "fixed_lambda" else {
-      if (criterion != "REML") "optim" else "fs"
+    if (!missing(lambda)) {
+      if (length(lambda) != 2) stop("smoothing parameter vector lambda should be of length 2")
+      if (!is.numeric(lambda) || any(lambda <= 0)) stop(
+        "smoothing parameters should be strictly positive numbers")
+      method <- "fixed_lambda"
+    } else {
+      if (criterion == "REML") {
+        message("Using FS method")
+        method <- "fs"
+      } else {
+        message("Using optimize method")
+        method = "optim"
+      }
     }
   }
-  if (missing(lambda)) lambda <- c(1e3, 1e3)
+  methods <- c("fixed_lambda", "fs", "optim")
+  if (length("method") != 1 || !(method %in% methods)) stop(
+    "method should be one of ", paste(methods, collapse = ", "))
 
-  dims <- if (!missing(y)) dim(y) else dim(d)
+  if (method == "fs" && criterion != "REML") stop("Only REML method available for the FS algorithm")
+  if (missing(lambda)) {
+    lambda <- c(1e3, 1e3)
+  } else {
+    if (method != "fixed_lambda") message ("Both method and lambda specified, lambda used as starting parameter")
+  }
+
+  n <- if (framework == "reg") dim(y) else dim(d)
   if (missing(p)) {
 
-    asp <- dims[[2]] / dims[[1]]
-    max_ratio <- sqrt(max_dim / asp) / dims[[1]]
-    p <- floor(pmin(max_ratio, 1) * dims)
+    asp <- n[[2]] / n[[1]]
+    max_ratio <- sqrt(max_dim / asp) / n[[1]]
+    p <- floor(pmin(max_ratio, 1) * n)
+  } else {
+    if (!is.numeric(q) || length(q) != 2 || any(q <= 0) ||
+        (max(abs(q - round(q))) > .Machine$double.eps ^ 0.5)) stop(
+          "p should be an integer vector of length 2")
+    if (any(p < q) || any(p > n)) stop(
+      "p should range between ", paste(q, collapse = " / "), " and ", paste(n, collapse = " / "))
   }
+
+  if (!is.numeric(q) || length(q) != 2 || any(q <= 0) ||
+      (max(abs(q - round(q))) > .Machine$double.eps ^ 0.5)) stop(
+    "q should be a couple of strictly positive integers"
+  )
+  if (any(q > 3)) warning("Differences of order q > 3 have no meaningful interpretation.\n",
+                          "Consider using a lower value for q")
 
   what <- paste("WH_2d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
