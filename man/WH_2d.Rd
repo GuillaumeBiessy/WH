@@ -128,7 +128,7 @@ y[d == 0] <- - 20
 wt <- d
 
 # Maximum likelihood
-WH_2d(d, ec, lambda = 1e2)
+WH_2d(d, ec, lambda = c(1e2, 1e2))
 fit_fs <- WH_2d(d, ec) # default generalized Fellner-Schall method
 fit_optim <- WH_2d(d, ec, method = "optim") # alternative method base on optim function
 testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-1)
@@ -138,10 +138,10 @@ WH_2d(d, ec, criterion = "GCV")
 # alternative optimization criteria for smoothing parameter selectio
 
 # Regression
-WH_2d(y = y, wt = wt, lambda = 1e2)
+WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2))
 # regression framework is triggered when y is supplied
-WH_2d(d, y = y, lambda = 1e2) # d is used as wt
-WH_2d(d, ec, framework = "reg", lambda = 1e2)
+WH_2d(d, y = y, lambda = c(1e2, 1e2)) # d is used as wt
+WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 # setting framework = "reg" forces computation of y from d and ec
 
 fit_fs <- WH_2d(y = y, wt = wt, method = "fs") # default generalized Fellner-Schall method
@@ -161,7 +161,7 @@ keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
 d  <- portfolio_LTC$d[keep_age2, keep_duration2]
 ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
 
-prod(dim(d)) # problem dimension is 1,262 !
+prod(dim(d)) # problem dimension is 1,232 !
 WH_2d(d, ec)
 # rank-reduction may be used to quickly find an approximate solution
 
