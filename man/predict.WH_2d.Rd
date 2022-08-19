@@ -4,13 +4,16 @@
 \alias{predict.WH_2d}
 \title{Predict new values using a fitted 2D WH model}
 \usage{
-\method{predict}{WH_2d}(object, newdata = NULL, ...)
+\method{predict}{WH_2d}(object, newdata = NULL, unconstrained = FALSE, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
 positions}
+
+\item{unconstrained}{Should the unconstrained (approximate) solution be also
+computed ? Only used to justify the use for a constrained solution.}
 
 \item{...}{Not used}
 }
