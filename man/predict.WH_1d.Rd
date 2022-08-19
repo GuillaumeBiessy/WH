@@ -9,11 +9,10 @@
 \arguments{
 \item{object}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH_1d]{WH_1d()}} function}
 
-\item{newdata}{A list containing a vector indicating the new observation
-positions}
+\item{newdata}{A vector containing the new observation positions}
 
 \item{unconstrained}{Should the unconstrained (approximate) solution be also
-computed ? Only used to justify the use for a constrained solution.}
+computed ? Only used to justify the need for a constrained solution.}
 
 \item{...}{Not used}
 }

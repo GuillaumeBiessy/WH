@@ -449,8 +449,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #' Extrapolate the model for new values of the covariates
 #'
 #' @param object An object of class `"WH_1d"` returned by the [WH_1d()] function
-#' @param newdata A list containing a vector indicating the new observation
-#'   positions
+#' @param newdata A vector containing the new observation positions
 #' @param unconstrained Should the unconstrained (approximate) solution be also
 #'   computed ? Only used to justify the need for a constrained solution.
 #' @param ... Not used
@@ -469,9 +468,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 predict.WH_1d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 
   if (!inherits(object, "WH_1d")) stop("object must be of class WH_1d")
-  if (length(newdata) != 1 || !is.numeric(newdata[[1]])) stop(
-    "newdata should be a list with one element containing the names of predicted values")
-  if (length(unconstrained) != 1 || !is.boolean(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
+  if (!is.numeric(newdata)) stop("newdata should be a vector containing the names of predicted values")
+  if (length(unconstrained) != 1 || !is.logical(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
   if (unconstrained) warning("the unconstrained argument is only for academic purposes")
 
   data <- as.numeric(names(object$y))
@@ -551,7 +549,7 @@ predict.WH_2d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
   if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
     "newdata should be a list with two elements containing the row names and column names for predicted values")
-  if (length(unconstrained) != 1 || !is.boolean(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
+  if (length(unconstrained) != 1 || !is.logical(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
   if (unconstrained) warning("the unconstrained argument is only for academic purposes")
 
   data <- dimnames(object$y) |> purrr::map(as.numeric)
