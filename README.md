@@ -3,12 +3,12 @@
 
 # A Modern Take on Whittaker-Henderson smoothing
 
-## What is Whittaker-Henderson smoothing ?
-
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/GuillaumeBiessy/WH/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/GuillaumeBiessy/WH/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
+
+## What is Whittaker-Henderson smoothing ?
 
 ### Origin
 
@@ -139,7 +139,7 @@ You can install the development version of WH from
 
 ``` r
 # install.packages("devtools")
-devtools::install_github("GuillaumeBiessy/WH")
+devtools::install_github("GuillaumeBiessy/WH", build_vignettes = TRUE)
 ```
 
 ## How to use the package ?

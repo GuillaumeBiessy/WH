@@ -21,13 +21,13 @@ knitr::opts_chunk$set(
 library(WH)
 ```
 
-# What is Whittaker-Henderson smoothing ?
+## What is Whittaker-Henderson smoothing ?
 
-## Origin
+### Origin
 
 The Whittaker-Henderson (WH) smoothing is a graduation method which attenuates the impact of sample fluctuations. Initially introduced by @whittaker1922new for the construction of mortality tables and improved by the work of @henderson1924new, it remains to date one of the most popular smoothing method among actuaries working on the modelling of person insurance risks such as death, disability, long-term care and unemployement. Whittaker-Henderson smoothing generalizes to two-dimension smoothing but requires in all cases that the observation be equally spaced on each dimension.
 
-## The one-dimension case
+### The one-dimension case
 
 Let $y$ be an observation vector and $w \ge 0$ a vector of positive weights, both of size $n$. The estimator associated with WH smoothing is:
 
@@ -41,7 +41,9 @@ where:
 
 $\Delta^q$ represents in the above expression the difference operator of order $q$ such that for all $i\in[1,n - q]$:
 
-$$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.$$
+$$
+(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix} (- 1)^{q - k} \theta_{i + k}.
+$$
 
 Let us define $W = \text{Diag}(w)$ the diagonal matrix of weights and $D_{n,q}$ the matrix of differences of order $q$, of dimensions $(n - q,n)$, such that $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$. Actually, only differences of order $q\in\{1,2\}$ ar of practical interest. The associated difference matrices are represented below:
 
@@ -61,10 +63,12 @@ $$
 
 The fidelity and regularity criteria may be rewritten using matrix notations:
 
-$$\begin{aligned}
-F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \|\sqrt{W}(y - \theta)\|^2 = (y - \theta)^TW(y - \theta) \\
-R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\|D_{n,q}\theta\|^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
-\end{aligned}$$ 
+$$
+\begin{aligned}
+F(y,w,\theta) &= \underset{i = 1}{\overset{n}{\sum}} w_i(y_i - \theta_i)^2 = \Vert\sqrt{W}(y - \theta)\Vert^2 = (y - \theta)^TW(y - \theta) \\
+R(\theta,\lambda,q) &= \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\theta)_i^2 = \lambda\Vert D_{n,q}\theta\Vert^2 = \lambda\theta^TD_{n,q}^TD_{n,q}\theta
+\end{aligned}
+$$ 
 
 and the associated estimator becomes:
 
@@ -72,7 +76,7 @@ $$\hat{y} = \underset{\theta}{\text{argmin}} \left\lbrace(y - \theta)^TW(y - \th
 
 by noting in the one-dimension case $P_\lambda = \lambda D_{n,q}^TD_{n,q}$.
 
-## The two-dimension case
+### The two-dimension case
 
 In the two-dimension case, we start from an observation matrix $Y$ and an associated matrix $\Omega$ of positive weights, both of dimensions $n_x \times n_z$.
 
@@ -82,13 +86,18 @@ $$\widehat{Y} = \underset{\Theta}{\text{argmin}}\{F(Y,\Omega, \Theta) + R_{\lamb
 
 where:
 
--   $F(Y,\Omega, \Theta) = \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$ is a fidelity criterion
+$$
+\begin{aligned}
+F(Y,\Omega, \Theta) &= \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z}{\sum}} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2\quad \text{is a fidelity criterion} \\
+R(\Theta,\lambda,q) &= \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2 \quad \text{is a regularity criterion.}
+\end{aligned}
+$$
 
--   $R(\Theta,\lambda,q) = \lambda_x \underset{j = 1}{\overset{n_z}{\sum}}\underset{i = 1}{\overset{n_x - q_x}{\sum}} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \underset{i = 1}{\overset{n_x}{\sum}}\underset{j = 1}{\overset{n_z - q_z}{\sum}} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ is a regularity criterion which may be decomposed as the sum of:
+The latter criterion may be decomposed as the sum of:
 
-    -   a one-dimension regularity criterion applied to all rows of $\Theta$ and
+-   a one-dimension regularity criterion applied to all rows of $\Theta$ and
 
-    -   a one-dimension regularity criterion applied to all columns of $\Theta$.
+-   a one-dimension regularity criterion applied to all columns of $\Theta$.
 
 Once again it is more convenient to adopt matrix notations by defining $y = \text{vec}(Y)$, $w = \text{vec}(\Omega)$, $\theta = \text{vec}(\Theta)$ the vectors obtained by concatenating the columns of $Y$, $\Omega$ and $\Theta$ respectively and by noting $W = \text{Diag}(w)$ and $n = n_x \times n_z$.
 
@@ -107,7 +116,7 @@ except in this case:
 
 $$P_\lambda = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}.$$
 
-# How to use the package ?
+## How to use the package ?
 
 The `WH` package features two main functions `WH_1d` and `WH_2d` corresponding to the one-dimension and two-dimension cases respectively. Two arguments are mandatory for those functions:
 
@@ -179,15 +188,16 @@ WH_1d_df <- WH_1d_fit |> output_to_df()
 WH_2d_df <- WH_2d_fit |> output_to_df()
 ```
 
-# Further WH smoothing theory
 
-## Explicit solution
+## Further WH smoothing theory
+
+### Explicit solution
 
 An explicit solution to the smoothing equation is obtained by computing the derivate according to $\theta$ of the minimized quantity in the equation. In the cas $w$ contains enough non-0 weights:
 
 $$\hat{y} = (W + P_\lambda)^{- 1}Wy.$$
 
-## Role of the penalization
+### Role of the penalization
 
 In the smoothing equation, $(y - \theta)^{T}W(y - \theta)$ is a fidelity criterion $\theta^{T}P_\lambda\theta$ a regularity criterion. The relative importance of those criterions is controlled by the smoothing parameter (or parameter vectors in the two-dimension case) $\lambda$. 
 
@@ -206,7 +216,7 @@ It is easily seen that:
 
 In the sense of the penalization of order $q_x$, the space of observation vectors that are totally smooth is therefore the space of polynomial functions of degrees at most $q - 1$. Those results carry on to two-dimension smoothing where a totally smooth observation matrix $Y$ corresponds to constant / aligned observations on the rows / columns of the observation matrix, depending on the values of $q_x$ and $q_z$.
 
-## Confidence / credibility intervals {#cred}
+### Confidence / credibility intervals
 
 Let $B$ a matrix such that $P_\lambda = B^TB$. The smoothing equation may be rearranged:
 
@@ -214,11 +224,11 @@ $$(y - \theta)^TW(y - \theta) + \theta^TP_\lambda\theta = \left\Vert\begin{pmatr
 
 which corresponds to an weighted mean square problem. In particular, if $y \sim \mathcal{N}(\theta,\sigma^2W^{- 1})$ then $\sqrt{W}y \sim \mathcal{N}(\sqrt{W}\theta,\sigma^2I_n)$ and the framework of regression may be used. Note that $\theta = \mathbb{E}(y)$ is in this case both the parameter vector and the underlying law WH smoothing is trying to estimate.
 
-In the cas of 0 weights, the matrix $W^{- 1}$ is not properly defined. By defining $w_{*}$ the subvector of stricly positive weights and $y_{*}$ the associated observation vector and noting $W_{*} = \text{Diag}(w_{*})$, the previous quantity may be rewritten:
+In the cas of 0 weights, the matrix $W^{- 1}$ is not properly defined. By defining $w_\ast$ the subvector of stricly positive weights and $y_\ast$ the associated observation vector and noting $W_\ast = \text{Diag}(w_\ast)$, the previous quantity may be rewritten:
 
-$$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_{*}}y_{*} \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_{*}} \\ B\end{pmatrix}\theta\right\Vert^2$$
+$$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_\ast}y_\ast \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_\ast} \\ B\end{pmatrix}\theta\right\Vert^2$$
 
-and the problem may now be expressed properly in terms of $y_{*}$ and $w_{*}$. Nevertheless to keep things simple we stick with $y$ and $w$ and consider that $W^{- 1}$ contains infinite values associated with initial 0 weights in $w$.
+and the problem may now be expressed properly in terms of $y_\ast$ and $w_\ast$. Nevertheless to keep things simple we stick with $y$ and $w$ and consider that $W^{- 1}$ contains infinite values associated with initial 0 weights in $w$.
 
 The previous explicit solution to the smoothing equation garanties the normality of $\hat{y}$. In the framework of regression, the law of error propagation yields: 
 
@@ -237,15 +247,15 @@ The mode of the posterior distribution $\hat{\theta} = \text{argmax} [f(\theta |
 
 An unbiased estimator of $\sigma^2$ is then given by:
 
-$$\hat{\sigma}^2 = \frac{\|\sqrt{W}(y - \hat{y})\|^2}{n_* - \text{edf}}$$ where $n_*$ corresponds to the number of non 0 weights and $\text{edf} = \text{tr}(H) = \text{tr}[(W + P_\lambda)^{- 1}W]$.
+$$\hat{\sigma}^2 = \frac{\Vert\sqrt{W}(y - \hat{y})\Vert^2}{n_* - \text{edf}}$$ where $n_*$ corresponds to the number of non 0 weights and $\text{edf} = \text{tr}(H) = \text{tr}[(W + P_\lambda)^{- 1}W]$.
 
 This result allows $100(1 -\alpha)\%$ credibility intervals of the form $[\hat{y} \pm t_{n - \text{edf}}(\frac{1 - \alpha}{2})\sqrt{\text{diag}\left\lbrace(W + P_\lambda)^{- 1}\right\rbrace}]$ to be computed where $t_{n_* - \text{edf}}$ is the distribution function for the student law of parameter $n_* - \text{edf}$. Let us note that the use of student distribution instead of the normal distribution is linked with the presence of an unknown $\sigma^2$ parameter.
 
-# What should I use as observations and weights ?
+## What should I use as observations and weights ?
 
 The previous section show that applying WH smoothing to a couple $(y,w)$ such that $y \sim \mathcal{N}(\theta, \sigma^2W^{- 1})$ where $\theta$ is the underlying law we want to estimate, $\sigma^2$ is an overdispersion parameter to be estimated, and $W = \text{Diag}(w)$, then, using a bayesian interpration, credibility intervals were available for the posterior distribution of $\theta | y$. In this section, in the framework of survival analysis models, we exhibit a candidate for $(y,w)$.
 
-## Survival analysis framework - one-dimension case
+### Survival analysis framework - one-dimension case
 
 Let us consider the observation of $m$ individuals in the cas of a longitudinal study under left-truncating and right-censoring phenomena. Let us assume a single law must be estimated (for example a mortality law) and that it depends on a single covariate named $x$ (for example the age of the insured). This law may be entirely characterized by providing one of the 3 following quantities:
 
@@ -291,7 +301,7 @@ e_c(x) & = \underset{i = 1}{\overset{m}{\sum}}\underset{u = 0}{\overset{t_i}{\in
 
 where $d(x)$ and $e_c(x)$ corresponds respectively to the number of observed deaths between age $x$ and $x + 1$ and to the sum of the observation duration between those dates, by noting $a^+ = \max(a, 0)$.
 
-## Extension to the two-dimension case
+### Extension to the two-dimension case
 
 The extension of the previous approach to the two-dimension case only requires minor adjustements to the previous proposition. Let us note $z_{\min} = \min(z)$ and $z_\text{max} = \max(z)$. The piecewise constant assumption needs to be extended to each of the two dimensions. Formally we now assume that $\mu(x + \epsilon, z + \xi) = \mu(x, z)$ for all $x, z \in \mathbb{N}$ and $\epsilon, \xi \in [0,1[$. The sums on $x$ are replaced by double sums on the values of both $x$ and $z$ and the likelihood becomes:
 
@@ -302,7 +312,7 @@ e_c(x,z) & = \underset{i = 1}{\overset{m}{\sum}}\underset{u = 0}{\overset{t_i}{\
 & = \underset{i = 1}{\overset{m}{\sum}} \left[\min(t_i, x + 1 - x_i, z + 1 - z_i) - \max(0, x - x_i, z - z_i)\right]^+.
 \end{aligned}$$
 
-## Likelihood equations
+### Likelihood equations
 
 The log-likelihood in the one-dimension or two-dimension cases may be expressed on the common vectorial form $\ell(\beta) = \ln\mu(\beta)^{T}d - \mu(\beta)^{T}e_c$ where $d$ and $e_c$ corresponds respectively to the vector of expected events and associated central exposure.
 
@@ -311,7 +321,7 @@ In the particular case of log-linear models, the hazard rate may be defined as $
 $$\frac{\partial \ell}{\partial \beta} = X^{T}\left[d - \exp(X\beta) \odot e_c\right] \quad \text{and} \quad \frac{\partial^2 \ell}{\partial\beta^2} = - X^{T}W_{\beta}X \quad \text{where} \quad W_{\beta} = \text{Diag}(\exp(X\beta) \odot e_c).$$
 Let us note that those likelihood equations are exactly those that would have been obtained by treating the central exposure as a deterministic quantity and by assuming that the number of deaths follows a Poisson GLM of parameter $\mu(\beta)\times e_c$. The model above therefore behave as a Poisson GLM [@nelder1972glm].
 
-## Consequences for WH smoothing
+### Consequences for WH smoothing
 
 Whittaker-Henderson focuses on the particular case where $X = I_n$ and $\beta = \theta$. In that case the previous equations yield an explicit solution $\beta = \ln(d) - \ln(e_c)$ and thus $\mu = d / e_c$.
 
@@ -319,7 +329,7 @@ Using the asymptotical properties of the maximum likelihood estimator, we obtain
 
 Thus it has been shown that in the survival analysis framework introduced, asymptotically $\ln(d / e_c) \sim \mathcal{N}(\ln(\mu), W^{- 1})$ where $W = \text{Diag}(d)$. This justify applying WH smoothing to the observation vector $y = \ln(d / e_c)$ with weights $w = d$. The overdispersion parameter is in this cas simply $\sigma^2 = 1$. We obtain credibility intervals for the posterior distribution $\theta | y$ of the form: $[\hat{y} \pm \Phi(\frac{1 - \alpha}{2})\sqrt{\text{diag}\left\lbrace(W + P_\lambda)^{- 1}\right\rbrace}]$.
 
-## Generalization to penalized maximum likelihood
+### Generalization to penalized maximum likelihood
 
 The previous approach relies on the asymptotic properties of the maximum likelihood estimator. When few data is available, those properties may not hold. An alternative approach is to apply the penalization from the WH smoothing directly to the previous likelihood function and thus maximize the penalizaed likelihood $\ell_P(\beta) = \ell(\beta) - \beta^{T}P_\lambda\beta / 2$. This can be seen as a generalization of WH smoothing to non-gaussian likelihood. Still assuming a log-linear model is used, derivatives of the log-likelihood functions become:
 
@@ -331,10 +341,9 @@ Those estimators are defined by:
 
 $$
 \begin{aligned}
-\beta_{k + 1} &= 
-\beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ &= 
-\beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right]  \\ &= 
-\Psi_k X^{T}W_k z_k
+\beta_{k + 1} &= \beta_k - \left(\left.\frac{\partial^2 \ell_P}{\partial\beta^2}\right|_{\beta = \beta_k}\right)^{- 1} \left.\frac{\partial \ell_P}{\partial\beta}\right|_{\beta = \beta_k} \\ 
+&= \beta_k + (X^{T}W_kX + P_\lambda)^{- 1} \left[X^{T}\left(d - \exp(X\beta_k) \odot e_c\right) - P_\lambda \beta_k\right] \\ 
+&= \Psi_k X^{T}W_k z_k
 \end{aligned}
 $$
 
@@ -342,9 +351,9 @@ by noting $\eta_k = X\beta_k$, $\Psi_k = (X^{T}W_kX + P_\lambda)^{- 1}$, $W_k = 
 
 The posterior distribution of $\beta | y$ may be asymptotically approached by $\mathcal{N}(\hat{\beta}, (X^TW_{\hat{\beta}}X + P_\lambda)^{- 1})$, which allows $100(1 -\alpha)\%$ credibility intervales of the form $\left[\hat{\beta} \pm \Phi(1 - \alpha / 2) \sqrt{\text{diag}\lbrace(X^TW_{\hat{\beta}}X + P_\lambda)^{- 1}\rbrace}\right]$ where $\Phi$ is the cumulative distribution function of the normal distribution. 
 
-# How is the optimal smoothing parameter determined ?
+## How is the optimal smoothing parameter determined ?
 
-## Short answer
+### Short answer
 
 The optimal smoothing parameter is determined according to a statistical criterion. There are two main types of criteria that are adequate in this case:
 
@@ -358,7 +367,7 @@ At the time of writing the WH package allows AIC, BIC, GCV and REML, the default
 
 * In the case REML (the default) is chosen, the generalized Fellner-Schall method [@wood2017fellner] is used instead. Compared to the previous solution it allows for faster solving of the problem, especially in the two-dimension case where the number of observation points is high. The Fellner-Schall generalized update leads to an approximate solution when the maximum likelihood framework is used, yet this has little impact in practice.
 
-## Long answer
+### Long answer
 
 See the upcoming paper !
 
