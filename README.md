@@ -146,7 +146,7 @@ devtools::install_github("GuillaumeBiessy/WH")
 
 The `WH` package features two main functions `WH_1d` and `WH_2d`
 corresponding to the one-dimension and two-dimension cases respectively.
-There are only two arguments for those functions:
+Two arguments are mandatory for those functions:
 
 -   The vector (or matrix in the two-dimension case) `d` corresponding
     to the number of observed events of interest by age (or by age and
@@ -163,7 +163,7 @@ There are only two arguments for those functions:
     leaving the portfolio, no matter the cause, as well as censoring and
     truncating phenomena.
 
-Additional arguments are described in the documentations of those
+Additional arguments are described in the documentation of those
 functions.
 
 The package also embed two fictive agregated datasets to illustrate how
@@ -184,6 +184,7 @@ d <- portfolio_mort$d[keep]
 ec <- portfolio_mort$ec[keep]
 
 WH_1d_fit <- WH_1d(d, ec)
+Using FS method
 ```
 
 ``` r
@@ -195,6 +196,7 @@ d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 WH_2d_fit <- WH_2d(d, ec)
+Using FS method
 ```
 
 Functions `WH_1d` and `WH_2d` output objects of class `"WH_1d"` and

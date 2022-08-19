@@ -109,13 +109,13 @@ $$P_\lambda = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D
 
 # How to use the package ?
 
-The `WH` package features two main functions `WH_1d` and `WH_2d` corresponding to the one-dimension and two-dimension cases respectively. There are only two arguments for those functions:
+The `WH` package features two main functions `WH_1d` and `WH_2d` corresponding to the one-dimension and two-dimension cases respectively. Two arguments are mandatory for those functions:
 
 * The vector (or matrix in the two-dimension case) `d` corresponding to the number of observed events of interest by age (or by age and duration in the two-dimension case). `d` should have named elements (or rows and columns) for the model results to be extrapolated.
 
 * The vector (or matrix in the two-dimension case) `ec` corresponding to the portfolio central exposure by age (or by age and duration in the two-dimension case) whose dimensions should match those of `d`. The contribution of each individual to the portfolio central exposure corresponds to the time the individual was actually observed with corresponding age (and duration in the two-dimension cas). It always ranges from 0 to 1 and is affected by individuals leaving the portfolio, no matter the cause, as well as censoring and truncating phenomena.
 
-Additional arguments are described in the documentations of those functions.
+Additional arguments are described in the documentation of those functions.
 
 The package also embed two fictive agregated datasets to illustrate how to use it:
 
