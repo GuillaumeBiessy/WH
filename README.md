@@ -48,7 +48,7 @@ $$
 Let us define $W = \text{Diag}(w)$ the diagonal matrix of weights and
 $D_{n,q}$ the matrix of differences of order $q$, of dimensions
 $(n - q,n)$, such that $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$.
-Actually, Only differences of order $q\in\{1,2\}$ ar of practical
+Actually, only differences of order $q\in\{1,2\}$ ar of practical
 interest. The associated difference matrices are represented below:
 
 $$

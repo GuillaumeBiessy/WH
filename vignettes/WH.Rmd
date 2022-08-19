@@ -43,7 +43,7 @@ $\Delta^q$ represents in the above expression the difference operator of order $
 
 $$(\Delta^q\theta)_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.$$
 
-Let us define $W = \text{Diag}(w)$ the diagonal matrix of weights and $D_{n,q}$ the matrix of differences of order $q$, of dimensions $(n - q,n)$, such that $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$. Actually, Only differences of order $q\in\{1,2\}$ ar of practical interest. The associated difference matrices are represented below:
+Let us define $W = \text{Diag}(w)$ the diagonal matrix of weights and $D_{n,q}$ the matrix of differences of order $q$, of dimensions $(n - q,n)$, such that $(D_{n,q}\theta)_i = (\Delta^q\theta)_i$. Actually, only differences of order $q\in\{1,2\}$ ar of practical interest. The associated difference matrices are represented below:
 
 $$
 D_1 = \begin{pmatrix}
@@ -206,7 +206,7 @@ It is easily seen that:
 
 In the sense of the penalization of order $q_x$, the space of observation vectors that are totally smooth is therefore the space of polynomial functions of degrees at most $q - 1$. Those results carry on to two-dimension smoothing where a totally smooth observation matrix $Y$ corresponds to constant / aligned observations on the rows / columns of the observation matrix, depending on the values of $q_x$ and $q_z$.
 
-## Confidence / credibility intervals
+## Confidence / credibility intervals {#cred}
 
 Let $B$ a matrix such that $P_\lambda = B^TB$. The smoothing equation may be rearranged:
 
@@ -361,5 +361,21 @@ At the time of writing the WH package allows AIC, BIC, GCV and REML, the default
 ## Long answer
 
 See the upcoming paper !
+
+<!-- # How does the package handle large matrix with a lot of observations ? -->
+
+<!-- In the two-dimension case, while working for example on disability or long-term care survival rates, the problem dimension can easily becomes too large to handle : -->
+
+<!-- * For the french disability public scheme, temporary disability coverage extends from ages 18 to 66 and may last for 36 months, meaning the monthly data will be stored in a $49\times36$ matrix. That is 1,764 data points ! -->
+
+<!-- * For the french disability public scheme, permanent disability coverage extends from ages 20 to 61 and may last until age 61, meaning the data will be in a $42\times42$ matrix. That is also 1,764 data points ! -->
+
+<!-- * For french long-term care covers, while most LTC claims occurs at old ages, the covers extends from age of subscribing until death. The annuity also last until death. Assuming that claims occur from age 50 until age 109 and may last 30 years, that is still 1,800 data points. -->
+
+<!-- # FAQ -->
+
+<!-- ## Should I use WH smoothing to create prospective mortality tables ? -->
+
+<!-- Smoothing methods rely on the assumption that the underlying law that one wants to estimate is smooth. In the [Confidence / credibility intervals subsection]{cred} this assumption is even formally introduced as an *a priori* on the parameter distribution. Period mortality has a lot of yearly mortality caused by both climatic (heatwaves, cold winters) and epidemiologic (seasonal flue, pandemics) phenomena. Should smoothing be used in that case, then this year-to-year volatily will be treated as a smooth but extremely volatile trend in the data which will result in extremly volatile predictions in the forecasting step. -->
 
 # References {-}
