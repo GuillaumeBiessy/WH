@@ -452,7 +452,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #' @param newdata A list containing a vector indicating the new observation
 #'   positions
 #' @param unconstrained Should the unconstrained (approximate) solution be also
-#'   computed ? Only used to justify the use for a constrained solution.
+#'   computed ? Only used to justify the need for a constrained solution.
 #' @param ... Not used
 #'
 #' @returns An object of class `"WH_1d"` with additional components for model
@@ -467,6 +467,12 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
 #'
 #' @export
 predict.WH_1d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
+
+  if (!inherits(object, "WH_1d")) stop("object must be of class WH_1d")
+  if (length(newdata) != 1 || !is.numeric(newdata[[1]])) stop(
+    "newdata should be a list with one element containing the names of predicted values")
+  if (length(unconstrained) != 1 || !is.boolean(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
+  if (unconstrained) warning("the unconstrained argument is only for academic purposes")
 
   data <- as.numeric(names(object$y))
   full_data <- sort(union(data, newdata))
@@ -542,6 +548,12 @@ predict.WH_1d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 #' @export
 predict.WH_2d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 
+  if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
+  if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
+    "newdata should be a list with two elements containing the row names and column names for predicted values")
+  if (length(unconstrained) != 1 || !is.boolean(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
+  if (unconstrained) warning("the unconstrained argument is only for academic purposes")
+
   data <- dimnames(object$y) |> purrr::map(as.numeric)
   full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
   ind <- purrr::map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
@@ -610,6 +622,9 @@ predict.WH_2d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 #'
 #' @export
 output_to_df <- function(object, dim1 = "x", dim2 = "t") {
+
+  if (!inherits(object, c("WH_1d", "WH_2d"))) stop("object must be of class WH_1d or WH_2d")
+  if (length(dim1) != 1 || length(dim2) != 1) stop("The dim1 and dim2 optional arguments should be of length 1")
 
   if ("y_pred" %in% names(object)) {
     object$y_hat <- object$y_pred
@@ -701,6 +716,8 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' @export
 print.WH_1d <- function(x, ...) {
 
+  if (!inherits(x, "WH_1d")) stop("x must be of class WH_2d")
+
   cat("An object fitted using the WH_1D function\n")
   cat("Initial data contains", length(x$y), "data points\n")
   cat("Optimal smoothing parameter selected:", format(x$lambda, digits = 2), "\n")
@@ -726,6 +743,8 @@ print.WH_1d <- function(x, ...) {
 #'
 #' @export
 print.WH_2d <- function(x, ...) {
+
+  if (!inherits(x, "WH_2d")) stop("x must be of class WH_2d")
 
   cat("An object fitted using the WH_2D function\n")
   cat("Initial data contains", prod(dim(x$y)), "data points\n")
@@ -759,6 +778,11 @@ print.WH_2d <- function(x, ...) {
 #'
 #' @export
 plot.WH_1d <- function(x, what = "fit", trans, ...) {
+
+  if (!inherits(x, "WH_1d")) stop("x must be of class WH_2d")
+  whats <- c("fit", "res", "edf")
+  if (length(what) != 1 || !(what %in% whats)) stop(
+    "what should be one of ", paste(whats, collapse = ", "))
 
   df <- output_to_df(x)
   if (missing(trans)) trans <- \(x) x
@@ -810,6 +834,11 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 #'
 #' @export
 plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
+
+  if (!inherits(x, "WH_2d")) stop("x must be of class WH_2d")
+  whats <- c("y_hat", "std_y_hat", "res", "edf")
+  if (length(what) != 1 || !(what %in% whats)) stop(
+    "what should be one of ", paste(whats, collapse = ", "))
 
   df <- output_to_df(x)
   if (missing(trans)) trans <- \(x) x
