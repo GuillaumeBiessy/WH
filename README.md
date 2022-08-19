@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# A Modern Take on Whittaker-Henderson smoothing
+# A Modern Take on Whittaker-Henderson Smoothing
 
 <!-- badges: start -->
 
