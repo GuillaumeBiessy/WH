@@ -421,7 +421,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
     if (!is.numeric(q) || length(q) != 2 || any(q <= 0) ||
         (max(abs(q - round(q))) > .Machine$double.eps ^ 0.5)) stop(
           "p should be an integer vector of length 2")
-    if (any(p < q) || any(p > n)) stop(
+    if (any(p <= q) || any(p > n)) stop(
       "p should range between ", paste(q, collapse = " / "), " and ", paste(n, collapse = " / "))
   }
 
@@ -1032,7 +1032,7 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
   # Loop
   while (init || cond_edf_random) {
 
-    lambda <- if (init) lambda else (edf_random / RESS)
+    if (!init) lambda <- edf_random / RESS
 
     Psi_chol <- tUWU
     diag(Psi_chol) <- diag(Psi_chol) + lambda * s
