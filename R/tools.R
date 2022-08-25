@@ -39,13 +39,11 @@ eigen_dec <- function(n, q, p) {
   s <- sort(ei$values)[seq_len(p)]
   s[seq_len(q)] <- 0
 
-  U <- ei$vectors[, order(ei$values)]
-
   X <- seq_len(q) |>
     lapply(\(k) (seq_len(n) - (n + 1) / 2) ^ (k - 1)) |>
     lapply(\(x) x / norm(x, "2")) |>
     do.call(what = cbind)
-  Z <- U[, q + seq_len(p - q), drop = FALSE]
+  Z <- ei$vectors[, order(ei$values)][, q + seq_len(p - q), drop = FALSE]
 
   out <- list(X = X, Z = Z, s = s)
 

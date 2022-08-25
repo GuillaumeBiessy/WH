@@ -18,9 +18,9 @@
 #'   afterward and the exposure should be reduced accordingly.
 #' @param lambda Smoothing parameter. If missing, an optimization procedure will
 #'   be used to find the optimal smoothing parameter. If supplied, no optimal
-#'   smoothing parameter search will take place unless the `criterion`
-#'   argument is also supplied, in which case `lambda` will be used as the
-#'   starting parameter for the optimization procedure.
+#'   smoothing parameter search will take place unless the `criterion` argument
+#'   is also supplied, in which case `lambda` will be used as the starting
+#'   parameter for the optimization procedure.
 #' @param criterion Criterion to be used for the selection of the optimal
 #'   smoothing parameter. Default is `"REML"` which stands for restricted
 #'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
@@ -29,42 +29,47 @@
 #'   optimization is performed. Otherwise, if `criterion = "REML"` or the
 #'   `criterion` argument is missing, default to `"fs"` which means the
 #'   generalized Fellner-Schall method is used. For other criteria default to
-#'   `"optim"` meaning the `optimize` function from package `stats`
-#'   will be used.
-#' @param q Order of penalization. Polynoms of degrees `q - 1` are
-#'   considered smooth and are therefore unpenalized. Should be left to the
-#'   default of `2` for most practical applications.
+#'   `"optim"` meaning the `optimize` function from package `stats` will be
+#'   used.
+#' @param q Order of penalization. Polynoms of degrees `q - 1` are considered
+#'   smooth and are therefore unpenalized. Should be left to the default of `2`
+#'   for most practical applications.
 #' @param framework Default framework is `"ml"` which stands for maximum
 #'   likelihood unless the `y` argument is also provided, in which case the
 #'   `"reg"` or regression framework is used. The regression framework is an
 #'   asymptotical approximation of the maximum likelihood likelihood framework.
 #' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
-#'   automatically computed from the `d` and `ec` arguments if those
-#'   are supplied. May be useful when using Whittaker-Henderson smoothing
-#'   outside of the survival analysis framework.
-#' @param wt Optional vector of weights. As for the observation vector `y`,
-#'   used only in the regression framework and even in this case will be
-#'   automatically computed if the `d` argument is supplied. May be useful
-#'   when using Whittaker-Henderson smoothing outside of the survival analysis
+#'   automatically computed from the `d` and `ec` arguments if those are
+#'   supplied. May be useful when using Whittaker-Henderson smoothing outside of
+#'   the survival analysis framework.
+#' @param wt Optional vector of weights. As for the observation vector `y`, used
+#'   only in the regression framework and even in this case will be
+#'   automatically computed if the `d` argument is supplied. May be useful when
+#'   using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
+#' @param quiet Should messages and warnings be displayed ? Default to `FALSE`,
+#'   may be set to `TRUE` for experts who want to make numerous calls to this
+#'   function.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
-#' @returns An object of class `WH_1d` i.e. a list containing :
-#' * `d` The inputed vector of observed events (if supplied as input)
-#' * `ec` The inputed vector of central exposure (if supplied as input)
-#' * `y` The observation vector (either supplied or computed as y = log(d) - log(ec))
-#' * `wt` The inputed vector of weights (either supplied or computed as `d`)
-#' * `z` The working vector obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
-#' * `y_hat` The vector of fitted value
-#' * `std_y_hat` The vector of standard deviation associated with the fitted value
-#' * `res` The vector of model deviance residuals
-#' * `edf` The vector of effective degrees of freedom associated with each observation
-#' * `edf_par` The vector of effective degrees of freedom associated with each eigenvector
-#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
-#' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
-#' * `lambda` The smoothing parameter used, either supplied. or computed.
-#' * `q` The supplied order for the penalization.
+#' @returns An object of class `WH_1d` i.e. a list containing : * `d` The
+#'   inputed vector of observed events (if supplied as input) * `ec` The inputed
+#'   vector of central exposure (if supplied as input) * `y` The observation
+#'   vector (either supplied or computed as y = log(d) - log(ec)) * `wt` The
+#'   inputed vector of weights (either supplied or computed as `d`) * `z` The
+#'   working vector obtained at convergence, only in the case a maximum
+#'   likelihood method is used, required for extrapolation. * `y_hat` The vector
+#'   of fitted value * `std_y_hat` The vector of standard deviation associated
+#'   with the fitted value * `res` The vector of model deviance residuals *
+#'   `edf` The vector of effective degrees of freedom associated with each
+#'   observation * `edf_par` The vector of effective degrees of freedom
+#'   associated with each eigenvector * `diagnosis` A data.frame with one line
+#'   containing the effective degrees of freedom of the model, the deviance of
+#'   the fit as well as the AIC, BIC, GCV and REML criteria * `Psi` The
+#'   variance-covariance matrix associated with the fit, required for
+#'   extrapolation. * `lambda` The smoothing parameter used, either supplied. or
+#'   computed. * `q` The supplied order for the penalization.
 #'
 #' @examples
 #' keep <- which(portfolio_mort$ec > 0)
@@ -106,7 +111,7 @@
 #' # alternative optimization criteria for smoothing parameter selection
 #'
 #' @export
-WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...) {
+WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, quiet = FALSE, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
   if (length(framework) != 1 || !(framework %in% c("reg", "ml"))) {
@@ -118,7 +123,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
         if (!is.numeric(d)) stop("d should be a numeric vector")
         if (!is.numeric(ec)) stop("ec should be a numeric vector")
         if (length(d) != length(ec)) stop("Length of d and ec must match")
-        message("Computing y as y = log(d / ec)")
+        if (!quiet) message("Computing y as log(d / ec)")
         y <- log(d / ec)
         y[d == 0] <- - 20
       } else {
@@ -129,7 +134,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
     }
     if (missing(wt)) {
       if (!missing(d)) {
-        message("Using d as weights")
+        if (!quiet) message("Using d as weights")
         wt <- d
       } else {
         stop("Either wt or d needs to be supplied in the regression framework")
@@ -140,7 +145,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
     if (length(y) != length(wt)) stop("Length of y and wt must match")
     if (is.null(names(y))) {
       y_names <- seq_along(y)
-      warning("No names found for y, setting names to: ", paste(range(y_names), collapse = " - "))
+      if (!quiet) warning("No names found for y, setting names to: ", paste(range(y_names), collapse = " - "))
     }
   } else {
     if (missing(d)) stop("d argument required in the maximum likelihood framework")
@@ -150,7 +155,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
     if (length(d) != length(ec)) stop("Length of d and ec must match")
     if (is.null(names(d))) {
       d_names <- seq_along(d)
-      warning("No names found for d, setting names to: ", paste(range(d_names), collapse = " - "))
+      if (!quiet) warning("No names found for d, setting names to: ", paste(range(d_names), collapse = " - "))
     }
   }
 
@@ -167,10 +172,10 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
       method <- "fixed_lambda"
     } else {
       if (criterion == "REML") {
-        message("Using FS method")
+        if (!quiet) message("Using FS method")
         method <- "fs"
       } else {
-        message("Using optimize method")
+        if (!quiet) message("Using optimize method")
         method = "optim"
       }
     }
@@ -183,15 +188,15 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
   if (missing(lambda)) {
     lambda <- 1e3
   } else {
-    if (method != "fixed_lambda") message ("Both method and lambda specified, lambda used as starting parameter")
+    if (method != "fixed_lambda" && !quiet) message("Both method and lambda specified, lambda used as starting parameter")
   }
 
   if (!is.numeric(q) || length(q) != 1 || q <= 0 ||
       (abs(q - round(q)) > .Machine$double.eps ^ 0.5)) stop(
         "q should be a strictly positive integer"
       )
-  if (q > 3) warning("Differences of order q > 3 have no meaningful interpretation.\n",
-                     "Consider using a lower value for q")
+  if (q > 3 && !quiet) warning("Differences of order q > 3 have no meaningful interpretation.\n",
+                               "Consider using a lower value for q")
 
   what <- paste("WH_1d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
@@ -323,7 +328,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, ...
 #'
 #' @export
 WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
-                  q = c(2, 2), framework, y, wt, ...) {
+                  q = c(2, 2), framework, y, wt, quiet = FALSE, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
   if (length(framework) != 1 || !(framework %in% c("reg", "ml"))) {
@@ -335,7 +340,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
         if (is.null(dim(d)) || length(dim(d)) != 2) stop("d should be a numeric matrix")
         if (is.null(dim(ec)) || length(dim(ec)) != 2) stop("ec should be a numeric matrix")
         if (any(dim(d) != dim(ec))) stop("Dimensions of d and ec must match")
-        message("Computing y as y = log(d / ec)")
+        if (!quiet) message("Computing y as y = log(d / ec)")
         y <- log(d / ec)
         y[d == 0] <- - 20
       } else {
@@ -346,7 +351,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
     }
     if (missing(wt)) {
       if (!missing(d)) {
-        message("Using d as weights")
+        if (!quiet) message("Using d as weights")
         wt <- d
       } else {
         stop("Either wt or d needs to be supplied in the regression framework")
@@ -357,11 +362,11 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
     if (any(dim(y) != dim(wt))) stop("Dimensions of y and wt must match")
     if (is.null(rownames(y))) {
       y_rownames <- seq_along(dim(y)[[1]])
-      warning("No names found for y rows, setting names to: ", paste(range(y_rownames), collapse = " - "))
+      if (!quiet) warning("No names found for y rows, setting names to: ", paste(range(y_rownames), collapse = " - "))
     }
     if (is.null(colnames(y))) {
       y_colnames <- seq_along(dim(y)[[2]])
-      warning("No names found for y columns, setting names to: ", paste(range(y_colnames), collapse = " - "))
+      if (!quiet) warning("No names found for y columns, setting names to: ", paste(range(y_colnames), collapse = " - "))
     }
   } else {
     if (missing(d)) stop("d argument required in the maximum likelihood framework")
@@ -371,11 +376,11 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
     if (any(dim(d) != dim(ec))) stop("Dimensions of d and ec must match")
     if (is.null(rownames(d))) {
       d_rownames <- seq_along(dim(d)[[1]])
-      warning("No names found for d rows, setting names to: ", paste(range(d_rownames), collapse = " - "))
+      if (!quiet) warning("No names found for d rows, setting names to: ", paste(range(d_rownames), collapse = " - "))
     }
     if (is.null(colnames(d))) {
       d_colnames <- seq_along(dim(d)[[2]])
-      warning("No names found for d columns, setting names to: ", paste(range(d_colnames), collapse = " - "))
+      if (!quiet) warning("No names found for d columns, setting names to: ", paste(range(d_colnames), collapse = " - "))
     }
   }
 
@@ -392,10 +397,10 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
       method <- "fixed_lambda"
     } else {
       if (criterion == "REML") {
-        message("Using FS method")
+        if (!quiet) message("Using FS method")
         method <- "fs"
       } else {
-        message("Using optimize method")
+        if (!quiet) message("Using optimize method")
         method = "optim"
       }
     }
@@ -408,14 +413,14 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
   if (missing(lambda)) {
     lambda <- c(1e3, 1e3)
   } else {
-    if (method != "fixed_lambda") message ("Both method and lambda specified, lambda used as starting parameter")
+    if (method != "fixed_lambda" && !quiet) message(
+      "Both method and lambda specified, lambda used as starting parameter")
   }
 
   n <- if (framework == "reg") dim(y) else dim(d)
   if (missing(p)) {
 
-    asp <- n[[2]] / n[[1]]
-    max_ratio <- sqrt(max_dim / asp) / n[[1]]
+    max_ratio <- sqrt(max_dim / (n[[2]] * n[[1]]))
     p <- floor(pmin(max_ratio, 1) * n)
   } else {
     if (!is.numeric(q) || length(q) != 2 || any(q <= 0) ||
@@ -429,8 +434,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
       (max(abs(q - round(q))) > .Machine$double.eps ^ 0.5)) stop(
     "q should be a couple of strictly positive integers"
   )
-  if (any(q > 3)) warning("Differences of order q > 3 have no meaningful interpretation.\n",
-                          "Consider using a lower value for q")
+  if (any(q > 3) && !quiet) warning("Differences of order q > 3 have no meaningful interpretation.\n",
+                                    "Consider using a lower value for q")
 
   what <- paste("WH_2d", framework, method, sep = "_")
   args <- (if (framework == "reg") list(y = y, wt = wt) else list(d = d, ec = ec)) |>
