@@ -16,6 +16,7 @@ WH_2d(
   framework,
   y,
   wt,
+  quiet = FALSE,
   ...
 )
 }
@@ -45,8 +46,8 @@ Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 optimization is performed. Otherwise, if \code{criterion = "REML"} or the
 \code{criterion} argument is missing, default to \code{"fs"} which means the
 generalized Fellner-Schall method is used. For other criteria default to
-\code{"optim"} meaning the \code{optimize} function from package \code{stats}
-will be used.}
+\code{"optim"} meaning the \code{optimize} function from package \code{stats} will be
+used.}
 
 \item{p}{Optional vector of size \code{2}. Maximum number of eigenvectors to
 keep on each dimension after performing the eigen decomposition of the
@@ -80,6 +81,10 @@ used only in the regression framework and even in this case will be
 automatically computed if the \code{d} argument is supplied. May be useful
 when using Whittaker-Henderson smoothing outside of the survival analysis
 framework.}
+
+\item{quiet}{Should messages and warnings be displayed ? Default to \code{FALSE},
+may be set to \code{TRUE} for experts who want to make numerous calls to this
+function.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
