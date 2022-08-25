@@ -100,7 +100,7 @@ get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
   GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
   REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
 
-  out <- data.frame(sum_edf = sum_edf, dev = dev, pen = pen, n_pos = n_pos,
+  out <- data.frame(dev = dev, pen = pen, sum_edf = sum_edf, n_pos = n_pos,
                     AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
 
   return(out)
