@@ -81,3 +81,27 @@ compute_deviance <- function(D, D_hat) {
 
   return(out)
 }
+
+#' Diagnosis for Model Fit
+#'
+#' @param dev Deviance of the model
+#' @param pen Penalization force
+#' @param sum_edf Effective dimension
+#' @param n_pos Number of strictly positive weights
+#' @param tr_log_P Trace of logarithm of penalization matrix
+#' @param tr_log_Psi Trace of logarithm of variance-covariance matrix
+#'
+#' @returns A data.frame containing various diagnosis about the fit
+#' @keywords internal
+get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
+
+  AIC <- dev + 2 * sum_edf
+  BIC <- dev + log(n_pos) * sum_edf
+  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
+  REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
+
+  out <- data.frame(sum_edf = sum_edf, dev = dev, pen = pen, n_pos = n_pos,
+                    AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+
+  return(out)
+}

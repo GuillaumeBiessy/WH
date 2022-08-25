@@ -914,17 +914,12 @@ WH_1d_reg_fixed_lambda <- function(y, wt = rep(1, length(y)), lambda = 1e3, p = 
 
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
+  pen <- lambda * RESS
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev + lambda * RESS - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(y) # set names for output vectors
@@ -998,8 +993,7 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
            REML = {
              tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-             dev + lambda * RESS - tr_log_P + tr_log_Psi
+             REML <- dev + lambda * RESS - tr_log_P + tr_log_Psi
            })
   }
 
@@ -1068,17 +1062,12 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
 
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
+  pen <- lambda * RESS
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev + lambda * RESS - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(y) # set names for output vectors
@@ -1165,18 +1154,11 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
   pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
-  dev_pen <- dev + pen
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev + pen - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
     dim(wt) <- dim(y) # set dimensions for output matrices
@@ -1269,8 +1251,7 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
            REML = {
              tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-             dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
+             REML <- dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
            })
   }
 
@@ -1363,17 +1344,12 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
+  pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev + lambda[[1]] * RESS[[1]] + lambda[[2]] * RESS[[2]] - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
     dim(wt) <- dim(y) # set dimensions for output matrices
@@ -1451,7 +1427,8 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
     old_dev_pen <- dev_pen
     RESS <- sum(gamma_hat * s * gamma_hat)
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + lambda * RESS
+    pen <- lambda * RESS
+    dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1467,16 +1444,10 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev_pen - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(z) <- names(y) # set names for output vectors
@@ -1651,7 +1622,8 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
     # update of convergence check
     old_dev_pen <- dev_pen
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + lambda * RESS
+    pen <- lambda * RESS
+    dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1665,16 +1637,10 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev_pen - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(z) <- names(y) # set names for output vectors
@@ -1768,7 +1734,8 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
     # update of convergence check
     old_dev_pen <- dev_pen
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -1784,16 +1751,10 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev_pen - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
     dim(wt) <- dim(y) # set dimensions for output matrices
@@ -2013,7 +1974,8 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
     # update of convergence check
     old_dev_pen <- dev_pen
     dev <- compute_deviance(d, new_wt)
-    dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
@@ -2027,16 +1989,10 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-
   tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
-  AIC <- dev + 2 * sum_edf
-  BIC <- dev + log(n_pos) * sum_edf
-  GCV <- n_pos * dev / (n_pos - sum_edf) ^ 2
-  REML <- dev_pen - tr_log_P + tr_log_Psi
-
-  diagnosis <- data.frame(sum_edf = sum_edf, AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
+  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
   dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
     dim(wt) <- dim(y) # set dimensions for output matrices
