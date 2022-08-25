@@ -1,4 +1,5 @@
 data("portfolio_mort")
+if(!interactive()) pdf(NULL)
 
 # Data----
 keep <- which(portfolio_mort$ec > 0)

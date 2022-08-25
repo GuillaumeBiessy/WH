@@ -1,4 +1,5 @@
 data("portfolio_LTC")
+if(!interactive()) pdf(NULL)
 
 # Data----
 keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
