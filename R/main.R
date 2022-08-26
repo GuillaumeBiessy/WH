@@ -1435,9 +1435,9 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(z) <- names(y) # set names for output vectors
 
-  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
               res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, q = q)
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
@@ -1628,9 +1628,9 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
   names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
     names(wt) <- names(z) <- names(y) # set names for output vectors
 
-  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
+  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
               res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, q = q)
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
@@ -1725,6 +1725,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
   }
 
   edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+  omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   Psi <- U %*% Psi %*% t(U)
   std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
@@ -1744,9 +1745,9 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
   dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
     dimnames(wt) <- dimnames(y) # set names for output matrices
 
-  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, q = q)
+  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_2d"
 
   return(out)
@@ -1982,9 +1983,9 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
   dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
     dimnames(wt) <- dimnames(y) # set names for output matrices
 
-  out <- list(d = d, ec = ec, y = y, wt = wt, z = z, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, q = q)
+  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
+              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
+              Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_2d"
 
   return(out)
