@@ -53,23 +53,22 @@
 #'   function.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
-#' @returns An object of class `WH_1d` i.e. a list containing : * `d` The
-#'   inputed vector of observed events (if supplied as input) * `ec` The inputed
-#'   vector of central exposure (if supplied as input) * `y` The observation
-#'   vector (either supplied or computed as y = log(d) - log(ec)) * `wt` The
-#'   inputed vector of weights (either supplied or computed as `d`) * `z` The
-#'   working vector obtained at convergence, only in the case a maximum
-#'   likelihood method is used, required for extrapolation. * `y_hat` The vector
-#'   of fitted value * `std_y_hat` The vector of standard deviation associated
-#'   with the fitted value * `res` The vector of model deviance residuals *
-#'   `edf` The vector of effective degrees of freedom associated with each
-#'   observation * `edf_par` The vector of effective degrees of freedom
-#'   associated with each eigenvector * `diagnosis` A data.frame with one line
-#'   containing the effective degrees of freedom of the model, the deviance of
-#'   the fit as well as the AIC, BIC, GCV and REML criteria * `Psi` The
-#'   variance-covariance matrix associated with the fit, required for
-#'   extrapolation. * `lambda` The smoothing parameter used, either supplied. or
-#'   computed. * `q` The supplied order for the penalization.
+#' @returns An object of class `WH_1d` i.e. a list containing :
+#' * `d` The inputed vector of observed events (if supplied as input)
+#' * `ec` The inputed vector of central exposure (if supplied as input)
+#' * `y` The observation vector (either supplied or computed as y = log(d) - log(ec))
+#' * `wt` The inputed vector of weights (either supplied or computed as `d`)
+#' * `y_hat` The vector of fitted value
+#' * `std_y_hat` The vector of standard deviation associated with the fitted value
+#' * `res` The vector of model deviance residuals
+#' * `edf` The vector of effective degrees of freedom associated with each observation
+#' * `edf_par` The vector of effective degrees of freedom associated with each eigenvector
+#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+#' * `Psi` The variance-covariance matrix associated with the fit, required for
+#'   extrapolation.
+#' * `lambda` The smoothing parameter used, either supplied or computed.
+#' * `p` The number of components kept after rank reduction is used (it should not be in the one-dimension case).
+#' * `q` The supplied order for the penalization.
 #'
 #' @examples
 #' keep <- which(portfolio_mort$ec > 0)
@@ -266,7 +265,6 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' * `ec` The inputed matrix of central exposure (if supplied as input)
 #' * `y` The observation matrix (either supplied or computed as y = log(d) - log(ec))
 #' * `wt` The inputed matrix of weights (either supplied or computed as `d`)
-#' * `z` The working matrix obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
 #' * `y_hat` The matrix of fitted value
 #' * `std_y_hat` The matrix of standard deviation associated with the fitted value
 #' * `res` The matrix of model deviance residuals
@@ -275,6 +273,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
 #' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
 #' * `lambda` The vector of smoothing parameters used, either supplied. or computed.
+#' * `p` The number of components kept on each dimension after the rank reduction method is applied.
 #' * `q` The supplied vector of orders for the penalization.
 #'
 #' @examples
