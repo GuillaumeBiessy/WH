@@ -490,12 +490,21 @@ predict.WH_1d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
   W_pred <- diag(wt_pred) # extended weight matrix
   D_mat_pred <- build_D_mat(n_pred, object$q) # extended difference matrices
   P_pred <- object$lambda * crossprod(D_mat_pred) # extended penalization matrix
-
   Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
 
-  # Exact solution in the constrained case
-  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  if (unconstrained) {
+
+    W <- diag(object$wt)
+    D_mat <- build_D_mat(n, object$q)
+    P <- object$lambda * crossprod(D_mat)
+    Psi_inv <- W + P
+
+  } else {
+
+    Psi_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+  }
+
+  A_pred <- Psi_pred %*% t(C) %*% Psi_inv
   y_pred <- c(A_pred %*% object$y_hat)
   std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
 
@@ -503,23 +512,6 @@ predict.WH_1d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
-
-  if (unconstrained) {
-
-    # Approximate solution in the unconstrained case
-    W <- diag(object$wt)
-    D_mat <- build_D_mat(n, object$q)
-    P <- object$lambda * crossprod(D_mat)
-    Psi_inv <- W + P
-    A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
-    y_pred_2 <- c(A_pred_2 %*% object$y_hat)
-    std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
-
-    names(y_pred_2) <- names(std_y_pred_2) <- full_data
-
-    object$y_pred_2 <- y_pred_2
-    object$std_y_pred_2 <- std_y_pred_2
-  }
 
   return(object)
 }
@@ -574,12 +566,22 @@ predict.WH_2d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
   D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
-
   Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-  Psi_bis_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
 
-  # Exact solution in the constrained case
-  A_pred <- Psi_pred %*% t(C) %*% Psi_bis_inv
+  if (unconstrained) {
+
+    W <- diag(c(object$wt))
+    D_mat <- purrr::map2(n, object$q, build_D_mat) # extended difference matrices
+    P <- object$lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
+      object$lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]])
+    Psi_inv <- W + P
+
+  } else {
+
+    Psi_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+  }
+
+  A_pred <- Psi_pred %*% t(C) %*% Psi_inv
   y_pred <- c(A_pred %*% c(object$y_hat))
   std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
 
@@ -588,25 +590,6 @@ predict.WH_2d <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
-
-  if (unconstrained) {
-
-    # Approximate solution in the unconstrained case
-    W <- diag(c(object$wt))
-    D_mat <- purrr::map2(n, object$q, build_D_mat) # extended difference matrices
-    P <- object$lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
-      object$lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]])
-    Psi_inv <- W + P
-    A_pred_2 <- Psi_pred %*% t(C) %*% Psi_inv
-    y_pred_2 <- c(A_pred_2 %*% c(object$y_hat))
-    std_y_pred_2 <- sqrt(colSums(t(A_pred_2) * (object$Psi %*% t(A_pred_2))))
-
-    dim(y_pred_2) <- dim(std_y_pred_2) <- purrr::map_int(full_data, length) # set dimension for output matrices
-    dimnames(y_pred_2) <- dimnames(std_y_pred_2) <- full_data # set names for output matrices
-
-    object$y_pred_2 <- y_pred_2
-    object$std_y_pred_2 <- std_y_pred_2
-  }
 
   return(object)
 }
