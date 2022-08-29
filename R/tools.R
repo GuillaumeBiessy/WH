@@ -105,3 +105,39 @@ get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
 
   return(out)
 }
+
+#' Diagnosis for Model Fit
+#'
+#' @param edf_par A vector containing effective degrees of freedom by parameter
+#'   with fixed effects in front, fixed-random combinations, then random-random
+#'   combinations
+#' @param p Vector of number of parameters kept on each dimension
+#' @param q Vector of penalization order on each dimension
+#'
+#' @returns A matrix containing effective degrees of freedom by parameter at the
+#'   right position
+#' @keywords internal
+edf_par_to_matrix <- function(edf_par, p, q) {
+
+  d <- p - q
+
+  n_cum <- 0
+  n_qq <- prod(q)
+  mat_qq <- matrix(edf_par[seq_len(n_qq)], q[[1]], q[[2]])
+
+  n_cum <- n_cum + n_qq
+  n_dq <- d[[1]] * q[[2]]
+  mat_dq <- matrix(edf_par[n_cum + seq_len(n_dq)], d[[1]], q[[2]])
+
+  n_cum <- n_cum + n_dq
+  n_qd <- q[[1]] * d[[2]]
+  mat_qd <- matrix(edf_par[n_cum + seq_len(n_qd)], q[[1]], d[[2]])
+
+  n_cum <- n_cum + n_qd
+  n_dd <- d[[1]] * d[[2]]
+  mat_dd <- matrix(edf_par[n_cum + seq_len(n_dd)], d[[1]], d[[2]])
+
+  out <- cbind(rbind(mat_qq, mat_dq), rbind(mat_qd, mat_dd))
+
+  return(out)
+}

@@ -95,7 +95,6 @@ An object of class \code{WH_2d} i.e. a list containing :
 \item \code{ec} The inputed matrix of central exposure (if supplied as input)
 \item \code{y} The observation matrix (either supplied or computed as y = log(d) - log(ec))
 \item \code{wt} The inputed matrix of weights (either supplied or computed as \code{d})
-\item \code{z} The working matrix obtained at convergence, only in the case a maximum likelihood method is used, required for extrapolation.
 \item \code{y_hat} The matrix of fitted value
 \item \code{std_y_hat} The matrix of standard deviation associated with the fitted value
 \item \code{res} The matrix of model deviance residuals
@@ -104,6 +103,7 @@ An object of class \code{WH_2d} i.e. a list containing :
 \item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
 \item \code{Psi} The variance-covariance matrix associated with the fit, required for extrapolation.
 \item \code{lambda} The vector of smoothing parameters used, either supplied. or computed.
+\item \code{p} The number of components kept on each dimension after the rank reduction method is applied.
 \item \code{q} The supplied vector of orders for the penalization.
 }
 }

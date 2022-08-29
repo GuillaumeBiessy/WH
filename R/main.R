@@ -1123,7 +1123,7 @@ WH_2d_reg_fixed_lambda <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol
   gamma_hat <- c(Psi %*% tUWy)
 
   RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+  edf_par <- colSums(t(Psi) * tUWU) |> edf_par_to_matrix(p ,q) # effective degrees of freedom by parameter
   omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   y_hat <- c(U %*% gamma_hat)
@@ -1218,13 +1218,12 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
     gamma_hat <- c(Psi %*% tUWy)
 
     RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-    edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
 
     y_hat <- c(U %*% gamma_hat)
 
     res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
     dev <- sum(res * res) # residuals sum of squares
-    sum_edf <- sum(edf_par) # effective degrees of freedom
+    sum_edf <- sum(t(Psi) * tUWU) # effective degrees of freedom
 
     switch(criterion,
            AIC = dev + 2 * sum_edf,
@@ -1323,6 +1322,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 
   res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
   edf <- c(wt) * diag(Psi) # effective degrees of freedom by observation / parameter
+  edf_par <- edf_par |> edf_par_to_matrix(p, q)
 
   n_pos <- sum(wt != 0)
   dev <- sum(res * res) # residuals sum of squares
@@ -1723,7 +1723,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
     cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
-  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+  edf_par <- colSums(t(Psi) * tUWU) |> edf_par_to_matrix(p, q) # effective degrees of freedom by parameter
   omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   Psi <- U %*% Psi %*% t(U)
@@ -1969,6 +1969,7 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
 
   res <- compute_res_deviance(d, new_wt) # (weighted) residuals
   edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
+  edf_par <- edf_par |> edf_par_to_matrix(p, q)
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
