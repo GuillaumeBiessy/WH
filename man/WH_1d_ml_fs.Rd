@@ -10,6 +10,7 @@ WH_1d_ml_fs(
   p = length(d),
   q = 2,
   lambda = 1000,
+  reg = FALSE,
   verbose = FALSE,
   accu_edf = 1e-10,
   accu_dev = 1e-12

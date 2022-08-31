@@ -9,8 +9,9 @@ WH_2d_ml_fs(
   ec,
   q = c(2, 2),
   p = dim(d),
-  verbose = FALSE,
   lambda = c(1000, 1000),
+  reg = FALSE,
+  verbose = FALSE,
   accu_edf = 1e-10,
   accu_dev = 1e-12
 )
@@ -25,10 +26,10 @@ smooth and are therefore unpenalized}
 
 \item{p}{The number of eigenvectors to keep on each dimension}
 
+\item{lambda}{Vector of smoothing parameter}
+
 \item{verbose}{Should information about the optimization progress be
 displayed}
-
-\item{lambda}{Vector of smoothing parameter}
 
 \item{accu_edf}{Tolerance for the convergence of the outer optimization
 procedure}

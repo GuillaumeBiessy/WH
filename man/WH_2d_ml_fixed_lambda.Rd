@@ -10,6 +10,7 @@ WH_2d_ml_fixed_lambda(
   lambda = c(1000, 1000),
   p = dim(d),
   q = c(2, 2),
+  reg = FALSE,
   verbose = FALSE,
   accu_dev = 1e-12
 )

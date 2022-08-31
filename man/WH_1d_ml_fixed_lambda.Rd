@@ -10,6 +10,7 @@ WH_1d_ml_fixed_lambda(
   lambda = 1000,
   p = length(d),
   q = 2,
+  reg = FALSE,
   verbose = FALSE,
   accu_dev = 1e-12
 )

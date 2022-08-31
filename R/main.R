@@ -980,7 +980,9 @@ WH_1d_reg_optim <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
   }
 
   lambda <- exp(stats::optimize(f = WH_1d_reg_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
-  WH_1d_reg_fixed_lambda(y, wt, lambda, p, q)
+  out <- WH_1d_reg_fixed_lambda(y, wt, lambda, p, q)
+
+  return(out)
 }
 
 #' Whittaker-Henderson Smoothing (Regression, Generalized Fellner-Schall update)
@@ -1035,29 +1037,7 @@ WH_1d_reg_fs <- function(y, wt = rep(1, length(y)), p = length(y), q = 2,
     init <- FALSE
   }
 
-  y_hat <- c(U %*% gamma_hat)
-  Psi <- U %*% Psi %*% t(U)
-  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
-
-  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
-  edf <- wt * diag(Psi) # effective degrees of freedom by observation
-
-  n_pos <- sum(wt != 0)
-  dev <- sum(res * res) # residuals sum of squares
-  pen <- lambda * RESS
-  sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
-  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
-
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
-    names(wt) <- names(y) # set names for output vectors
-
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, p = p, q = q)
-  class(out) <- "WH_1d"
+  out <- WH_1d_reg_fixed_lambda(y, wt, lambda, p, q)
 
   return(out)
 }
@@ -1237,7 +1217,9 @@ WH_2d_reg_optim <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
   }
 
   lambda <- exp(stats::optim(par = log(lambda), fn = WH_2d_reg_aux, control = list(reltol = accu_edf))$par)
-  WH_2d_reg_fixed_lambda(y, wt, lambda, p, q)
+  out <- WH_2d_reg_fixed_lambda(y, wt, lambda, p, q)
+
+  return(out)
 }
 
 #' 2D Whittaker-Henderson Smoothing (Regression, Fellner-Schall update)
@@ -1316,32 +1298,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
     init <- FALSE
   }
 
-  y_hat <- c(U %*% gamma_hat)
-  Psi <- U %*% Psi %*% t(U)
-  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
-
-  res <- sqrt(wt) * (y - y_hat) # (weighted) residuals
-  edf <- c(wt) * diag(Psi) # effective degrees of freedom by observation / parameter
-  edf_par <- edf_par |> edf_par_to_matrix(p, q)
-
-  n_pos <- sum(wt != 0)
-  dev <- sum(res * res) # residuals sum of squares
-  pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
-  sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
-  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
-    dim(wt) <- dim(y) # set dimensions for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
-    dimnames(wt) <- dimnames(y) # set names for output matrices
-
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, p = p, q = q)
-  class(out) <- "WH_2d"
+  out <- WH_2d_reg_fixed_lambda(y, wt, lambda, p, q)
 
   return(out)
 }
@@ -1356,6 +1313,8 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #' @inheritParams WH_1d_reg_optim
 #' @param d Vector of observed events
 #' @param ec Vector of central exposure
+#' @param reg Should the regression framework be used ? Boolean. If `TRUE`, will
+#'   stop after the first iteration.
 #' @param accu_dev Tolerance for the convergence of the optimization procedure
 #'
 #' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
@@ -1363,7 +1322,7 @@ WH_2d_reg_fs <- function(y, wt = matrix(1, nrow = nrow(y), ncol = ncol(y)),
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
-                                  verbose = FALSE, accu_dev = 1e-12) {
+                                  reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
   n <- length(d)
@@ -1413,7 +1372,7 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
     dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
   edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
@@ -1452,7 +1411,7 @@ WH_1d_ml_fixed_lambda <- function(d, ec, lambda = 1e3, p = length(d), q = 2,
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lambda = 1e3,
-                           verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                           reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
   n <- length(d)
@@ -1507,7 +1466,7 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
       dev_pen <- dev + lambda * RESS
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                        "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-      cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+      cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
     }
 
     n_pos <- sum(wt != 0)
@@ -1526,7 +1485,9 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
   }
 
   lambda <- exp(stats::optimize(f = WH_1d_ml_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
-  WH_1d_ml_fixed_lambda(d, ec, lambda, p, q)
+  out <- WH_1d_ml_fixed_lambda(d, ec, lambda, p, q, reg)
+
+  return(out)
 }
 
 #' Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
@@ -1538,7 +1499,7 @@ WH_1d_ml_optim <- function(d, ec, p = length(d), q = 2, criterion = "REML", lamb
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
-                        lambda = 1e3, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                        lambda = 1e3, reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
   n <- length(d)
@@ -1608,29 +1569,10 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
     dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
-  Psi <- U %*% Psi %*% t(U)
-  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
-
-  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
-  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
-
-  n_pos <- sum(wt != 0)
-  sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
-  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
-
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
-    names(wt) <- names(z) <- names(y) # set names for output vectors
-
-  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, p = p, q = q)
-  class(out) <- "WH_1d"
+  out <- WH_1d_ml_fixed_lambda(d, ec, lambda, p, q, reg)
 
   return(out)
 }
@@ -1647,7 +1589,7 @@ WH_1d_ml_fs <- function(d, ec, p = length(d), q = 2,
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c(2, 2),
-                                  verbose = FALSE, accu_dev = 1e-12) {
+                                  reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
   n <- dim(d)
@@ -1720,7 +1662,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
     dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
   edf_par <- colSums(t(Psi) * tUWU) |> edf_par_to_matrix(p, q) # effective degrees of freedom by parameter
@@ -1762,7 +1704,7 @@ WH_2d_ml_fixed_lambda <- function(d, ec, lambda = c(1e3, 1e3), p = dim(d), q = c
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", lambda = c(1e3, 1e3),
-                           verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                           reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   n <- dim(d)
   which_pos <- which(ec != 0)
@@ -1838,7 +1780,7 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
       dev_pen <- dev + purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                        "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-      cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+      cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
     }
 
     n_pos <- sum(wt != 0)
@@ -1859,7 +1801,9 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
   lambda <- exp(stats::optim(par = log(lambda),
                              fn = WH_2d_ml_aux,
                              control = list(reltol = accu_edf))$par)
-  WH_2d_ml_fixed_lambda(d, ec, lambda, p, q)
+  out <- WH_2d_ml_fixed_lambda(d, ec, lambda, p, q, reg)
+
+  return(out)
 }
 
 #' 2D Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
@@ -1870,8 +1814,8 @@ WH_2d_ml_optim <- function(d, ec, q = c(2, 2), p = dim(d), criterion = "REML", l
 #'   variance, residuals and degrees of freedom as well as diagnosis to asses
 #'   the quality of the fit.
 #' @keywords internal
-WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
-                        lambda = c(1e3, 1e3), accu_edf = 1e-10, accu_dev = 1e-12) {
+WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), lambda = c(1e3, 1e3),
+                        reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
   n <- dim(d)
@@ -1961,32 +1905,10 @@ WH_2d_ml_fs <- function(d, ec, q = c(2, 2), p = dim(d), verbose = FALSE,
     dev_pen <- dev + pen
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
-  Psi <- U %*% Psi %*% t(U)
-  std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
-
-  res <- compute_res_deviance(d, new_wt) # (weighted) residuals
-  edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
-  edf_par <- edf_par |> edf_par_to_matrix(p, q)
-
-  n_pos <- sum(wt != 0)
-  sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
-  tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-
-  diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
-
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
-    dim(wt) <- dim(y) # set dimensions for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
-    dimnames(wt) <- dimnames(y) # set names for output matrices
-
-  out <- list(d = d, ec = ec, y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, omega_j = omega_j, diagnosis = diagnosis,
-              Psi = Psi, lambda = lambda, p = p, q = q)
-  class(out) <- "WH_2d"
+  out <- WH_2d_ml_fixed_lambda(d, ec, lambda, p, q, reg)
 
   return(out)
 }

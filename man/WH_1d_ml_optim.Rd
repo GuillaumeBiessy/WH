@@ -11,6 +11,7 @@ WH_1d_ml_optim(
   q = 2,
   criterion = "REML",
   lambda = 1000,
+  reg = FALSE,
   verbose = FALSE,
   accu_edf = 1e-10,
   accu_dev = 1e-12
