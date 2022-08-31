@@ -50,6 +50,79 @@ eigen_dec <- function(n, q, p) {
   return(out)
 }
 
+cum_index <- function(n) {
+
+  n_cum <- c(0, cumsum(n)[- length(n)])
+  out <- purrr::map2(n, n_cum, \(x, y) (if (x == 0) integer() else y + seq_len(x)))
+
+  return(out)
+}
+
+blockdiag <- function(L) {
+
+  L  <- Filter(Negate(is.null), L)
+
+  n1 <- purrr::map(L, nrow)
+  n2 <- purrr::map(L, ncol)
+
+  i1 <- cum_index(n1)
+  i2 <- cum_index(n2)
+
+  M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
+
+  for(i in seq_along(L)) M[i1[[i]], i2[[i]]] <- L[[i]]
+
+  return(M)
+}
+
+extend_eigen_dec <- function(data, full_data, q, p, p_new) {
+
+  n <- length(data)
+  n_pred <- length(full_data)
+  n_new <- n_pred - n
+
+  if (missing(p_new)) p_new <- n_new
+
+  ind_fit <- which(full_data %in% data)
+  ind_inf <- which(full_data < min(data))
+  ind_sup <- which(full_data > max(data))
+  ind_new <- c(ind_inf, ind_sup)
+
+  eig <- eigen_dec(n, q, p)
+
+  D_mat_pred <- build_D_mat(n_pred, q)
+
+  D1_inf <- D_mat_pred[ind_inf, ind_fit]
+  D1_sup <- D_mat_pred[ind_sup - q, ind_fit]
+  D1 <- rbind(D1_inf, D1_sup)
+
+  D2_inf <- D_mat_pred[ind_inf, ind_inf]
+  D2_sup <- D_mat_pred[ind_sup - q, ind_sup]
+  D2 <- blockdiag(list(D2_inf, D2_sup))
+
+  D2_inv <- solve(D2)
+
+  P_new  <- crossprod(D2)
+  ei_new <- eigen(P_new, symmetric = TRUE)
+
+  Z_new <- ei_new$vectors[, order(ei_new$values)][, seq_len(p_new), drop = FALSE]
+
+  X <- matrix(0, n_pred, q)
+  X[ind_fit,] <- eig$X
+  X[ind_new,] <- - D2_inv %*% D1 %*% eig$X
+
+  Z <- matrix(0, n_pred, p - q + p_new)
+  Z[ind_fit, seq_len(p - q)] <- eig$Z
+  Z[ind_new, seq_len(p - q)] <- - D2_inv %*% D1 %*% eig$Z
+  Z[ind_new, p - q + seq_len(p_new)] <- Z_new
+
+  s <- c(eig$s, sort(ei_new$values)[seq_len(p_new)])
+
+  out <- list(X = X, Z = Z, s = s)
+
+  return(out)
+}
+
 #' Deviance residuals for Poisson GLM
 #'
 #' @param D Vector or matrix containing the number of observed events
