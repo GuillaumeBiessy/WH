@@ -52,73 +52,63 @@ eigen_dec <- function(n, q, p) {
 
 cum_index <- function(n) {
 
-  n_cum <- c(0, cumsum(n)[- length(n)])
-  out <- purrr::map2(n, n_cum, \(x, y) (if (x == 0) integer() else y + seq_len(x)))
-
-  return(out)
+  purrr::map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
 }
 
-blockdiag <- function(L) {
+blockdiag <- function(...) {
 
-  L  <- Filter(Negate(is.null), L)
+  L  <- Filter(Negate(is.null), list(...))
 
   n1 <- purrr::map(L, nrow)
   n2 <- purrr::map(L, ncol)
 
+  M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
+
   i1 <- cum_index(n1)
   i2 <- cum_index(n2)
-
-  M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
 
   for(i in seq_along(L)) M[i1[[i]], i2[[i]]] <- L[[i]]
 
   return(M)
 }
 
-extend_eigen_dec <- function(data, full_data, q, p, p_new) {
-
-  n <- length(data)
-  n_pred <- length(full_data)
-  n_new <- n_pred - n
-
-  if (missing(p_new)) p_new <- n_new
+extend_eigen_dec <- function(data, full_data, q, p) {
 
   ind_fit <- which(full_data %in% data)
   ind_inf <- which(full_data < min(data))
   ind_sup <- which(full_data > max(data))
-  ind_new <- c(ind_inf, ind_sup)
+
+  n <- length(ind_fit)
+  n_inf <- length(ind_inf)
+  n_sup <- length(ind_sup)
+  n_pred <- length(full_data)
 
   eig <- eigen_dec(n, q, p)
 
-  D_mat_pred <- build_D_mat(n_pred, q)
+  D <- build_D_mat(n_pred, q)
 
-  D1_inf <- D_mat_pred[ind_inf, ind_fit]
-  D1_sup <- D_mat_pred[ind_sup - q, ind_fit]
-  D1 <- rbind(D1_inf, D1_sup)
+  D1_inf <- D[ind_inf, ind_fit]
+  D1_sup <- D[ind_sup - q, ind_fit]
 
-  D2_inf <- D_mat_pred[ind_inf, ind_inf]
-  D2_sup <- D_mat_pred[ind_sup - q, ind_sup]
-  D2 <- blockdiag(list(D2_inf, D2_sup))
+  D2_inf <- D[ind_inf, ind_inf]
+  D2_sup <- D[ind_sup - q, ind_sup]
 
-  D2_inv <- solve(D2)
-
-  P_new  <- crossprod(D2)
-  ei_new <- eigen(P_new, symmetric = TRUE)
-
-  Z_new <- ei_new$vectors[, order(ei_new$values)][, seq_len(p_new), drop = FALSE]
+  D2_inf_inv <- if (nrow(D2_inf) == 0) matrix(0, n_inf, n_inf) else solve(D2_inf)
+  D2_sup_inv <- if (nrow(D2_sup) == 0) matrix(0, n_sup, n_sup) else solve(D2_sup)
 
   X <- matrix(0, n_pred, q)
-  X[ind_fit,] <- eig$X
-  X[ind_new,] <- - D2_inv %*% D1 %*% eig$X
+  X[ind_fit, seq_len(q)] <- eig$X
+  X[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$X
+  X[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$X
 
-  Z <- matrix(0, n_pred, p - q + p_new)
+  Z <- matrix(0, n_pred, p - q + n_inf + n_sup)
   Z[ind_fit, seq_len(p - q)] <- eig$Z
-  Z[ind_new, seq_len(p - q)] <- - D2_inv %*% D1 %*% eig$Z
-  Z[ind_new, p - q + seq_len(p_new)] <- Z_new
+  Z[ind_inf, p - q + seq_len(n_inf)] <- D2_inf_inv
+  Z[ind_sup, p - q + n_inf + seq_len(n_sup)] <- D2_sup_inv
 
-  s <- c(eig$s, sort(ei_new$values)[seq_len(p_new)])
+  U <- cbind(X, Z)
 
-  out <- list(X = X, Z = Z, s = s)
+  out <- list(U = U, D = D)
 
   return(out)
 }
