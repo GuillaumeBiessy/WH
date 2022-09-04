@@ -7,17 +7,6 @@
 #' @keywords internal
 build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
-#' Compute block Kronecker product matrix
-#'
-#' @param XZ A list whose components are list of 2 matrices
-#'
-#' @returns A matrix obtained by applying the Kronecker product to the 2 matrices
-#'   contained in each element of \code{XZ} and then horizontally concatenating
-#'   the result
-#' @keywords internal
-compute_XZ_mat <- function(XZ) {
-  lapply(XZ, \(X) {X[[2]] %x% X[[1]]}) |> do.call(what = cbind)}
-
 #' Eigen decomposition of penalization matrix
 #'
 #' @param n Number of observations in the problem
@@ -36,16 +25,17 @@ eigen_dec <- function(n, q, p) {
   P  <- crossprod(D_mat)
 
   ei <- eigen(P, symmetric = TRUE)
-  s <- sort(ei$values)[seq_len(p)]
-  s[seq_len(q)] <- 0
 
-  X <- seq_len(q) |>
+  U <- ei$vectors[, order(ei$values)][, seq_len(p), drop = FALSE]
+  U[, seq_len(q)] <- seq_len(q) |>
     lapply(\(k) (seq_len(n) - (n + 1) / 2) ^ (k - 1)) |>
     lapply(\(x) x / norm(x, "2")) |>
     do.call(what = cbind)
-  Z <- ei$vectors[, order(ei$values)][, q + seq_len(p - q), drop = FALSE]
 
-  out <- list(X = X, Z = Z, s = s)
+  s <- sort(ei$values)[seq_len(p)]
+  s[seq_len(q)] <- 0
+
+  out <- list(U = U, s = s)
 
   return(out)
 }
@@ -96,17 +86,13 @@ extend_eigen_dec <- function(data, full_data, q, p) {
   D2_inf_inv <- if (nrow(D2_inf) == 0) matrix(0, n_inf, n_inf) else solve(D2_inf)
   D2_sup_inv <- if (nrow(D2_sup) == 0) matrix(0, n_sup, n_sup) else solve(D2_sup)
 
-  X <- matrix(0, n_pred, q)
-  X[ind_fit, seq_len(q)] <- eig$X
-  X[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$X
-  X[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$X
-
-  Z <- matrix(0, n_pred, p - q + n_inf + n_sup)
-  Z[ind_fit, seq_len(p - q)] <- eig$Z
-  Z[ind_inf, p - q + seq_len(n_inf)] <- D2_inf_inv
-  Z[ind_sup, p - q + n_inf + seq_len(n_sup)] <- D2_sup_inv
-
-  U <- cbind(X, Z)
+  U <- matrix(0, n_pred, p + n_inf + n_sup)
+  U[ind_fit, seq_len(q)] <- eig$X
+  U[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$X
+  U[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$X
+  U[ind_fit, q + seq_len(p - q)] <- eig$Z
+  U[ind_inf, p + seq_len(n_inf)] <- D2_inf_inv
+  U[ind_sup, p + n_inf + seq_len(n_sup)] <- D2_sup_inv
 
   out <- list(U = U, D = D)
 

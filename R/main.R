@@ -993,12 +993,8 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
   eig <- eigen_dec(n, q, p)
 
-  X <- eig$X
-  Z <- eig$Z
-  U <- cbind(X, Z)
-
+  U <- eig$U
   s <- eig$s
-  s_tilde <- s[- seq_len(q)]
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1045,7 +1041,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+  tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
@@ -1095,12 +1091,8 @@ WH_1d_optim <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
   eig <- eigen_dec(n, q, p)
 
-  X <- eig$X
-  Z <- eig$Z
-  U <- cbind(X, Z)
-
+  U <- eig$U
   s <- eig$s
-  s_tilde <- s[- seq_len(q)]
 
   WH_1d_aux <- function(log_lambda) {
 
@@ -1161,7 +1153,7 @@ WH_1d_optim <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
            BIC = dev + log(n_pos) * sum_edf,
            GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
            REML = {
-             tr_log_P <- (p - q) * log(lambda) + sum(log(s_tilde))
+             tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
              REML <- dev_pen - tr_log_P + tr_log_Psi
            })
@@ -1203,12 +1195,8 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
 
   eig <- eigen_dec(n, q, p)
 
-  X <- eig$X
-  Z <- eig$Z
-  U <- cbind(X, Z)
-
+  U <- eig$U
   s <- eig$s
-  s_tilde <- s[- seq_len(q)]
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1310,27 +1298,12 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_eig <- purrr::map(eig, "X")
-  Z_eig <- purrr::map(eig, "Z")
-  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
-    compute_XZ_mat()
-  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
-            XZ = list(X_eig[[1]], Z_eig[[2]]),
-            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
-    compute_XZ_mat()
-  U <- cbind(X, Z)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
   U_pos <- U[which_pos,]
 
   s_eig <- purrr::map(eig, "s")
-  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
-                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
-                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_eig[[2]], each = q[[1]]),
-                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
-  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
-            c(rep(0, prod(q)), s_tilde[[2]]))
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   s_lambda <- purrr::map2(lambda, s, `*`)
   sum_s_lambda <- s_lambda |> do.call(what = `+`)
@@ -1374,7 +1347,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
-  edf_par <- colSums(t(Psi) * tUWU) |> edf_par_to_matrix(p, q) # effective degrees of freedom by parameter
+  edf_par <- colSums(t(Psi) * tUWU) |> matrix(p[[1]], p[[2]]) # effective degrees of freedom by parameter
   omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   Psi <- U %*% Psi %*% t(U)
@@ -1384,7 +1357,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
   n_pos <- sum(wt != 0)
   sum_edf <- sum(edf) # effective degrees of freedom
-  tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+  tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
@@ -1432,27 +1405,12 @@ WH_2d_optim <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_eig <- purrr::map(eig, "X")
-  Z_eig <- purrr::map(eig, "Z")
-  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
-    compute_XZ_mat()
-  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
-            XZ = list(X_eig[[1]], Z_eig[[2]]),
-            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
-    compute_XZ_mat()
-  U <- cbind(X, Z)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
   U_pos <- U[which_pos,]
 
   s_eig <- purrr::map(eig, "s")
-  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
-                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
-                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_eig[[2]], each = q[[1]]),
-                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
-  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
-            c(rep(0, prod(q)), s_tilde[[2]]))
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   WH_2d_aux <- function(log_lambda) {
 
@@ -1519,7 +1477,7 @@ WH_2d_optim <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
            BIC = dev + log(prod(n_pos)) * sum_edf,
            GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
            REML = {
-             tr_log_P <- purrr::map2(lambda, s_tilde, `*`) |> do.call(what = `+`) |> log() |> sum()
+             tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
              tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
              REML <- dev_pen - tr_log_P + tr_log_Psi
            })
@@ -1565,27 +1523,12 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
 
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
 
-  X_eig <- purrr::map(eig, "X")
-  Z_eig <- purrr::map(eig, "Z")
-  X <- list(XX = list(X_eig[[1]], X_eig[[2]])) |>
-    compute_XZ_mat()
-  Z <- list(ZX = list(Z_eig[[1]], X_eig[[2]]),
-            XZ = list(X_eig[[1]], Z_eig[[2]]),
-            ZZ = list(Z_eig[[1]], Z_eig[[2]])) |>
-    compute_XZ_mat()
-  U <- cbind(X, Z)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
   U_pos <- U[which_pos,]
 
   s_eig <- purrr::map(eig, "s")
-  s_tilde_eig <- purrr::map2(s_eig, q, \(x, y) x[- seq_len(y)])
-  s_tilde <- list(c(rep(s_tilde_eig[[1]], q[[2]]),
-                    rep(0, q[[1]] * (p[[2]] - q[[2]])),
-                    rep(s_tilde_eig[[1]], p[[2]] - q[[2]])),
-                  c(rep(0, q[[2]] * (p[[1]] - q[[1]])),
-                    rep(s_tilde_eig[[2]], each = q[[1]]),
-                    rep(s_tilde_eig[[2]], each = p[[1]] - q[[1]])))
-  s <- list(c(rep(0, prod(q)), s_tilde[[1]]),
-            c(rep(0, prod(q)), s_tilde[[2]]))
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
