@@ -7,6 +7,28 @@
 #' @keywords internal
 build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
+cum_index <- function(n) {
+
+  purrr::map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
+}
+
+blockdiag <- function(...) {
+
+  L  <- Filter(Negate(is.null), list(...))
+
+  n1 <- purrr::map(L, nrow)
+  n2 <- purrr::map(L, ncol)
+
+  M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
+
+  i1 <- cum_index(n1)
+  i2 <- cum_index(n2)
+
+  for(i in seq_along(L)) M[i1[[i]], i2[[i]]] <- L[[i]]
+
+  return(M)
+}
+
 #' Eigen decomposition of penalization matrix
 #'
 #' @param n Number of observations in the problem
@@ -40,29 +62,7 @@ eigen_dec <- function(n, q, p) {
   return(out)
 }
 
-cum_index <- function(n) {
-
-  purrr::map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
-}
-
-blockdiag <- function(...) {
-
-  L  <- Filter(Negate(is.null), list(...))
-
-  n1 <- purrr::map(L, nrow)
-  n2 <- purrr::map(L, ncol)
-
-  M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
-
-  i1 <- cum_index(n1)
-  i2 <- cum_index(n2)
-
-  for(i in seq_along(L)) M[i1[[i]], i2[[i]]] <- L[[i]]
-
-  return(M)
-}
-
-extend_eigen_dec <- function(data, full_data, q, p) {
+extend_eigen_dec <- function(data, full_data, q, p, p_inf, p_sup) {
 
   ind_fit <- which(full_data %in% data)
   ind_inf <- which(full_data < min(data))
@@ -72,6 +72,9 @@ extend_eigen_dec <- function(data, full_data, q, p) {
   n_inf <- length(ind_inf)
   n_sup <- length(ind_sup)
   n_pred <- length(full_data)
+
+  if (missing(p_inf)) p_inf <- n_inf
+  if (missing(p_sup)) p_sup <- n_sup
 
   eig <- eigen_dec(n, q, p)
 
@@ -86,13 +89,13 @@ extend_eigen_dec <- function(data, full_data, q, p) {
   D2_inf_inv <- if (nrow(D2_inf) == 0) matrix(0, n_inf, n_inf) else solve(D2_inf)
   D2_sup_inv <- if (nrow(D2_sup) == 0) matrix(0, n_sup, n_sup) else solve(D2_sup)
 
-  U <- matrix(0, n_pred, p + n_inf + n_sup)
-  U[ind_fit, seq_len(q)] <- eig$X
-  U[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$X
-  U[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$X
-  U[ind_fit, q + seq_len(p - q)] <- eig$Z
-  U[ind_inf, p + seq_len(n_inf)] <- D2_inf_inv
-  U[ind_sup, p + n_inf + seq_len(n_sup)] <- D2_sup_inv
+  U <- matrix(0, n_pred, p + p_inf + p_sup)
+  U[ind_fit, seq_len(q)] <- eig$U[,seq_len(q)]
+  U[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$U[,seq_len(q)]
+  U[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$U[,seq_len(q)]
+  U[ind_fit, q + seq_len(p - q)] <- eig$U[,q + seq_len(p - q)]
+  U[ind_inf, p + seq_len(p_inf)] <- D2_inf_inv[, seq_len(p_inf)]
+  U[ind_sup, p + p_inf + seq_len(p_sup)] <- D2_sup_inv[, seq_len(p_sup)]
 
   out <- list(U = U, D = D)
 
@@ -117,20 +120,6 @@ compute_res_deviance <- function(D, D_hat) {
   return(out)
 }
 
-#' Deviance for Poisson GLM
-#'
-#' @inheritParams compute_res_deviance
-#'
-#' @returns The model deviance
-#' @keywords internal
-compute_deviance <- function(D, D_hat) {
-
-  res_deviance <- compute_res_deviance(D, D_hat)
-  out <- sum(res_deviance * res_deviance)
-
-  return(out)
-}
-
 #' Diagnosis for Model Fit
 #'
 #' @param dev Deviance of the model
@@ -151,42 +140,6 @@ get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
 
   out <- data.frame(dev = dev, pen = pen, sum_edf = sum_edf, n_pos = n_pos,
                     AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
-
-  return(out)
-}
-
-#' Diagnosis for Model Fit
-#'
-#' @param edf_par A vector containing effective degrees of freedom by parameter
-#'   with fixed effects in front, fixed-random combinations, then random-random
-#'   combinations
-#' @param p Vector of number of parameters kept on each dimension
-#' @param q Vector of penalization order on each dimension
-#'
-#' @returns A matrix containing effective degrees of freedom by parameter at the
-#'   right position
-#' @keywords internal
-edf_par_to_matrix <- function(edf_par, p, q) {
-
-  d <- p - q
-
-  n_cum <- 0
-  n_qq <- prod(q)
-  mat_qq <- matrix(edf_par[seq_len(n_qq)], q[[1]], q[[2]])
-
-  n_cum <- n_cum + n_qq
-  n_dq <- d[[1]] * q[[2]]
-  mat_dq <- matrix(edf_par[n_cum + seq_len(n_dq)], d[[1]], q[[2]])
-
-  n_cum <- n_cum + n_dq
-  n_qd <- q[[1]] * d[[2]]
-  mat_qd <- matrix(edf_par[n_cum + seq_len(n_qd)], q[[1]], d[[2]])
-
-  n_cum <- n_cum + n_qd
-  n_dd <- d[[1]] * d[[2]]
-  mat_dd <- matrix(edf_par[n_cum + seq_len(n_dd)], d[[1]], d[[2]])
-
-  out <- cbind(rbind(mat_qq, mat_dq), rbind(mat_qd, mat_dd))
 
   return(out)
 }

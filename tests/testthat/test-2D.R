@@ -88,7 +88,8 @@ expect_equal(extra_fs,
              extra_optim,
              tolerance = 2e-1)
 
-ref_fs |> predict(newdata) |> plot()
+expect_equal(rr_fs |> predict(newdata),
+             rr_fs |> predict2.WH_2d(newdata), tolerance = 1e-1)
 
 # Plots----
 
@@ -97,5 +98,8 @@ rr_fs |> plot("std_y_hat")
 
 extra_fs |> plot()
 extra_fs |> plot("std_y_hat")
+
+ref_fs |> predict(newdata) |> plot()
+ref_fs |> predict2.WH_2d(newdata) |> plot()
 
 

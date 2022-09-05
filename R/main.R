@@ -650,8 +650,8 @@ predict2.WH_2d <- function(object, newdata = NULL, ...) {
   ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
 
   n <- purrr::map_int(data, length)
-  n_inf <- purrr::map2_dbl(data, full_data, \(x,y) sum(y < min(x)))
-  n_sup <- purrr::map2(data, full_data, \(x,y) sum(y > max(x)))
+  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
+  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
   n_pred <- purrr::map_int(full_data, length)
 
   wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
@@ -663,18 +663,14 @@ predict2.WH_2d <- function(object, newdata = NULL, ...) {
     extend_eigen_dec)
 
   U_pred_eig <- purrr::map(eig, "U")
-  U_eig <- purrr::map2(U_pred_eig, object$p, \(U,p) U[,seq_len(p)])
   D_eig <- purrr::map(eig, "D")
-
   DU_eig <-  purrr::map2(D_eig, U_pred_eig, `%*%`)
-  cross_U_eig <- purrr::map(U_pred_eig, crossprod)
   cross_DU_eig <- purrr::map(DU_eig, crossprod)
+  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
+  cross_U_eig <- purrr::map(U_pred_eig, crossprod)
 
   S_lambda <- object$lambda[[1]] * cross_U_eig[[2]] %x% cross_DU_eig[[1]] +
     object$lambda[[2]] * cross_DU_eig[[2]] %x% cross_U_eig[[1]]
-
-  U <- U_eig[[2]] %x% U_eig[[1]]
-  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
 
   U_pred_pos <- U_pred[which_pos,]
   wt_pred_pos <- c(wt_pred)[which_pos]
@@ -682,13 +678,23 @@ predict2.WH_2d <- function(object, newdata = NULL, ...) {
   tUWU <- t(U_pred_pos) %*% (wt_pred_pos * U_pred_pos)
   Psi_pred <- (tUWU + S_lambda) |> chol() |> chol2inv()
 
-  C <- purrr::map2(object$p, object$p + n_pred - n, \(x,y) diag(1L, x, y)) |>
-    rev() |>
-    purrr::reduce(kronecker) # constraint matrix
+  get_ind_2d <- function(n_inf, n, n_sup) {
 
-  Psi_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+    ind_row <- c(rep(FALSE, n_inf[[1]]),
+                 rep(TRUE, n[[1]]),
+                 rep(FALSE, n_sup[[1]]))
+    out <- c(rep(FALSE & ind_row, n_inf[[2]]),
+             rep(ind_row, n[[2]]),
+             rep(FALSE & ind_row, n_sup[[2]])) |>
+      which()
+  }
 
-  A_pred <- U_pred %*% Psi_pred %*% t(C) %*% Psi_inv %*% t(U)
+  ind_fit_2d <- get_ind_2d(n_inf, n, n_sup)
+  ind_coef_2d <- get_ind_2d(c(0, 0), object$p, list(n_inf, n_sup) |> purrr::reduce(`+`))
+
+  Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
+
+  A_pred <- (U_pred %*% Psi_pred[,ind_coef_2d]) %*% Psi_inv %*% t(U_pred[ind_fit_2d, ind_coef_2d])
   y_pred <- c(A_pred %*% c(object$y_hat))
   std_y_pred <- sqrt(colSums(t(A_pred) * (object$Psi %*% t(A_pred))))
 
@@ -697,6 +703,8 @@ predict2.WH_2d <- function(object, newdata = NULL, ...) {
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
+
+  return(object)
 }
 
 # Formatting----
@@ -1032,7 +1040,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
     cond_dev_pen <- if (reg) FALSE else ((old_dev_pen - dev_pen) > accu_dev * sum_d)
   }
 
-  edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+  edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
 
   Psi <- U %*% Psi %*% t(U)
   std_y_hat <- sqrt(diag(Psi)) # standard deviation of fit
@@ -1146,7 +1154,7 @@ WH_1d_optim <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
     }
 
     n_pos <- sum(wt != 0)
-    sum_edf <- sum(t(Psi) * tUWU) # effective degrees of freedom
+    sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
     switch(criterion,
            AIC = dev + 2 * sum_edf,
@@ -1226,10 +1234,9 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
       RESS <- sum(gamma_hat * s * gamma_hat)
-      edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
 
       old_edf_random <- if (init_lambda) NA else edf_random
-      edf_random <- sum(edf_par) - q
+      edf_random <- sum(Psi * tUWU) - q
       if (verbose) cat("edf :", format(old_edf_random + q, digits = 3),
                        "=>", format(edf_random + q, digits = 3), "\n")
       cond_edf_random <- if (init_lambda) TRUE else {
@@ -1347,7 +1354,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
   }
 
-  edf_par <- colSums(t(Psi) * tUWU) |> matrix(p[[1]], p[[2]]) # effective degrees of freedom by parameter
+  edf_par <- colSums(Psi * tUWU) |> matrix(p[[1]], p[[2]]) # effective degrees of freedom by parameter
   omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
   Psi <- U %*% Psi %*% t(U)
@@ -1356,7 +1363,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   edf <- wt * diag(Psi) # effective degrees of freedom by observation / parameter
 
   n_pos <- sum(wt != 0)
-  sum_edf <- sum(edf) # effective degrees of freedom
+  sum_edf <- sum(edf_par) # effective degrees of freedom
   tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
@@ -1470,7 +1477,7 @@ WH_2d_optim <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
     }
 
     n_pos <- sum(wt != 0)
-    sum_edf <- sum(t(Psi) * tUWU) # effective degrees of freedom
+    sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
     switch(criterion,
            AIC = dev + 2 * sum_edf,
@@ -1564,7 +1571,7 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
       RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-      edf_par <- colSums(t(Psi) * tUWU) # effective degrees of freedom by parameter
+      edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
       omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
       old_edf_random <- if (init_lambda) NA else edf_random
