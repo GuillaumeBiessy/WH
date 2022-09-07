@@ -1027,14 +1027,15 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
                                   reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) length(y) else length(d)
   if (missing(p)) p <- n
   eig <- eigen_dec(n, q, p)
   U <- eig$U
-  U_pos <- U[which_pos,]
   s <- eig$s
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1135,14 +1136,15 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
                            reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) length(y) else length(d)
   if (missing(p)) p <- n
   eig <- eigen_dec(n, q, p)
   U <- eig$U
-  U_pos <- U[which_pos,]
   s <- eig$s
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1243,14 +1245,15 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
                      reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) length(y) else length(d)
   if (missing(p)) p <- n
   eig <- eigen_dec(n, q, p)
   U <- eig$U
-  U_pos <- U[which_pos,]
   s <- eig$s
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1365,14 +1368,15 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
                         reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) length(y) else length(d)
   if (missing(p)) p <- n
   eig <- eigen_dec(n, q, p)
   U <- eig$U
-  U_pos <- U[which_pos,]
   s <- eig$s
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1474,16 +1478,17 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
                                   reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
   U_eig <- purrr::map(eig, "U")
   U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1585,16 +1590,17 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
                            reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
   U_eig <- purrr::map(eig, "U")
   U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1700,16 +1706,17 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
                      reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
   U_eig <- purrr::map(eig, "U")
   U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
@@ -1834,16 +1841,17 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
                         reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
   U_eig <- purrr::map(eig, "U")
   U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  U_pos <- U[which_pos,]
 
   if (reg) {
 
