@@ -1027,26 +1027,31 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
                                   reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) length(y) else length(d)
+  if (missing(p)) p <- n
+  eig <- eigen_dec(n, q, p)
+  U <- eig$U
+  U_pos <- U[which_pos,]
+  s <- eig$s
+
   if (reg) {
 
-    n <- length(y)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- length(d)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- eigen_dec(n, q, p)
-
-  U <- eig$U
-  s <- eig$s
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1055,25 +1060,29 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
   while (cond_dev_pen) {
 
     # update of parameters, working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    tUWU <- t(U) %*% (wt * U)
-    tUWz <- t(U) %*% (wt * z)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     Psi_chol <- tUWU
     diag(Psi_chol) <- diag(Psi_chol) + lambda * s
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
-    gamma_hat <- c(Psi %*% tUWz) # fitted value
+    gamma_hat <- c(Psi %*% tUWz) # fitted parameter
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
 
-    res <- if (reg) (sqrt(new_wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+    res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
     RESS <- sum(gamma_hat * s * gamma_hat)
     pen <- lambda * RESS
@@ -1090,8 +1099,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
   edf <- wt * aux # effective degrees of freedom by observation / parameter
   std_y_hat <- sqrt(aux) # standard deviation of fit
 
-  n_pos <- sum(wt != 0)
-  sum_edf <- sum(edf) # effective degrees of freedom
+  sum_edf <- sum(edf_par) # effective degrees of freedom
   tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
@@ -1127,34 +1135,38 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
                            reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) length(y) else length(d)
+  if (missing(p)) p <- n
+  eig <- eigen_dec(n, q, p)
+  U <- eig$U
+  U_pos <- U[which_pos,]
+  s <- eig$s
+
   if (reg) {
 
-    n <- length(y)
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- length(d)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
+    y_hat <- log(pmax(d, 1e-8)) - off
+    new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- eigen_dec(n, q, p)
-
-  U <- eig$U
-  s <- eig$s
 
   WH_1d_aux <- function(log_lambda) {
 
     lambda <- exp(log_lambda)
     if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
-    if (reg) {
-
-      new_wt <- wt
-
-    } else {
+    if (!reg) {
 
       y_hat <- log(pmax(d, 1e-8)) - off
       new_wt <- exp(y_hat + off)
@@ -1167,11 +1179,15 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
     while (cond_dev_pen) {
 
       # update of working vector and weight matrix
-      wt <- new_wt
-      z <- if (reg) y else (y_hat + d / wt - 1)
+      if (!reg) {
 
-      tUWU <- t(U) %*% (wt * U)
-      tUWz <- t(U) %*% (wt * z)
+        wt <- new_wt
+        z <- y_hat + d / wt - 1
+        wt_pos <- c(wt)[which_pos]
+        z_pos <- c(z)[which_pos]
+        tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+        tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+      }
 
       Psi_chol <- tUWU
       diag(Psi_chol) <- diag(Psi_chol) + lambda * s
@@ -1180,12 +1196,12 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% gamma_hat)
-      new_wt <- if (reg) wt else exp(y_hat + off)
+      if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
 
-      res <- if (reg) (sqrt(new_wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
       RESS <- sum(gamma_hat * s * gamma_hat)
       pen <- lambda * RESS
@@ -1196,7 +1212,6 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
       cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
     }
 
-    n_pos <- sum(wt != 0)
     sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
     switch(criterion,
@@ -1228,26 +1243,31 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
                      reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) length(y) else length(d)
+  if (missing(p)) p <- n
+  eig <- eigen_dec(n, q, p)
+  U <- eig$U
+  U_pos <- U[which_pos,]
+  s <- eig$s
+
   if (reg) {
 
-    n <- length(y)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- length(d)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- eigen_dec(n, q, p)
-
-  U <- eig$U
-  s <- eig$s
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1256,11 +1276,15 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
   while (cond_dev_pen) {
 
     # update of working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    tUWU <- t(U) %*% (wt * U)
-    tUWz <- t(U) %*% (wt * z)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     WH_1d_aux <- function(log_lambda) {
 
@@ -1274,18 +1298,17 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% gamma_hat)
-      new_wt <- if (reg) wt else exp(y_hat + off)
+      if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
 
-      res <- if (reg) (sqrt(new_wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
       RESS <- sum(gamma_hat * s * gamma_hat)
       pen <- lambda * RESS
       dev_pen <- dev + pen
 
-      n_pos <- sum(wt != 0)
       sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
       switch(criterion,
@@ -1310,12 +1333,12 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
     RESS <- sum(gamma_hat * s * gamma_hat)
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
 
-    res <- if (reg) (sqrt(new_wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+    res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
     pen <- lambda * RESS
     dev_pen <- dev + pen
@@ -1342,26 +1365,31 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
                         reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) length(y) else length(d)
+  if (missing(p)) p <- n
+  eig <- eigen_dec(n, q, p)
+  U <- eig$U
+  U_pos <- U[which_pos,]
+  s <- eig$s
+
   if (reg) {
 
-    n <- length(y)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- length(d)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- eigen_dec(n, q, p)
-
-  U <- eig$U
-  s <- eig$s
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1370,11 +1398,15 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
   while (cond_dev_pen) {
 
     # update of working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    tUWU <- t(U) %*% (wt * U)
-    tUWz <- t(U) %*% (wt * z)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     init_lambda <- TRUE
 
@@ -1403,12 +1435,12 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
     }
 
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
 
-    res <- if (reg) (sqrt(new_wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+    res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
     pen <- lambda * RESS
     dev_pen <- dev + pen
@@ -1442,32 +1474,33 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
                                   reg = FALSE, verbose = FALSE, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) dim(y) else dim(d)
+  if (missing(p)) p <- n
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
+  U_pos <- U[which_pos,]
+  s_eig <- purrr::map(eig, "s")
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
   if (reg) {
 
-    n <- dim(y)
-    which_pos <- which(wt != 0)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- dim(d)
-    which_pos <- which(ec != 0)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
-
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   s_lambda <- purrr::map2(lambda, s, `*`)
   sum_s_lambda <- s_lambda |> do.call(what = `+`)
@@ -1479,14 +1512,15 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   while (cond_dev_pen) {
 
     # update of parameters, working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    wt_pos <- c(wt)[which_pos]
-    z_pos <- c(z)[which_pos]
-
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     Psi_chol <- tUWU
     diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
@@ -1495,7 +1529,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
     gamma_hat <- c(Psi %*% tUWz) # fitted value
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
@@ -1518,7 +1552,6 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   edf <- c(wt) * aux # effective degrees of freedom by observation / parameter
   std_y_hat <- sqrt(aux) # standard deviation of fit
 
-  n_pos <- sum(wt != 0)
   sum_edf <- sum(edf_par) # effective degrees of freedom
   tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
@@ -1551,29 +1584,34 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda = c(1e3, 1e3),
                            reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
-  if (reg) {
-
-    n <- dim(y)
-    which_pos <- which(wt != 0)
-
-  } else {
-
-    n <- dim(d)
-    which_pos <- which(ec != 0)
-    sum_d <- sum(d)
-    off <- log(pmax(ec, 1e-4))
-    y <- ifelse(d == 0, NA, log(d)) - off
-  }
+  # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
-
   eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-
   U_eig <- purrr::map(eig, "U")
   U <- U_eig |> rev() |> purrr::reduce(kronecker)
   U_pos <- U[which_pos,]
-
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
+  if (reg) {
+
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+
+  } else {
+
+    sum_d <- sum(d)
+    off <- log(pmax(ec, 1e-4))
+    y <- ifelse(d == 0, NA, log(d)) - off
+    y_hat <- log(pmax(d, 1e-8)) - off
+    new_wt <- exp(y_hat + off)
+  }
 
   WH_2d_aux <- function(log_lambda) {
 
@@ -1583,11 +1621,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
     s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
-    if (reg) {
-
-      new_wt <- wt
-
-    } else {
+    if (!reg) {
 
       y_hat <- log(pmax(d, 1e-8)) - off
       new_wt <- exp(y_hat + off)
@@ -1600,14 +1634,15 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
     while (cond_dev_pen) {
 
       # update of parameters, working vector and weight matrix
-      wt <- new_wt
-      z <- if (reg) y else (y_hat + d / wt - 1)
+      if (!reg) {
 
-      wt_pos <- c(wt)[which_pos]
-      z_pos <- c(z)[which_pos]
-
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+        wt <- new_wt
+        z <- y_hat + d / wt - 1
+        wt_pos <- c(wt)[which_pos]
+        z_pos <- c(z)[which_pos]
+        tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+        tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+      }
 
       Psi_chol <- tUWU
       diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
@@ -1616,7 +1651,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% gamma_hat)
-      new_wt <- if (reg) wt else exp(y_hat + off)
+      if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
@@ -1632,7 +1667,6 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
       cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
     }
 
-    n_pos <- sum(wt != 0)
     sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
     switch(criterion,
@@ -1666,32 +1700,33 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
                      reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) dim(y) else dim(d)
+  if (missing(p)) p <- n
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
+  U_pos <- U[which_pos,]
+  s_eig <- purrr::map(eig, "s")
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
   if (reg) {
 
-    n <- dim(y)
-    which_pos <- which(wt != 0)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- dim(d)
-    which_pos <- which(ec != 0)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
-
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1700,14 +1735,15 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
   while (cond_dev_pen) {
 
     # update of parameters, working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    wt_pos <- c(wt)[which_pos]
-    z_pos <- c(z)[which_pos]
-
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     WH_2d_aux <- function(log_lambda) {
 
@@ -1724,7 +1760,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% gamma_hat)
-      new_wt <- if (reg) wt else exp(y_hat + off)
+      if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
@@ -1734,8 +1770,6 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
       RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
       pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
       dev_pen <- dev + pen
-
-      n_pos <- sum(wt != 0)
       sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
       switch(criterion,
@@ -1768,7 +1802,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
@@ -1800,32 +1834,33 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
                         reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
 
   # Initialization
+  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
+  n_pos <- length(which_pos)
+  n <- if (reg) dim(y) else dim(d)
+  if (missing(p)) p <- n
+  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
+  U_pos <- U[which_pos,]
+  s_eig <- purrr::map(eig, "s")
+  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+
   if (reg) {
 
-    n <- dim(y)
-    which_pos <- which(wt != 0)
-    new_wt <- wt
+    z <- y
+    wt_pos <- c(wt)[which_pos]
+    z_pos <- c(z)[which_pos]
+    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
 
-    n <- dim(d)
-    which_pos <- which(ec != 0)
     sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
     new_wt <- exp(y_hat + off)
   }
-  if (missing(p)) p <- n
-
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  U_pos <- U[which_pos,]
-
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
   dev_pen <- Inf
   cond_dev_pen <- TRUE
@@ -1834,14 +1869,15 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
   while (cond_dev_pen) {
 
     # update of parameters, working vector and weight matrix
-    wt <- new_wt
-    z <- if (reg) y else (y_hat + d / wt - 1)
+    if (!reg) {
 
-    wt_pos <- c(wt)[which_pos]
-    z_pos <- c(z)[which_pos]
-
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+      wt <- new_wt
+      z <- y_hat + d / wt - 1
+      wt_pos <- c(wt)[which_pos]
+      z_pos <- c(z)[which_pos]
+      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
+    }
 
     init_lambda <- TRUE
 
@@ -1873,7 +1909,7 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
     }
 
     y_hat <- c(U %*% gamma_hat)
-    new_wt <- if (reg) wt else exp(y_hat + off)
+    if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
     old_dev_pen <- dev_pen
