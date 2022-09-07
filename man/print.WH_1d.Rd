@@ -27,7 +27,7 @@ y[d == 0] <- - 20
 wt <- d
 
 WH_1d(d, ec) |> summary()
-WH_1d(d, ec, method = "optim") |> summary()
+WH_1d(d, ec, method = "perf") |> summary()
 WH_1d(d, ec, criterion = "GCV") |> summary()
 WH_1d(y = y, wt = wt) |> summary()
 

@@ -73,9 +73,6 @@ extend_eigen_dec <- function(data, full_data, q, p, p_inf, p_sup) {
   n_sup <- length(ind_sup)
   n_pred <- length(full_data)
 
-  if (missing(p_inf)) p_inf <- n_inf
-  if (missing(p_sup)) p_sup <- n_sup
-
   eig <- eigen_dec(n, q, p)
 
   D <- build_D_mat(n_pred, q)
@@ -94,7 +91,7 @@ extend_eigen_dec <- function(data, full_data, q, p, p_inf, p_sup) {
   U[ind_inf, seq_len(q)] <- - D2_inf_inv %*% D1_inf %*% eig$U[,seq_len(q)]
   U[ind_sup, seq_len(q)] <- - D2_sup_inv %*% D1_sup %*% eig$U[,seq_len(q)]
   U[ind_fit, q + seq_len(p - q)] <- eig$U[,q + seq_len(p - q)]
-  U[ind_inf, p + seq_len(p_inf)] <- D2_inf_inv[, seq_len(p_inf)]
+  U[ind_inf, p + seq_len(p_inf)] <- D2_inf_inv[, n_inf - p_inf + seq_len(p_inf)]
   U[ind_sup, p + p_inf + seq_len(p_sup)] <- D2_sup_inv[, seq_len(p_sup)]
 
   out <- list(U = U, D = D)

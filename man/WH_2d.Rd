@@ -46,7 +46,7 @@ Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 optimization is performed. Otherwise, if \code{criterion = "REML"} or the
 \code{criterion} argument is missing, default to \code{"fs"} which means the
 generalized Fellner-Schall method is used. For other criteria default to
-\code{"optim"} meaning the \code{optimize} function from package \code{stats} will be
+\code{"perf"} meaning the \code{optimize} function from package \code{stats} will be
 used.}
 
 \item{p}{Optional vector of size \code{2}. Maximum number of eigenvectors to
@@ -135,8 +135,8 @@ wt <- d
 # Maximum likelihood
 WH_2d(d, ec, lambda = c(1e2, 1e2))
 fit_fs <- WH_2d(d, ec) # default generalized Fellner-Schall method
-fit_optim <- WH_2d(d, ec, method = "optim") # alternative method base on optim function
-testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-1)
+fit_perf <- WH_2d(d, ec, method = "perf") # alternative method based on optim function
+testthat::expect_equal(fit_fs, fit_perf, tolerance = 1e-1)
 # generalized Fellner-Schall method is approximate in maximum likelihood framework
 
 WH_2d(d, ec, criterion = "GCV")
@@ -150,8 +150,8 @@ WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 # setting framework = "reg" forces computation of y from d and ec
 
 fit_fs <- WH_2d(y = y, wt = wt, method = "fs") # default generalized Fellner-Schall method
-fit_optim <- WH_2d(y = y, wt = wt, method = "optim") # alternative method base on optim function
-testthat::expect_equal(fit_fs, fit_optim, tolerance = 1e-4)
+fit_perf <- WH_2d(y = y, wt = wt, method = "perf") # alternative method based on optim function
+testthat::expect_equal(fit_fs, fit_perf, tolerance = 1e-4)
 # generalized Fellner-Schall method is exact in regression framework
 
 WH_2d(y = y, wt = wt, criterion = "AIC")

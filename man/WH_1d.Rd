@@ -41,7 +41,7 @@ Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 optimization is performed. Otherwise, if \code{criterion = "REML"} or the
 \code{criterion} argument is missing, default to \code{"fs"} which means the
 generalized Fellner-Schall method is used. For other criteria default to
-\code{"optim"} meaning the \code{optimize} function from package \code{stats} will be
+\code{"perf"} meaning the \code{optimize} function from package \code{stats} will be
 used.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are considered
@@ -113,10 +113,10 @@ wt <- d
 # Maximum likelihood
 WH_1d(d, ec, lambda = 1e2)
 WH_1d(d, ec) # default generalized Fellner-Schall method
-WH_1d(d, ec, method = "optim") # alternative method base on optimize function
+WH_1d(d, ec, method = "perf") # alternative method base on optimize function
 
 testthat::expect_equal(WH_1d(d, ec, method = "fs"),
-                       WH_1d(d, ec, method = "optim"),
+                       WH_1d(d, ec, method = "perf"),
                        tolerance = 1e-1)
 # generalized Fellner-Schall method is approximate in maximum likelihood framework
 
@@ -131,9 +131,9 @@ WH_1d(d, ec, framework = "reg", lambda = 1e2)
 # Setting framework = "reg" forces computation of y from d and ec
 
 WH_1d(y = y, wt = wt)
-WH_1d(y = y, wt = wt, method = "optim")
+WH_1d(y = y, wt = wt, method = "perf")
 testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
-                       WH_1d(y = y, wt = wt, method = "optim"),
+                       WH_1d(y = y, wt = wt, method = "perf"),
                        tolerance = 1e-6)
 # generalized Fellner-Schall method is exact in regression framework
 
