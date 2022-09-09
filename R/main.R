@@ -170,7 +170,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
         "smoothing parameter lambda should be a strictly positive number")
       method <- "fixed_lambda"
     } else {
-      message("Using outer iteration / Brent method")
+      if (!quiet) message("Using outer iteration / Brent method")
       method <- "outer"
     }
   }
