@@ -18,20 +18,25 @@ expect_equal(WH_1d(y = y, wt = wt, lambda = 1e2), ref_fixed_lambda)
 expect_equal(WH_1d(d, ec, framework = "reg", lambda = 1e2), ref_fixed_lambda)
 expect_equal(WH_1d(d, y = y, lambda = 1e2), ref_fixed_lambda)
 
-## FS is the default method and call FS----
-ref_fs <- WH_1d_fs(y = y, wt = wt, reg = TRUE)
-expect_equal(WH_1d(y = y, wt = wt, method = "fs"), ref_fs)
-expect_equal(WH_1d(y = y, wt = wt), ref_fs)
-
-## optim method call optim----
+## outer is the default method and calls outer----
 ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 expect_equal(WH_1d(y = y, wt = wt, method = "outer"), ref_outer)
+expect_equal(WH_1d(y = y, wt = wt), ref_outer)
 
-## optim and fs method match for regression----
+## perf method calls perf----
+ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
+expect_equal(WH_1d(y = y, wt = wt, method = "perf"), ref_perf)
+
+## fs method calls fs----
+ref_fs <- WH_1d_fs(y = y, wt = wt, reg = TRUE)
+expect_equal(WH_1d(y = y, wt = wt, method = "fs"), ref_fs)
+
+## all methods match for regression----
 expect_equal(ref_fs, ref_outer, tolerance = 1e-6)
+expect_equal(ref_perf, ref_outer, tolerance = 1e-6)
 
 ## REML is default criterion for optim----
-expect_equal(WH_1d(y = y, wt = wt, method = "outer", criterion = "REML"), ref_outer)
+expect_equal(WH_1d(y = y, wt = wt, criterion = "REML"), ref_outer)
 
 ## other criteria work----
 expect_equal(WH_1d(y = y, wt = wt, criterion = "AIC"),
@@ -45,8 +50,8 @@ expect_equal(WH_1d(y = y, wt = wt, criterion = "GCV"),
 ref_fs_red <- WH_1d_fs(y = y, wt = wt, p = 20, reg = TRUE)
 ref_outer_red <- WH_1d_outer(y = y, wt = wt, p = 20, reg = TRUE)
 
-expect_equal(WH_1d(y = y, wt = wt, p = 20), ref_fs_red)
-expect_equal(WH_1d(y = y, wt = wt, method = "outer", p = 20), ref_outer_red)
+expect_equal(WH_1d(y = y, wt = wt, p = 20), ref_outer_red)
+expect_equal(WH_1d(y = y, wt = wt, method = "fs", p = 20), ref_fs_red)
 expect_equal(ref_fs_red, ref_outer_red, tolerance = 1e-6)
 
 # Maximum likelihood----
@@ -58,7 +63,7 @@ expect_equal(WH_1d(d, ec, lambda = 1e2),
 
 ## FS method works and is default----
 ref_ml_fs <- WH_1d_fs(d, ec)
-expect_equal(WH_1d(d, ec), ref_ml_fs)
+expect_equal(WH_1d(d, ec, method = "fs"), ref_ml_fs)
 
 ## optim method works----
 ref_ml_outer <- WH_1d_outer(d, ec)
@@ -72,18 +77,18 @@ expect_equal(ref_ml_fs, ref_ml_outer, tolerance = 1e-1)
 
 ## other criteria work----
 expect_equal(WH_1d(d, ec, criterion = "AIC"),
-             WH_1d_perf(d, ec, criterion = "AIC"))
+             WH_1d_outer(d, ec, criterion = "AIC"))
 expect_equal(WH_1d(d, ec, criterion = "BIC"),
-             WH_1d_perf(d, ec, criterion = "BIC"))
+             WH_1d_outer(d, ec, criterion = "BIC"))
 expect_equal(WH_1d(d, ec, criterion = "GCV"),
-             WH_1d_perf(d, ec, criterion = "GCV"))
+             WH_1d_outer(d, ec, criterion = "GCV"))
 
 ## rank reduction works----
 ref_fs_red <- WH_1d_fs(d, ec, p = 20)
 ref_outer_red <- WH_1d_outer(d, ec, p = 20)
-expect_equal(WH_1d(d, ec, p = 20), ref_fs_red)
-expect_equal(WH_1d(d, ec, method = "outer", p = 20), ref_outer_red)
-expect_equal(ref_fs_red, ref_outer_red, tolerance = 1e-1)
+expect_equal(WH_1d(d, ec, p = 20), ref_outer_red)
+expect_equal(WH_1d(d, ec, method = "fs", p = 20), ref_fs_red)
+expect_equal(ref_fs_red, ref_fs_red, tolerance = 1e-1)
 
 # Extrapolation----
 
