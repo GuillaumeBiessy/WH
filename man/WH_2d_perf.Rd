@@ -15,7 +15,7 @@ WH_2d_perf(
   lambda = c(1000, 1000),
   reg = FALSE,
   verbose = FALSE,
-  accu_edf = 1e-10,
+  accu_edf = 1e-12,
   accu_dev = 1e-12
 )
 }
