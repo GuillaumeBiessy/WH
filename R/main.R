@@ -103,7 +103,7 @@
 #' WH_1d(y = y, wt = wt, method = "perf")
 #' testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
 #'                        WH_1d(y = y, wt = wt, method = "perf"),
-#'                        tolerance = 1e-6)
+#'                        tolerance = 1e-5)
 #' # generalized Fellner-Schall method is exact in regression framework
 #'
 #' WH_1d(y = y, wt = wt, criterion = "GCV")
@@ -664,6 +664,44 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
   return(object)
 }
 
+predict_WH_2d_alt <- function(object, newdata = NULL, ...) {
+
+  if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
+  if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
+    "newdata should be a list with two elements containing the row names and column names for predicted values")
+
+  data <- dimnames(object$y) |> purrr::map(as.numeric)
+  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
+  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
+
+  n <- purrr::map_int(data, length)
+  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
+  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
+  n_pred <- n + n_inf + n_sup
+
+  wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
+  wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
+  which_pos <- which(wt_pred != 0)
+
+  eig <- purrr::pmap(list(
+    data = data, full_data = full_data, q = object$q, p = object$p),
+    extend_eigen_dec_alt)
+
+  U_pred_eig <- purrr::map(eig, "U")
+  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
+
+  y_pred <- U_pred %*% c(object$gamma_hat)
+  std_y_pred <- sqrt(rowSums(U_pred * (U_pred %*% object$Psi)))
+
+  dim(y_pred) <- dim(std_y_pred) <- purrr::map_int(full_data, length) # set dimension for output matrices
+  dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
+
+  object$y_pred <- y_pred
+  object$std_y_pred <- std_y_pred
+
+  return(object)
+}
+
 #' Predict new values using a fitted 2D WH model
 #'
 #' Extrapolate the model for new observations in a way that is consistent with
@@ -1128,7 +1166,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
-                        reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                        reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1237,7 +1275,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
-                       reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                       reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1360,7 +1398,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
-                     reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                     reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1410,9 +1448,11 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
     init_lambda <- TRUE
 
     # Loop
-    while (init_lambda || cond_sum_edf_random) {
+    while (init_lambda || cond_REML) {
 
       if (!init_lambda) lambda <- sum_edf_random / RESS
+
+      old_REML <- if (init_lambda) NA else REML
 
       Psi_chol <- tUWU
       diag(Psi_chol) <- diag(Psi_chol) + lambda * s
@@ -1421,27 +1461,30 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
-      RESS <- sum(gamma_hat * s * gamma_hat)
+      y_hat <- c(U %*% gamma_hat)
+      if (!reg) new_wt <- exp(y_hat + off)
 
-      old_sum_edf_random <- if (init_lambda) NA else sum_edf_random
+      RESS <- sum(gamma_hat * s * gamma_hat)
       sum_edf_random <- sum(Psi * tUWU) - q
-      if (verbose) cat("edf :", format(old_sum_edf_random + q, digits = 3),
-                       "=>", format(sum_edf_random + q, digits = 3), "\n")
-      cond_sum_edf_random <- if (init_lambda) TRUE else {
-        abs(sum_edf_random - old_sum_edf_random) > accu_edf * (old_sum_edf_random + q)
+
+      res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      dev <- sum(res * res)
+      pen <- lambda * RESS
+
+      tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
+      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+      REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
+
+      if (verbose) cat("REML :", format(old_REML, digits = 3),
+                       "=>", format(REML, digits = 3), "\n")
+      cond_REML <- if (init_lambda) TRUE else {
+        REML - old_REML > accu_edf * max(1, abs(old_REML))
       }
       init_lambda <- FALSE
     }
 
-    y_hat <- c(U %*% gamma_hat)
-    if (!reg) new_wt <- exp(y_hat + off)
-
     # update of convergence check
     old_dev_pen <- dev_pen
-
-    res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
-    dev <- sum(res * res)
-    pen <- lambda * RESS
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1583,7 +1626,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda = c(1e3, 1e3),
-                        reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                        reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1699,7 +1742,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda = c(1e3, 1e3),
-                       reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                       reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1834,7 +1877,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
-                     reg = FALSE, verbose = FALSE, accu_edf = 1e-10, accu_dev = 1e-12) {
+                     reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1886,9 +1929,11 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
     init_lambda <- TRUE
 
     # Loop
-    while (init_lambda || cond_sum_edf_random) {
+    while (init_lambda || cond_REML) {
 
       if (!init_lambda) lambda <- sum_edf_random / RESS
+
+      old_REML <- if (init_lambda) NA else REML
 
       s_lambda <- purrr::map2(lambda, s, `*`)
       sum_s_lambda <- s_lambda |> do.call(what = `+`)
@@ -1900,27 +1945,30 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
 
       gamma_hat <- c(Psi %*% tUWz) # fitted value
 
+      y_hat <- c(U %*% gamma_hat)
+      if (!reg) new_wt <- exp(y_hat + off)
+
       RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
       edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
       omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
-
-      old_sum_edf_random <- if (init_lambda) NA else sum_edf_random
       sum_edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
-      if (verbose) cat("edf :", format(old_sum_edf_random + q, digits = 3),
-                       "=>", format(sum_edf_random + q, digits = 3), "\n")
-      cond_sum_edf_random <- if (init_lambda) TRUE else any(abs(sum_edf_random - old_sum_edf_random) > accu_edf * (old_sum_edf_random + q))
+
+      res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      dev <- sum(res * res)
+      pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+
+      tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+      REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
+
+      if (verbose) cat("REML :", format(old_REML, digits = 3),
+                       "=>", format(REML, digits = 3), "\n")
+      cond_REML <- if (init_lambda) TRUE else REML - old_REML > accu_edf * max(1, abs(old_REML))
       init_lambda <- FALSE
     }
 
-    y_hat <- c(U %*% gamma_hat)
-    if (!reg) new_wt <- exp(y_hat + off)
-
     # update of convergence check
     old_dev_pen <- dev_pen
-
-    res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
-    dev <- sum(res * res)
-    pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
