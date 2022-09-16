@@ -99,6 +99,40 @@ extend_eigen_dec <- function(data, full_data, q, p, p_inf, p_sup) {
   return(out)
 }
 
+extend_eigen_dec_alt <- function(data, full_data, q, p) {
+
+  ind_fit <- which(full_data %in% data)
+  ind_inf <- which(full_data < min(data))
+  ind_sup <- which(full_data > max(data))
+
+  n <- length(ind_fit)
+  n_inf <- length(ind_inf)
+  n_sup <- length(ind_sup)
+  n_pred <- length(full_data)
+
+  eig <- eigen_dec(n, q, p)
+
+  D <- build_D_mat(n_pred, q)
+
+  D1_inf <- D[ind_inf, ind_fit]
+  D1_sup <- D[ind_sup - q, ind_fit]
+
+  D2_inf <- D[ind_inf, ind_inf]
+  D2_sup <- D[ind_sup - q, ind_sup]
+
+  D2_inf_inv <- if (nrow(D2_inf) == 0) matrix(0, n_inf, n_inf) else solve(D2_inf)
+  D2_sup_inv <- if (nrow(D2_sup) == 0) matrix(0, n_sup, n_sup) else solve(D2_sup)
+
+  U <- matrix(0, n_pred, p)
+  U[ind_fit,] <- eig$U
+  U[ind_inf,] <- - D2_inf_inv %*% D1_inf %*% eig$U
+  U[ind_sup,] <- - D2_sup_inv %*% D1_sup %*% eig$U
+
+  out <- list(U = U, D = D)
+
+  return(out)
+}
+
 #' Deviance residuals for Poisson GLM
 #'
 #' @param D Vector or matrix containing the number of observed events
