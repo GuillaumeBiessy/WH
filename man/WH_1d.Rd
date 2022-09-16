@@ -134,7 +134,7 @@ WH_1d(y = y, wt = wt)
 WH_1d(y = y, wt = wt, method = "perf")
 testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
                        WH_1d(y = y, wt = wt, method = "perf"),
-                       tolerance = 1e-6)
+                       tolerance = 1e-5)
 # generalized Fellner-Schall method is exact in regression framework
 
 WH_1d(y = y, wt = wt, criterion = "GCV")
