@@ -666,6 +666,7 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
 
 predict_WH_2d_alt <- function(object, newdata = NULL, ...) {
 
+  x <- 2
   if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
     "newdata should be a list with two elements containing the row names and column names for predicted values")

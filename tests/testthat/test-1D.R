@@ -32,8 +32,8 @@ ref_fs <- WH_1d_fs(y = y, wt = wt, reg = TRUE)
 expect_equal(WH_1d(y = y, wt = wt, method = "fs"), ref_fs)
 
 ## all methods match for regression----
-expect_equal(ref_fs, ref_outer, tolerance = 1e-6)
-expect_equal(ref_perf, ref_outer, tolerance = 1e-6)
+expect_equal(ref_fs, ref_outer, tolerance = 1e-5)
+expect_equal(ref_perf, ref_outer, tolerance = 1e-5)
 
 ## REML is default criterion for optim----
 expect_equal(WH_1d(y = y, wt = wt, criterion = "REML"), ref_outer)
@@ -52,7 +52,7 @@ ref_outer_red <- WH_1d_outer(y = y, wt = wt, p = 20, reg = TRUE)
 
 expect_equal(WH_1d(y = y, wt = wt, p = 20), ref_outer_red)
 expect_equal(WH_1d(y = y, wt = wt, method = "fs", p = 20), ref_fs_red)
-expect_equal(ref_fs_red, ref_outer_red, tolerance = 1e-6)
+expect_equal(ref_fs_red, ref_outer_red, tolerance = 1e-5)
 
 # Maximum likelihood----
 
@@ -103,7 +103,7 @@ expect_equal(WH_1d_fs(d, ec) |> predict(newdata),
 ## Regression----
 fs_extra_reg <- WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict(newdata)
 outer_extra_reg <- WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict(newdata)
-expect_equal(fs_extra_reg, outer_extra_reg, tolerance = 1e-6)
+expect_equal(fs_extra_reg, outer_extra_reg, tolerance = 1e-5)
 
 # Maximum likelihood----
 fs_extra_ml <- WH_1d_fs(d, ec) |> predict(newdata)
