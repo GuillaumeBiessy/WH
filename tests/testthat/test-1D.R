@@ -94,18 +94,12 @@ expect_equal(ref_fs_red, ref_fs_red, tolerance = 1e-1)
 
 newdata <- 18:99
 
-expect_equal(WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict(newdata),
-             WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict_WH_1d_old(newdata))
-
-expect_equal(WH_1d_fs(d, ec) |> predict(newdata),
-             WH_1d_fs(d, ec) |> predict_WH_1d_old(newdata))
-
 ## Regression----
 fs_extra_reg <- WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict(newdata)
 outer_extra_reg <- WH_1d_fs(y = y, wt = wt, reg = TRUE) |> predict(newdata)
 expect_equal(fs_extra_reg, outer_extra_reg, tolerance = 1e-5)
 
-# Maximum likelihood----
+## Maximum likelihood----
 fs_extra_ml <- WH_1d_fs(d, ec) |> predict(newdata)
 outer_extra_ml <- WH_1d_outer(d, ec) |> predict(newdata)
 expect_equal(fs_extra_ml, outer_extra_ml, tolerance = 1e-1)
@@ -122,7 +116,7 @@ WH_1d_fs(y = y, wt = wt, reg = TRUE) |> plot("res")
 WH_1d_outer(y = y, wt = wt, reg = TRUE) |> plot("edf")
 WH_1d_fs(y = y, wt = wt, reg = TRUE) |> plot("edf")
 
-# Maximum likelihood----
+## Maximum likelihood----
 WH_1d_outer(d, ec) |> plot()
 WH_1d_fs(d, ec) |> plot()
 

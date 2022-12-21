@@ -510,74 +510,6 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   return(object)
 }
 
-#' Predict new values using a fitted 1D WH model
-#'
-#' Extrapolate the model for new observation. There is now a simpler version of
-#' this function.
-#'
-#' @param object An object of class `"WH_1d"` returned by the [WH_1d()] function
-#' @param newdata A vector containing the new observation positions
-#' @param unconstrained Should the unconstrained (approximate) solution be also
-#'   computed ? Only used to justify the need for a constrained solution.
-#' @param ... Not used
-#'
-#' @returns An object of class `"WH_1d"` with additional components for model
-#'   prediction.
-#'
-#' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
-#'
-#' WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
-#'
-#' @export
-predict_WH_1d_old <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
-
-  if (!inherits(object, "WH_1d")) stop("object must be of class WH_1d")
-  if (!is.numeric(newdata)) stop("newdata should be a vector containing the names of predicted values")
-  if (length(unconstrained) != 1 || !is.logical(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
-  if (unconstrained) warning("the unconstrained argument is only for academic purposes")
-
-  data <- as.numeric(names(object$y))
-  full_data <- sort(union(data, newdata))
-  ind <- order(c(data, setdiff(full_data, data)))
-
-  n <- length(data)
-  n_pred <- length(full_data)
-
-  C <- diag(1L, n, n_pred)[, ind] # constraint matrix
-
-  wt_pred <- c(t(C) %*% object$wt)
-  W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- build_D_mat(n_pred, object$q) # extended difference matrices
-  P_pred <- object$lambda * crossprod(D_mat_pred) # extended penalization matrix
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-
-  if (unconstrained) {
-
-    W <- diag(object$wt)
-    D_mat <- build_D_mat(n, object$q)
-    P <- object$lambda * crossprod(D_mat)
-    Psi_inv <- W + P
-
-  } else {
-
-    Psi_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
-  }
-
-  A_pred <- Psi_pred %*% t(C) %*% Psi_inv
-  y_pred <- c(A_pred %*% object$y_hat)
-  std_y_pred <- sqrt(colSums(t(A_pred) * ((object$U %*% object$Psi %*% t(object$U)) %*% t(A_pred))))
-
-  names(y_pred) <- names(std_y_pred) <- full_data
-
-  object$y_pred <- y_pred
-  object$std_y_pred <- std_y_pred
-
-  return(object)
-}
-
 #' Predict new values using a fitted 2D WH model
 #'
 #' Extrapolate the model for new observations in a way that is consistent with
@@ -655,7 +587,7 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
   y_pred <- A_pred %*% c(object$gamma_hat)
   std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% object$Psi)))
 
-  dim(y_pred) <- dim(std_y_pred) <- purrr::map_int(full_data, length) # set dimension for output matrices
+  dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
 
   object$y_pred <- y_pred
@@ -664,7 +596,7 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
   return(object)
 }
 
-predict_WH_2d_alt <- function(object, newdata = NULL, ...) {
+predict_WH_2d_naive <- function(object, newdata = NULL, ...) {
 
   if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
@@ -672,20 +604,10 @@ predict_WH_2d_alt <- function(object, newdata = NULL, ...) {
 
   data <- dimnames(object$y) |> purrr::map(as.numeric)
   full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
-
-  n <- purrr::map_int(data, length)
-  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
-  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
-  n_pred <- n + n_inf + n_sup
-
-  wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
-  wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
-  which_pos <- which(wt_pred != 0)
 
   eig <- purrr::pmap(list(
     data = data, full_data = full_data, q = object$q, p = object$p),
-    extend_eigen_dec_alt)
+    extend_eigen_dec_naive)
 
   U_pred_eig <- purrr::map(eig, "U")
   U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
@@ -734,51 +656,209 @@ predict_WH_2d_old <- function(object, newdata = NULL, unconstrained = FALSE, ...
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
     "newdata should be a list with two elements containing the row names and column names for predicted values")
   if (length(unconstrained) != 1 || !is.logical(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
-  if (unconstrained) warning("the unconstrained argument is only for academic purposes")
 
   data <- dimnames(object$y) |> purrr::map(as.numeric)
   full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind <- purrr::map2(data, full_data, \(x,y) order(c(x, setdiff(y, x))))
+  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
 
   n <- purrr::map_int(data, length)
-  n_pred <- purrr::map_int(full_data, length)
+  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
+  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
+  n_pred <- n + n_inf + n_sup
 
-  C <- purrr::map2(n, n_pred, \(x,y) diag(1L, x, y)) |>
-    purrr::map2(ind, \(x,y) x[,y]) |>
-    rev() |>
-    purrr::reduce(kronecker) # constraint matrix
+  wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
+  wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
 
-  wt_pred <- c(t(C) %*% c(object$wt))
-  W_pred <- diag(wt_pred) # extended weight matrix
+  # W_pred <- diag(wt_pred) # extended weight matrix
   D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
-  Psi_pred <- (W_pred + P_pred) |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+  diag(P_pred) <- diag(P_pred) + c(wt_pred)
+  Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
+
+  ind_rows <- c(rep(FALSE, n_inf[[1]]), rep(TRUE, n[[1]]), rep(FALSE, n_sup[[1]]))
+  ind_coef_2d <- c(rep(FALSE, n_pred[[1]] * n_inf[[2]]), rep(ind_rows, n[[2]])) |> which()
 
   if (unconstrained) {
 
-    W <- diag(c(object$wt))
     D_mat <- purrr::map2(n, object$q, build_D_mat) # extended difference matrices
-    P <- object$lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
+    Psi_inv <- object$lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
       object$lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]])
-    Psi_inv <- W + P
+    diag(Psi_inv) <- diag(Psi_inv) + c(object$wt)
 
   } else {
 
-    Psi_inv <- (C %*% Psi_pred %*% t(C)) |> chol() |> chol2inv()
+    Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
   }
 
-  A_pred <- Psi_pred %*% t(C) %*% Psi_inv
+  A_pred <- Psi_pred[,ind_coef_2d] %*% Psi_inv
   y_pred <- c(A_pred %*% c(object$y_hat))
   std_y_pred <- sqrt(colSums(t(A_pred) * ((object$U %*% object$Psi %*% t(object$U)) %*% t(A_pred))))
 
-  dim(y_pred) <- dim(std_y_pred) <- purrr::map_int(full_data, length) # set dimension for output matrices
+  dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
 
   return(object)
+}
+
+#' @export
+extrapolate_1d_no_data <- function(y_hat, newdata, q = 2) {
+
+  data <- as.numeric(names(y_hat))
+  full_data <- sort(union(data, newdata))
+
+  n <- length(data)
+  n_pred <- length(full_data)
+  n_new <- n_pred - n
+
+  ind_fit <- which(full_data %in% data)
+  ind_inf <- which(full_data < min(data))
+  ind_sup <- which(full_data > max(data))
+  ind_new <- c(ind_inf, ind_sup)
+
+  eig <- eigen_dec(n, q, n)
+  U <- eig$U
+  s <- eig$s
+
+  gamma_hat <- c(t(U) %*% y_hat)
+  RESS <- sum(gamma_hat * s * gamma_hat)
+
+  find_lambda_1d <- function(RESS, s, q) {
+
+    f <- function(rho) exp(rho) %>% {. * RESS - sum(1 / (1 + . * s)) + q}
+    fp <- function(rho) exp(rho) %>% {. * RESS + sum(. * s / (1 + . * s) ^ 2)}
+
+    rho <- 0
+    cond_rho <- TRUE
+    while (cond_rho) {
+
+      old_rho <- rho
+      rho <- old_rho - f(rho) / fp(rho)
+      cond_rho <- abs(rho - old_rho) >= 1e-6
+    }
+
+    exp(rho)
+  }
+
+  lambda <- find_lambda_1d(RESS, s, q)
+  Psi <- diag(n)
+  diag(Psi) <- 1 / (1 + lambda * s)
+
+  D_mat_pred <- build_D_mat(n_pred, q)
+
+  D1_inf <- D_mat_pred[ind_inf, ind_fit, drop = FALSE]
+  D1_sup <- D_mat_pred[ind_sup - q, ind_fit, drop = FALSE]
+  D1 <- rbind(D1_inf, D1_sup)
+
+  D2_inf <- D_mat_pred[ind_inf, ind_inf, drop = FALSE]
+  D2_sup <- D_mat_pred[ind_sup - q, ind_sup, drop = FALSE]
+  D2 <- blockdiag(D2_inf, D2_sup)
+
+  D2_inv <- if (nrow(D2) == 0) matrix(0, n_new, n_new) else solve(D2)
+
+  A_pred <- matrix(0, n_pred, n)
+  A_pred[ind_fit,] <- U
+  A_pred[ind_new,] <- - D2_inv %*% D1 %*% U
+
+  y_pred <- c(A_pred %*% gamma_hat)
+  std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% Psi)))
+
+  names(y_pred) <- names(std_y_pred) <- full_data
+
+  out <- list(y_hat = y_hat, y_pred = y_pred, std_y_pred = std_y_pred)
+
+  return(out)
+}
+
+#' @export
+extrapolate_2d_no_data <- function(y_hat, newdata, q = c(2, 2)) {
+
+  data <- dimnames(y_hat) |> purrr::map(as.numeric)
+  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
+  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
+
+  n <- purrr::map_int(data, length)
+  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
+  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
+  n_pred <- n + n_inf + n_sup
+
+  eig <- purrr::pmap(list(n = n, q = q, p = n), eigen_dec)
+  U_eig <- purrr::map(eig, "U")
+  U <- U_eig |> rev() |> purrr::reduce(kronecker)
+  s_eig <- purrr::map(eig, "s")
+  s <- list(rep(s_eig[[1]], n[[2]]), rep(s_eig[[2]], each = n[[1]]))
+
+  gamma_hat <- c(t(U) %*% c(y_hat))
+  RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+
+  find_lambda_2d <- function(RESS, s, q) {
+
+    rho <- rep(0, 2)
+    cond_rho <- TRUE
+    while (cond_rho) {
+
+      lambda <- exp(rho)
+      s_lambda <- purrr::map2(lambda, s, `*`)
+      sum_s_lambda <- s_lambda |> do.call(what = `+`)
+
+      omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+      edf_par <- 1 / (1 + sum_s_lambda) # effective degrees of freedom by parameter
+
+      f_j <- lambda * RESS - purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
+      fp_j <- matrix(0, 2, 2)
+      for (j in seq_len(2)) {
+        for (l in seq_len(2)) {
+          fp_j[j, l] <- (j == l) * lambda[[j]] * RESS[[j]] -
+            sum(omega_j[[j]] * ((j == l) - omega_j[[l]]) * edf_par - omega_j[[j]] * s_lambda[[l]] * edf_par ^ 2)
+        }
+      }
+
+      old_rho <- rho
+      rho <- c(old_rho - solve(fp_j) %*% f_j)
+      cond_rho <- max(abs(rho - old_rho)) >= 1e-6
+    }
+    exp(rho)
+  }
+
+  lambda <- find_lambda_2d(RESS, s, q)
+  s_lambda <- purrr::map2(lambda, s, `*`)
+  sum_s_lambda <- s_lambda |> do.call(what = `+`)
+  Psi <- diag(prod(n))
+  diag(Psi) <- 1 / (1 + sum_s_lambda)
+
+  eig <- purrr::pmap(list(
+    data = data, full_data = full_data, q = q, p = n, p_inf = n_inf, p_sup = n_sup),
+    extend_eigen_dec)
+
+  U_pred_eig <- purrr::map(eig, "U")
+  D_eig <- purrr::map(eig, "D")
+  DU_eig <-  purrr::map2(D_eig, U_pred_eig, `%*%`)
+  cross_DU_eig <- purrr::map(DU_eig, crossprod)
+  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
+  cross_U_eig <- purrr::map(U_pred_eig, crossprod)
+
+  S_lambda <- lambda[[1]] * cross_U_eig[[2]] %x% cross_DU_eig[[1]] +
+    lambda[[2]] * cross_DU_eig[[2]] %x% cross_U_eig[[1]]
+
+  Psi_pred <- (diag(prod(n_pred)) + S_lambda) |> chol() |> chol2inv()
+
+  ind_coef_2d <- rep(c(rep(TRUE, n[[1]]), rep(FALSE, (n_inf + n_sup)[[1]])), n[[2]]) |> which()
+
+  Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
+
+  A_pred <- U_pred %*% Psi_pred[,ind_coef_2d] %*% Psi_inv
+  y_pred <- A_pred %*% c(gamma_hat)
+  std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% Psi)))
+
+  dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
+  dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
+
+  out <- list(y_hat = y_hat, y_pred = y_pred, std_y_pred = std_y_pred)
+
+  return(out)
 }
 
 # Formatting----
@@ -1066,6 +1146,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
   U <- eig$U
   s <- eig$s
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1080,7 +1161,6 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1124,7 +1204,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- if (reg) FALSE else ((old_dev_pen - dev_pen) > accu_dev * sum_d)
+    cond_dev_pen <- if (reg) FALSE else ((old_dev_pen - dev_pen) > accu_dev * sum_wt)
   }
 
   edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
@@ -1158,7 +1238,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 #' @param lambda Initial smoothing parameter
 #' @param verbose Should information about the optimization progress be
 #'   displayed
-#' @param accu_edf Tolerance for the convergence of the outer optimization
+#' @param accu_crit Tolerance for the convergence of the outer optimization
 #'   procedure
 #'
 #' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
@@ -1166,7 +1246,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
-                        reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                        reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1175,6 +1255,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
   U <- eig$U
   s <- eig$s
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1189,7 +1270,6 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1244,7 +1324,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                        "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-      cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+      cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
     }
 
     sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
@@ -1260,7 +1340,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
            })
   }
 
-  lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
+  lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_crit * sum_wt)$minimum)
   out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
 
   return(out)
@@ -1275,7 +1355,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
-                       reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                       reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1284,6 +1364,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
   U <- eig$U
   s <- eig$s
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1298,7 +1379,6 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1358,7 +1438,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
              })
     }
 
-    lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_edf)$minimum)
+    lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_crit * sum_wt)$minimum)
 
     Psi_chol <- tUWU
     diag(Psi_chol) <- diag(Psi_chol) + lambda * s
@@ -1381,7 +1461,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
   out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
@@ -1398,7 +1478,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 #'   the quality of the fit.
 #' @keywords internal
 WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
-                     reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                     reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) length(y) else length(d)
@@ -1407,6 +1487,7 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
   U <- eig$U
   s <- eig$s
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1421,7 +1502,6 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1478,7 +1558,7 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
       if (verbose) cat("REML :", format(old_REML, digits = 3),
                        "=>", format(REML, digits = 3), "\n")
       cond_REML <- if (init_lambda) TRUE else {
-        REML - old_REML > accu_edf * max(1, abs(old_REML))
+        REML - old_REML > accu_crit * sum_wt
       }
       init_lambda <- FALSE
     }
@@ -1489,7 +1569,7 @@ WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
   out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
@@ -1524,6 +1604,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1538,7 +1619,6 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1585,7 +1665,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
   edf_par <- colSums(Psi * tUWU) |> matrix(p[[1]], p[[2]]) # effective degrees of freedom by parameter
@@ -1626,7 +1706,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda = c(1e3, 1e3),
-                        reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                        reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1637,6 +1717,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1651,7 +1732,6 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1709,7 +1789,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                        "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-      cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+      cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
     }
 
     sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
@@ -1727,7 +1807,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
   lambda <- exp(stats::optim(par = log(lambda),
                              fn = WH_2d_aux,
-                             control = list(reltol = accu_edf))$par)
+                             control = list(reltol = accu_crit * sum_wt))$par)
   out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
 
   return(out)
@@ -1742,7 +1822,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda = c(1e3, 1e3),
-                       reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                       reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1753,6 +1833,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1767,7 +1848,6 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1831,7 +1911,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
     lambda <- exp(stats::optim(par = log(lambda),
                                fn = WH_2d_aux,
-                               control = list(reltol = accu_edf))$par)
+                               control = list(reltol = accu_crit * sum_wt))$par)
 
     s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
@@ -1860,7 +1940,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
   out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
@@ -1877,7 +1957,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 #'   the quality of the fit.
 #' @keywords internal
 WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
-                     reg = FALSE, verbose = FALSE, accu_edf = 1e-12, accu_dev = 1e-12) {
+                     reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
@@ -1888,6 +1968,7 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
   s_eig <- purrr::map(eig, "s")
   s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
 
+  sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
   n_pos <- length(which_pos)
   U_pos <- U[which_pos,]
@@ -1902,7 +1983,6 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
 
   } else {
 
-    sum_d <- sum(d)
     off <- log(pmax(ec, 1e-4))
     y <- ifelse(d == 0, NA, log(d)) - off
     y_hat <- log(pmax(d, 1e-8)) - off
@@ -1963,7 +2043,7 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
 
       if (verbose) cat("REML :", format(old_REML, digits = 3),
                        "=>", format(REML, digits = 3), "\n")
-      cond_REML <- if (init_lambda) TRUE else REML - old_REML > accu_edf * max(1, abs(old_REML))
+      cond_REML <- if (init_lambda) TRUE else REML - old_REML > accu_crit * sum_wt
       init_lambda <- FALSE
     }
 
@@ -1973,7 +2053,7 @@ WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
                      "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_d
+    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
   out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)

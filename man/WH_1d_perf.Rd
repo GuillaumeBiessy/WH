@@ -15,7 +15,7 @@ WH_1d_perf(
   lambda = 1000,
   reg = FALSE,
   verbose = FALSE,
-  accu_edf = 1e-12,
+  accu_crit = 1e-12,
   accu_dev = 1e-12
 )
 }
@@ -44,7 +44,7 @@ stop after the first iteration.}
 \item{verbose}{Should information about the optimization progress be
 displayed}
 
-\item{accu_edf}{Tolerance for the convergence of the outer optimization
+\item{accu_crit}{Tolerance for the convergence of the outer optimization
 procedure}
 
 \item{accu_dev}{Tolerance for the convergence of the optimization procedure}

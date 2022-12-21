@@ -93,12 +93,13 @@ expect_equal(rr_fs |> predict(newdata),
 
 expect_equal(rr_fs |> predict(newdata, n_coef = 10),
              rr_fs |> predict_WH_2d_old(newdata), tolerance = 5e-3)
+
 # Plots----
 
 rr_fs |> plot()
 rr_fs |> plot("std_y_hat")
 
-rr_fs |> predict_WH_2d_alt(newdata) |> plot()
+rr_fs |> predict_WH_2d_naive(newdata) |> plot()
 
 extra_fs |> plot()
 extra_fs |> plot("std_y_hat")

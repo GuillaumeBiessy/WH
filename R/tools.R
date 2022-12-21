@@ -99,7 +99,7 @@ extend_eigen_dec <- function(data, full_data, q, p, p_inf, p_sup) {
   return(out)
 }
 
-extend_eigen_dec_alt <- function(data, full_data, q, p) {
+extend_eigen_dec_naive <- function(data, full_data, q, p) {
 
   ind_fit <- which(full_data %in% data)
   ind_inf <- which(full_data < min(data))
