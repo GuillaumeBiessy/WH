@@ -391,13 +391,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
         "smoothing parameters should be strictly positive numbers")
       method <- "fixed_lambda"
     } else {
-      if (criterion == "REML") {
-        if (!quiet) message("Using generalized Fellner-Schall method")
-        method <- "fs"
-      } else {
-        if (!quiet) message("Using performance iteration / Nelder-Mead method")
-        method = "perf"
-      }
+      if (!quiet) message("Using performance iteration / Nelder-Mead method")
+      method <- "perf"
     }
   }
   methods <- c("fixed_lambda", "fs", "perf", "outer")
