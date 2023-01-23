@@ -375,11 +375,7 @@ The optimal smoothing parameter is determined according to a statistical criteri
 
 * Likelihood-based criteria such as profile likelihood or restricted maximum likelihood (REML), a variant that accounts for the complexity of the model. Such criteria, while being less interesting in the asymptotic case, proved to perform better in most real-life situations with finite size samples.
 
-At the time of writing the WH package allows AIC, BIC, GCV and REML, the default, to be selected. Once this choice has been made, the package uses a recursive algorithm to find the optimal smoothing parameter according to the selected criterion:
-
-* In the case AIC, BIC or GCV is chosen, the `optimize` function is used in the one-dimension case [see @brent1973optimize] and the `optim` function with the Nelder-Mead algorithm [see @nelder1965optim] in the two-dimension case. Both functions come from the stats package and perform adequate optimization in the absence of derivatives. They may also be used with the REML criteria.
-
-* In the case REML (the default) is chosen, the generalized Fellner-Schall method [@wood2017fellner] is used instead. Compared to the previous solution it allows for faster solving of the problem, especially in the two-dimension case where the number of observation points is high. The Fellner-Schall generalized update leads to an approximate solution when the maximum likelihood framework is used, yet this has little impact in practice.
+At the time of writing the WH package allows REML (the default), AIC, BIC and GCV criteria to be selected. The `optimize` function is used in the one-dimension case [see @brent1973optimize] and the `optim` function with the Nelder-Mead algorithm [see @nelder1965optim] in the two-dimension case. Both functions come from the stats package and perform adequate optimization in the absence of derivatives.
 
 ### Long answer
 
