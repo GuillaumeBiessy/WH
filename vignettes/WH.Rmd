@@ -349,7 +349,7 @@ $$
 
 by noting $\eta_k = X\beta_k$, $\Psi_k = (X^{T}W_kX + P_\lambda)^{- 1}$, $W_k = \text{Diag}(\exp(\eta_k) \odot e_c)$ and $z_k = \eta_k + W_k^{- 1}[d - \exp(\eta_k) \odot e_c]$. Setting $\eta_0 = \ln d - \ln e_c$ yields an adequate starting point to the algorithm (the starting $\beta_0$ does not have to be provided). This implies that $W_0 = \text{Diag}(d)$ and $\mathbf{z}_0 = \ln d - \ln e_c$ which corresponds to the observations and weights used in the regression framework. The update of $\beta_k$ in the Newton optimization step boils down to applying WH smoothing to the couple ($z_k$, $W_k$). The first estimator $\beta_1$ computed is therefore the solution of WH smoothing in the regression framework. Further iterations relies on the *working vector* $z_k$ and associated weights $W_k$ that are adjusted at each step based on the previous step results.
 
-The posterior distribution of $\beta | y$ may be asymptotically approached by $\mathcal{N}(\hat{\beta}, (X^TW_{\hat{\beta}}X + P_\lambda)^{- 1})$, which allows $100(1 -\alpha)\%$ credibility intervales of the form $\left[\hat{\beta} \pm \Phi(1 - \alpha / 2) \sqrt{\text{diag}\lbrace(X^TW_{\hat{\beta}}X + P_\lambda)^{- 1}\rbrace}\right]$ where $\Phi$ is the cumulative distribution function of the normal distribution. 
+The posterior distribution of $\beta | y$ may be asymptotically approached by $\mathcal{N}(\hat{\beta}, (X^TW_{\hat{\beta}}X + P_\lambda)^{- 1})$, which allows $100(1 -\alpha)\%$ credibility intervals of the form $\left[\hat{\beta} \pm \Phi(1 - \alpha / 2) \sqrt{\text{diag}\lbrace(X^TW_{\hat{\beta}}X + P_\lambda)^{- 1}\rbrace}\right]$ where $\Phi$ is the cumulative distribution function of the normal distribution. 
 
 ## How is the optimal smoothing parameter determined ?
 
@@ -361,30 +361,10 @@ The optimal smoothing parameter is determined according to a statistical criteri
 
 * Likelihood-based criteria such as profile likelihood or restricted maximum likelihood (REML), a variant that accounts for the complexity of the model. Such criteria, while being less interesting in the asymptotic case, proved to perform better in most real-life situations with finite size samples.
 
-At the time of writing the WH package allows AIC, BIC, GCV and REML, the default, to be selected. Once this choice has been made, the package uses a recursive algorithm to find the optimal smoothing parameter according to the selected criterion:
-
-* In the case AIC, BIC or GCV is chosen, the `optimize` function is used in the one-dimension case [see @brent1973optimize] and the `optim` function with the Nelder-Mead algorithm [see @nelder1965optim] in the two-dimension case. Both functions come from the stats package and perform adequate optimization in the absence of derivatives. They may also be used with the REML criteria.
-
-* In the case REML (the default) is chosen, the generalized Fellner-Schall method [@wood2017fellner] is used instead. Compared to the previous solution it allows for faster solving of the problem, especially in the two-dimension case where the number of observation points is high. The Fellner-Schall generalized update leads to an approximate solution when the maximum likelihood framework is used, yet this has little impact in practice.
+At the time of writing the WH package allows REML (the default), AIC, BIC and GCV criteria to be selected. The `optimize` function is used in the one-dimension case [see @brent1973optimize] and the `optim` function with the Nelder-Mead algorithm [see @nelder1965optim] in the two-dimension case. Both functions come from the stats package and perform adequate optimization in the absence of derivatives.
 
 ### Long answer
 
 See the upcoming paper !
-
-<!-- # How does the package handle large matrix with a lot of observations ? -->
-
-<!-- In the two-dimension case, while working for example on disability or long-term care survival rates, the problem dimension can easily becomes too large to handle : -->
-
-<!-- * For the french disability public scheme, temporary disability coverage extends from ages 18 to 66 and may last for 36 months, meaning the monthly data will be stored in a $49\times36$ matrix. That is 1,764 data points ! -->
-
-<!-- * For the french disability public scheme, permanent disability coverage extends from ages 20 to 61 and may last until age 61, meaning the data will be in a $42\times42$ matrix. That is also 1,764 data points ! -->
-
-<!-- * For french long-term care covers, while most LTC claims occurs at old ages, the covers extends from age of subscribing until death. The annuity also last until death. Assuming that claims occur from age 50 until age 109 and may last 30 years, that is still 1,800 data points. -->
-
-<!-- # FAQ -->
-
-<!-- ## Should I use WH smoothing to create prospective mortality tables ? -->
-
-<!-- Smoothing methods rely on the assumption that the underlying law that one wants to estimate is smooth. In the [Confidence / credibility intervals subsection]{cred} this assumption is even formally introduced as an *a priori* on the parameter distribution. Period mortality has a lot of yearly mortality caused by both climatic (heatwaves, cold winters) and epidemiologic (seasonal flue, pandemics) phenomena. Should smoothing be used in that case, then this year-to-year volatily will be treated as a smooth but extremely volatile trend in the data which will result in extremly volatile predictions in the forecasting step. -->
 
 # References {-}

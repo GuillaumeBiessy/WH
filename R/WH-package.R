@@ -7,9 +7,8 @@
 #' Smoothing is applied to vectors / matrices containing the number of observed
 #' events and the associated central risk exposure in the framework of maximum
 #' likelihood estimation or an approximate regression framework. Optimal
-#' parameter selection relies on [stats::optimize()] function and the
-#' Nelder-Mead algorithm from the [stats::optim()] function in the stats package
-#' or uses the generalized Fellner-Schall method.
+#' parameter selection relies on the [stats::optimize()] function and the
+#' Nelder-Mead algorithm from the [stats::optim()] function in the stats package.
 #'
 #' @docType package
 #' @name WH-package

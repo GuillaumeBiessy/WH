@@ -12,7 +12,6 @@ or 2 dimensions and performs automatic selection of the smoothing parameters.
 Smoothing is applied to vectors / matrices containing the number of observed
 events and the associated central risk exposure in the framework of maximum
 likelihood estimation or an approximate regression framework. Optimal
-parameter selection relies on \code{\link[stats:optimize]{stats::optimize()}} function and the
-Nelder-Mead algorithm from the \code{\link[stats:optim]{stats::optim()}} function in the stats package
-or uses the generalized Fellner-Schall method.
+parameter selection relies on the \code{\link[stats:optimize]{stats::optimize()}} function and the
+Nelder-Mead algorithm from the \code{\link[stats:optim]{stats::optim()}} function in the stats package.
 }

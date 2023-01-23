@@ -55,7 +55,7 @@ dimensions of (square) matrices involved in the optimization problem
 remains lower that the \code{max_dim} argument}
 
 \item{max_dim}{Number of parameters to be kept in the optimization problem.
-Default is \code{250}. Values higher than \code{2000} may result in very high
+Default is \code{200}. Values higher than \code{2000} may result in very high
 computation times and memory usage.}
 
 \item{q}{Order of penalization vector of size \code{2}. Polynoms of degrees
