@@ -27,12 +27,7 @@ expect_equal(WH_1d(y = y, wt = wt), ref_outer)
 ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
 expect_equal(WH_1d(y = y, wt = wt, method = "perf"), ref_perf)
 
-## fs method calls fs----
-ref_fs <- WH_1d_fs(y = y, wt = wt, reg = TRUE)
-expect_equal(WH_1d(y = y, wt = wt, method = "fs"), ref_fs)
-
 ## all methods match for regression----
-expect_equal(ref_fs, ref_outer, tolerance = 1e-5)
 expect_equal(ref_perf, ref_outer, tolerance = 1e-5)
 
 ## outer is default criterion for optim----

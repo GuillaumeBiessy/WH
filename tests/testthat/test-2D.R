@@ -88,18 +88,10 @@ expect_equal(extra_perf,
              extra_outer,
              tolerance = 1e-1)
 
-expect_equal(rr_perf |> predict(newdata),
-             rr_perf |> predict_WH_2d_old(newdata), tolerance = 1e-2)
-
-expect_equal(rr_perf |> predict(newdata, n_coef = 10),
-             rr_perf |> predict_WH_2d_old(newdata), tolerance = 5e-3)
-
 # Plots----
 
 rr_perf |> plot()
 rr_perf |> plot("std_y_hat")
-
-rr_perf |> predict_WH_2d_naive(newdata) |> plot()
 
 extra_perf |> plot()
 extra_perf |> plot("std_y_hat")

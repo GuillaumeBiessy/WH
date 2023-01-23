@@ -4,14 +4,14 @@
 #'
 #' Main package function to apply Whittaker-Henderson smoothing in a
 #' unidimensional survival analysis framework. It takes as input a vector of
-#' observed events and a vector of associated central exposure, both depending
-#' on a single covariate, and build a smooth version of the log-hazard rate.
-#' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' observed events and a vector of associated central exposure, both
+#' depending on a single covariate, and build a smooth version of the log-hazard
+#' rate. Smoothing parameters may be supplied or automatically chosen according
+#' to an adequate criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
 #' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
-#' framework or an asymptotic (approximate) gaussian framework.
+#' framework (the default) or an approximate gaussian framework.
 #'
-#' @param d Vector of observed events whose elements should be named.
+#' @param d Vector of observed events, with named elements.
 #' @param ec Vector of central exposure. The central exposure corresponds to the
 #'   sum of the exposure period over the insured population. An individual
 #'   experiencing an event of interest during the year will no longer be exposed
@@ -26,18 +26,17 @@
 #'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
 #' @param method Method to be used to find the optimal smoothing parameter.
 #'   Default to `"fixed_lambda"` if `lambda` is supplied, meaning no
-#'   optimization is performed. Otherwise, if `criterion = "REML"` or the
-#'   `criterion` argument is missing, default to `"fs"` which means the
-#'   generalized Fellner-Schall method is used. For other criteria default to
-#'   `"perf"` meaning the `optimize` function from package `stats` will be
-#'   used.
+#'   optimization is performed. Otherwise, default to `"perf"` which means the
+#'   performance iteration method is used. The alternative `"outer"` method is
+#'   guaranteed to converge but slower. Both those methods rely on the
+#'   `optimize` function from package `stats`.
 #' @param q Order of penalization. Polynoms of degrees `q - 1` are considered
 #'   smooth and are therefore unpenalized. Should be left to the default of `2`
 #'   for most practical applications.
 #' @param framework Default framework is `"ml"` which stands for maximum
-#'   likelihood unless the `y` argument is also provided, in which case the
+#'   likelihood unless the `y` argument is also provided, in which case an
 #'   `"reg"` or regression framework is used. The regression framework is an
-#'   asymptotical approximation of the maximum likelihood likelihood framework.
+#'   approximate gaussian framework is used instead.
 #' @param y Optional vector of observations whose elements should be named. Used
 #'   only in the regression framework and even in this case will be
 #'   automatically computed from the `d` and `ec` arguments if those are
@@ -49,8 +48,7 @@
 #'   using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #' @param quiet Should messages and warnings be displayed ? Default to `FALSE`,
-#'   may be set to `TRUE` for experts who want to make numerous calls to this
-#'   function.
+#'   may be set to `TRUE` if numerous calls to this function are made.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
 #' @returns An object of class `WH_1d` i.e. a list containing :
@@ -81,13 +79,12 @@
 #'
 #' # Maximum likelihood
 #' WH_1d(d, ec, lambda = 1e2)
-#' WH_1d(d, ec) # default generalized Fellner-Schall method
-#' WH_1d(d, ec, method = "perf") # alternative method base on optimize function
+#' WH_1d(d, ec) # default performance iteration method based on the optimize function
 #'
-#' testthat::expect_equal(WH_1d(d, ec, method = "fs"),
-#'                        WH_1d(d, ec, method = "perf"),
+#' testthat::expect_equal(WH_1d(d, ec),
+#'                        WH_1d(d, ec, method = "outer"),
 #'                        tolerance = 1e-1)
-#' # generalized Fellner-Schall method is approximate in maximum likelihood framework
+#' # performance iteration method is approximate in maximum likelihood framework
 #'
 #' WH_1d(d, ec, criterion = "GCV")
 #' # alternative optimization criteria for smoothing parameter selection
@@ -100,14 +97,10 @@
 #' # Setting framework = "reg" forces computation of y from d and ec
 #'
 #' WH_1d(y = y, wt = wt)
-#' WH_1d(y = y, wt = wt, method = "perf")
-#' testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
-#'                        WH_1d(y = y, wt = wt, method = "perf"),
+#' testthat::expect_equal(WH_1d(y = y, wt = wt),
+#'                        WH_1d(y = y, wt = wt, method = "outer"),
 #'                        tolerance = 1e-5)
-#' # generalized Fellner-Schall method is exact in regression framework
-#'
-#' WH_1d(y = y, wt = wt, criterion = "GCV")
-#' # alternative optimization criteria for smoothing parameter selection
+#' # performance iteration method is exact in regression framework
 #'
 #' @export
 WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, quiet = FALSE, ...) {
@@ -174,11 +167,10 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
       method <- "outer"
     }
   }
-  methods <- c("fixed_lambda", "fs", "perf", "outer")
+  methods <- c("fixed_lambda", "perf", "outer")
   if (length("method") != 1 || !(method %in% methods)) stop(
     "method should be one of ", paste(methods, collapse = ", "))
 
-  if (method == "fs" && criterion != "REML") stop("Only REML method available for the FS algorithm")
   if (missing(lambda)) {
     lambda <- 1e3
   } else {
@@ -210,13 +202,12 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' observed events and a matrix of associated central exposure, both depending
 #' on two covariates, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to a
-#' specific criterion such as `"REML"` (the default), `"AIC"`,
-#' `"BIC"` or `"GCV"`. Whittaker-Henderson may be applied in a full
-#' maximum likelihood framework or an asymptotic (approximate) gaussian
-#' framework. As Whittaker-Henderson smoothing relies on full-rank smoothers,
-#' computation time and memory usage in the bidimensional case may be
-#' overwhelming and the function integrates an ad hoc rank-reduction procedure
-#' to avoid such issues.
+#' specific criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
+#' framework or an approximate gaussian framework. As Whittaker-Henderson
+#' smoothing relies on full-rank smoothers, computation time and memory usage in
+#' the bidimensional case may prove overwhelming and the function integrates a
+#' rank-reduction procedure to avoid such issues.
 #'
 #' @inheritParams WH_1d
 #' @param d Matrix of observed events whose rows and columns should be named.
@@ -232,28 +223,33 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #'   place unless the `criterion` argument is also provided, in which case
 #'   `lambda` will be used as the starting parameter for the optimization
 #'   procedure.
-#' @param p Optional vector of size `2`. Maximum number of eigenvectors to
-#'   keep on each dimension after performing the eigen decomposition of the
+#' @param method Method to be used to find the optimal smoothing parameter.
+#'   Default to `"fixed_lambda"` if `lambda` is supplied, meaning no
+#'   optimization is performed. Otherwise, default to `"perf"` which means the
+#'   performance iteration method is used. The alternative `"outer"` method is
+#'   guaranteed to converge but slower. Both those methods rely on the `optim`
+#'   function from package `stats`.
+#' @param p Optional vector of size `2`. Maximum number of eigenvectors to keep
+#'   on each dimension after performing the eigen decomposition of the
 #'   penalization matrix. If missing, will be automatically computed so that the
 #'   dimensions of (square) matrices involved in the optimization problem
 #'   remains lower that the `max_dim` argument
-#' @param max_dim Maximal number of rows (or equivalently columns) of the square
-#'   matrices that should be involved in the optimization problem. Default is
-#'   `500`. Values higher than `2000` may cause issues with both
-#'   memory usage and computation times.
+#' @param max_dim Number of parameters to be kept in the optimization problem.
+#'   Default is `200`. Values higher than `2000` may result in very high
+#'   computation times and memory usage.
 #' @param q Order of penalization vector of size `2`. Polynoms of degrees
 #'   `(q[[1]] - 1,q[[2]] - 1)` are considered smooth and are therefore
-#'   unpenalized. Should be left to the default of `c(2,2)` for most
-#'   practical applications.
+#'   unpenalized. Should be left to the default of `c(2,2)` for most practical
+#'   applications.
 #' @param y Optional matrix of observations whose rows and columns should be
 #'   named. Used only in the regression framework and even in this case will be
-#'   automatically computed if the `d` and `ec` arguments are
-#'   supplied. May be useful when using Whittaker-Henderson smoothing outside of
-#'   the survival analysis framework.
-#' @param wt Optional matrix of weights. As for the observation vector `y`,
-#'   used only in the regression framework and even in this case will be
-#'   automatically computed if the `d` argument is supplied. May be useful
-#'   when using Whittaker-Henderson smoothing outside of the survival analysis
+#'   automatically computed if the `d` and `ec` arguments are supplied. May be
+#'   useful when using Whittaker-Henderson smoothing outside of the survival
+#'   analysis framework.
+#' @param wt Optional matrix of weights. As for the observation vector `y`, used
+#'   only in the regression framework and even in this case will be
+#'   automatically computed if the `d` argument is supplied. May be useful when
+#'   using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
 #'
 #' @returns An object of class `WH_2d` i.e. a list containing :
@@ -285,13 +281,10 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #'
 #' # Maximum likelihood
 #' WH_2d(d, ec, lambda = c(1e2, 1e2))
-#' fit_fs <- WH_2d(d, ec) # default generalized Fellner-Schall method
-#' fit_perf <- WH_2d(d, ec, method = "perf") # alternative method based on optim function
-#' testthat::expect_equal(fit_fs, fit_perf, tolerance = 1e-1)
-#' # generalized Fellner-Schall method is approximate in maximum likelihood framework
+#' WH_2d(d, ec) # performance iteration default method
 #'
 #' WH_2d(d, ec, criterion = "GCV")
-#' # alternative optimization criteria for smoothing parameter selectio
+#' # alternative optimization criteria for smoothing parameter selection
 #'
 #' # Regression
 #' WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2))
@@ -299,16 +292,6 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' WH_2d(d, y = y, lambda = c(1e2, 1e2)) # d is used as wt
 #' WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 #' # setting framework = "reg" forces computation of y from d and ec
-#'
-#' fit_fs <- WH_2d(y = y, wt = wt, method = "fs") # default generalized Fellner-Schall method
-#' fit_perf <- WH_2d(y = y, wt = wt, method = "perf") # alternative method based on optim function
-#' testthat::expect_equal(fit_fs, fit_perf, tolerance = 1e-4)
-#' # generalized Fellner-Schall method is exact in regression framework
-#'
-#' WH_2d(y = y, wt = wt, criterion = "AIC")
-#' WH_2d(y = y, wt = wt, criterion = "BIC")
-#' WH_2d(y = y, wt = wt, criterion = "GCV")
-#' # alternative optimization criteria for smoothing parameter selection
 #'
 #' keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
 #' keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
@@ -319,10 +302,10 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #'
 #' prod(dim(d)) # problem dimension is 1,232 !
 #' WH_2d(d, ec)
-#' # rank-reduction may be used to quickly find an approximate solution
+#' # rank-reduction is used to find an approximate solution with 200 parameters
 #'
 #' @export
-WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
+WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 200,
                   q = c(2, 2), framework, y, wt, quiet = FALSE, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
@@ -395,11 +378,10 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 250,
       method <- "perf"
     }
   }
-  methods <- c("fixed_lambda", "fs", "perf", "outer")
+  methods <- c("fixed_lambda", "perf", "outer")
   if (length("method") != 1 || !(method %in% methods)) stop(
     "method should be one of ", paste(methods, collapse = ", "))
 
-  if (method == "fs" && criterion != "REML") stop("Only REML method available for the FS algorithm")
   if (missing(lambda)) {
     lambda <- c(1e3, 1e3)
   } else {
@@ -494,7 +476,7 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   A_pred[ind_fit,] <- object$U
   A_pred[ind_new,] <- - D2_inv %*% D1 %*% object$U
 
-  y_pred <- c(A_pred %*% object$gamma_hat)
+  y_pred <- c(A_pred %*% object$beta_hat)
   std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% object$Psi)))
 
   names(y_pred) <- names(std_y_pred) <- full_data
@@ -516,7 +498,7 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' @param n_coef Number of additional coefficients to be added on each side of
 #'   the fit to ensure a smooth transition. If this is lower than the number of
 #'   new observations, will provide an approximate extrapolation but much
-#'   faster. Default of `10` should be already pretty accurate.
+#'   faster. Default of `10` should already be pretty accurate.
 #' @param ... Not used
 #'
 #' @returns An object of class `"WH_2d"` with additional components for model
@@ -579,116 +561,8 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
   Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
 
   A_pred <- U_pred %*% Psi_pred[,ind_coef_2d] %*% Psi_inv
-  y_pred <- A_pred %*% c(object$gamma_hat)
+  y_pred <- A_pred %*% c(object$beta_hat)
   std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% object$Psi)))
-
-  dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
-  dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
-
-  object$y_pred <- y_pred
-  object$std_y_pred <- std_y_pred
-
-  return(object)
-}
-
-predict_WH_2d_naive <- function(object, newdata = NULL, ...) {
-
-  if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
-  if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
-    "newdata should be a list with two elements containing the row names and column names for predicted values")
-
-  data <- dimnames(object$y) |> purrr::map(as.numeric)
-  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
-
-  eig <- purrr::pmap(list(
-    data = data, full_data = full_data, q = object$q, p = object$p),
-    extend_eigen_dec_naive)
-
-  U_pred_eig <- purrr::map(eig, "U")
-  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
-
-  y_pred <- U_pred %*% c(object$gamma_hat)
-  std_y_pred <- sqrt(rowSums(U_pred * (U_pred %*% object$Psi)))
-
-  dim(y_pred) <- dim(std_y_pred) <- purrr::map_int(full_data, length) # set dimension for output matrices
-  dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
-
-  object$y_pred <- y_pred
-  object$std_y_pred <- std_y_pred
-
-  return(object)
-}
-
-#' Predict new values using a fitted 2D WH model
-#'
-#' Extrapolate the model for new observations in a way that is consistent with
-#' the fitted values. There is now a new version which is compatible with rank
-#' reduction, allowing for much faster computation times
-#'
-#' @param object An object of class `"WH_2d"` returned by the [WH_2d()] function
-#' @param newdata A list containing two vectors indicating the new observation
-#'   positions
-#' @param unconstrained Should the unconstrained (approximate) solution be also
-#'   computed ? Only used to justify the use for a constrained solution.
-#' @param ... Not used
-#'
-#' @returns An object of class `"WH_2d"` with additional components for model
-#'   prediction.
-#'
-#' @examples
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
-#'
-#' d  <- portfolio_LTC$d[keep_age, keep_duration]
-#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
-#'
-#' WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
-#'
-#' @export
-predict_WH_2d_old <- function(object, newdata = NULL, unconstrained = FALSE, ...) {
-
-  if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
-  if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
-    "newdata should be a list with two elements containing the row names and column names for predicted values")
-  if (length(unconstrained) != 1 || !is.logical(unconstrained)) stop("unconstrainted should be TRUE or FALSE")
-
-  data <- dimnames(object$y) |> purrr::map(as.numeric)
-  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
-
-  n <- purrr::map_int(data, length)
-  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
-  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
-  n_pred <- n + n_inf + n_sup
-
-  wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
-  wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
-
-  # W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
-  P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
-    object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
-  diag(P_pred) <- diag(P_pred) + c(wt_pred)
-  Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
-
-  ind_rows <- c(rep(FALSE, n_inf[[1]]), rep(TRUE, n[[1]]), rep(FALSE, n_sup[[1]]))
-  ind_coef_2d <- c(rep(FALSE, n_pred[[1]] * n_inf[[2]]), rep(ind_rows, n[[2]])) |> which()
-
-  if (unconstrained) {
-
-    D_mat <- purrr::map2(n, object$q, build_D_mat) # extended difference matrices
-    Psi_inv <- object$lambda[[1]] * diag(n[[2]]) %x% crossprod(D_mat[[1]]) +
-      object$lambda[[2]] * crossprod(D_mat[[2]]) %x% diag(n[[1]])
-    diag(Psi_inv) <- diag(Psi_inv) + c(object$wt)
-
-  } else {
-
-    Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
-  }
-
-  A_pred <- Psi_pred[,ind_coef_2d] %*% Psi_inv
-  y_pred <- c(A_pred %*% c(object$y_hat))
-  std_y_pred <- sqrt(colSums(t(A_pred) * ((object$U %*% object$Psi %*% t(object$U)) %*% t(A_pred))))
 
   dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
@@ -1027,8 +901,8 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
-    gamma_hat <- c(Psi %*% tUWz) # fitted parameter
-    y_hat <- c(U %*% gamma_hat)
+    beta_hat <- c(Psi %*% tUWz) # fitted parameter
+    y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
@@ -1036,7 +910,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
     res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
-    RESS <- sum(gamma_hat * s * gamma_hat)
+    RESS <- sum(beta_hat * s * beta_hat)
     pen <- lambda * RESS
     dev_pen <- dev + pen
 
@@ -1062,7 +936,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
   out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
               res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              gamma_hat = gamma_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
+              beta_hat = beta_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
@@ -1147,8 +1021,8 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
       Psi_chol <- Psi_chol |> chol()
       Psi <- Psi_chol |> chol2inv()
 
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-      y_hat <- c(U %*% gamma_hat)
+      beta_hat <- c(Psi %*% tUWz) # fitted value
+      y_hat <- c(U %*% beta_hat)
       if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
@@ -1156,7 +1030,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
       res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- sum(gamma_hat * s * gamma_hat)
+      RESS <- sum(beta_hat * s * beta_hat)
       pen <- lambda * RESS
       dev_pen <- dev + pen
 
@@ -1250,16 +1124,17 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
       Psi_chol <- Psi_chol |> chol()
       Psi <- Psi_chol |> chol2inv()
 
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-      y_hat <- c(U %*% gamma_hat)
-      if (!reg) new_wt <- exp(y_hat + off)
+      beta_hat <- c(Psi %*% tUWz) # fitted value
+      y_hat <- c(U %*% beta_hat)
+      # if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
 
-      res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      # res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      res <- if (reg) (sqrt(wt) * (y - y_hat)) else sqrt(wt) * (z - y_hat) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- sum(gamma_hat * s * gamma_hat)
+      RESS <- sum(beta_hat * s * beta_hat)
       pen <- lambda * RESS
       dev_pen <- dev + pen
 
@@ -1283,10 +1158,10 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
-    gamma_hat <- c(Psi %*% tUWz) # fitted value
+    beta_hat <- c(Psi %*% tUWz) # fitted value
 
-    RESS <- sum(gamma_hat * s * gamma_hat)
-    y_hat <- c(U %*% gamma_hat)
+    RESS <- sum(beta_hat * s * beta_hat)
+    y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
@@ -1295,114 +1170,6 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
     res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
     pen <- lambda * RESS
-    dev_pen <- dev + pen
-
-    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
-                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
-  }
-
-  out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
-
-  return(out)
-}
-
-#' Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
-#'
-#' @inheritParams WH_1d_outer
-#'
-#' @returns An object of class `"WH_1d"` i.e. a list containing model fit,
-#'   variance, residuals and degrees of freedom as well as diagnosis to asses
-#'   the quality of the fit.
-#' @keywords internal
-WH_1d_fs <- function(d, ec, y, wt, q = 2, p, lambda = 1e3,
-                     reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
-
-  # Initialization
-  n <- if (reg) length(y) else length(d)
-  if (missing(p)) p <- n
-  eig <- eigen_dec(n, q, p)
-  U <- eig$U
-  s <- eig$s
-
-  sum_wt <- if (reg) sum(wt) else sum(d)
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
-  U_pos <- U[which_pos,]
-
-  if (reg) {
-
-    z <- y
-    wt_pos <- c(wt)[which_pos]
-    z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
-
-  } else {
-
-    off <- log(pmax(ec, 1e-4))
-    y <- ifelse(d == 0, NA, log(d)) - off
-    y_hat <- log(pmax(d, 1e-8)) - off
-    new_wt <- exp(y_hat + off)
-  }
-
-  dev_pen <- Inf
-  cond_dev_pen <- TRUE
-
-  # Loop
-  while (cond_dev_pen) {
-
-    # update of working vector and weight matrix
-    if (!reg) {
-
-      wt <- new_wt
-      z <- y_hat + d / wt - 1
-      wt_pos <- c(wt)[which_pos]
-      z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
-    }
-
-    init_lambda <- TRUE
-
-    # Loop
-    while (init_lambda || cond_REML) {
-
-      if (!init_lambda) lambda <- sum_edf_random / RESS
-
-      old_REML <- if (init_lambda) NA else REML
-
-      Psi_chol <- tUWU
-      diag(Psi_chol) <- diag(Psi_chol) + lambda * s
-      Psi_chol <- Psi_chol |> chol()
-      Psi <- Psi_chol |> chol2inv()
-
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-
-      y_hat <- c(U %*% gamma_hat)
-      if (!reg) new_wt <- exp(y_hat + off)
-
-      RESS <- sum(gamma_hat * s * gamma_hat)
-      sum_edf_random <- sum(Psi * tUWU) - q
-
-      res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
-      dev <- sum(res * res)
-      pen <- lambda * RESS
-
-      tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
-      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-      REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
-
-      if (verbose) cat("REML :", format(old_REML, digits = 3),
-                       "=>", format(REML, digits = 3), "\n")
-      cond_REML <- if (init_lambda) TRUE else {
-        REML - old_REML > accu_crit * sum_wt
-      }
-      init_lambda <- FALSE
-    }
-
-    # update of convergence check
-    old_dev_pen <- dev_pen
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1488,8 +1255,8 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
-    gamma_hat <- c(Psi %*% tUWz) # fitted value
-    y_hat <- c(U %*% gamma_hat)
+    beta_hat <- c(Psi %*% tUWz) # fitted value
+    y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
@@ -1497,7 +1264,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
     res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
-    RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
     pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
     dev_pen <- dev + pen
 
@@ -1527,7 +1294,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
   out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res, edf = edf,
               edf_par = edf_par, omega_j = omega_j, sum_edf_random = sum_edf_random, diagnosis = diagnosis,
-              gamma_hat = gamma_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
+              beta_hat = beta_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_2d"
 
   return(out)
@@ -1612,8 +1379,8 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
       Psi_chol <- Psi_chol |> chol()
       Psi <- Psi_chol |> chol2inv()
 
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-      y_hat <- c(U %*% gamma_hat)
+      beta_hat <- c(Psi %*% tUWz) # fitted value
+      y_hat <- c(U %*% beta_hat)
       if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
@@ -1621,7 +1388,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
       res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+      RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
       pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
       dev_pen <- dev + pen
 
@@ -1722,16 +1489,17 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
       Psi_chol <- Psi_chol |> chol()
       Psi <- Psi_chol |> chol2inv()
 
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-      y_hat <- c(U %*% gamma_hat)
-      if (!reg) new_wt <- exp(y_hat + off)
+      beta_hat <- c(Psi %*% tUWz) # fitted value
+      y_hat <- c(U %*% beta_hat)
+      # if (!reg) new_wt <- exp(y_hat + off)
 
       # update of convergence check
       old_dev_pen <- dev_pen
 
-      res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      # res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
+      res <- if (reg) sqrt(wt) * (y - y_hat) else sqrt(wt) * (z - y_hat) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+      RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
       pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
       dev_pen <- dev + pen
       sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
@@ -1759,13 +1527,13 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
-    gamma_hat <- c(Psi %*% tUWz) # fitted value
+    beta_hat <- c(Psi %*% tUWz) # fitted value
 
-    RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
+    RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
     edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
     omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
-    y_hat <- c(U %*% gamma_hat)
+    y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
 
     # update of convergence check
@@ -1785,117 +1553,3 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
   return(out)
 }
-
-#' 2D Whittaker-Henderson Smoothing (Maximum Likelihood, Generalized Fellner-Schall update)
-#'
-#' @inheritParams WH_2d_outer
-#'
-#' @returns An object of class `"WH_2d"` i.e. a list containing model fit,
-#'   variance, residuals and degrees of freedom as well as diagnosis to asses
-#'   the quality of the fit.
-#' @keywords internal
-WH_2d_fs <- function(d, ec, y, wt, q = c(2, 2), p, lambda = c(1e3, 1e3),
-                     reg = FALSE, verbose = FALSE, accu_crit = 1e-12, accu_dev = 1e-12) {
-
-  # Initialization
-  n <- if (reg) dim(y) else dim(d)
-  if (missing(p)) p <- n
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
-
-  sum_wt <- if (reg) sum(wt) else sum(d)
-  which_pos <- if (reg) which(wt != 0) else which(ec != 0)
-  n_pos <- length(which_pos)
-  U_pos <- U[which_pos,]
-
-  if (reg) {
-
-    z <- y
-    wt_pos <- c(wt)[which_pos]
-    z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-    tUWz <- t(U_pos) %*% (wt_pos * z_pos)
-
-  } else {
-
-    off <- log(pmax(ec, 1e-4))
-    y <- ifelse(d == 0, NA, log(d)) - off
-    y_hat <- log(pmax(d, 1e-8)) - off
-    new_wt <- exp(y_hat + off)
-  }
-
-  dev_pen <- Inf
-  cond_dev_pen <- TRUE
-
-  # Loop
-  while (cond_dev_pen) {
-
-    # update of parameters, working vector and weight matrix
-    if (!reg) {
-
-      wt <- new_wt
-      z <- y_hat + d / wt - 1
-      wt_pos <- c(wt)[which_pos]
-      z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
-      tUWz <- t(U_pos) %*% (wt_pos * z_pos)
-    }
-
-    init_lambda <- TRUE
-
-    # Loop
-    while (init_lambda || cond_REML) {
-
-      if (!init_lambda) lambda <- sum_edf_random / RESS
-
-      old_REML <- if (init_lambda) NA else REML
-
-      s_lambda <- purrr::map2(lambda, s, `*`)
-      sum_s_lambda <- s_lambda |> do.call(what = `+`)
-
-      Psi_chol <- tUWU
-      diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
-      Psi_chol <- Psi_chol |> chol()
-      Psi <- Psi_chol |> chol2inv()
-
-      gamma_hat <- c(Psi %*% tUWz) # fitted value
-
-      y_hat <- c(U %*% gamma_hat)
-      if (!reg) new_wt <- exp(y_hat + off)
-
-      RESS <- purrr::map_dbl(s, \(x) sum(gamma_hat * x * gamma_hat))
-      edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
-      omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
-      sum_edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
-
-      res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
-      dev <- sum(res * res)
-      pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
-
-      tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
-      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-      REML <- - (dev + pen - tr_log_P + tr_log_Psi) / 2
-
-      if (verbose) cat("REML :", format(old_REML, digits = 3),
-                       "=>", format(REML, digits = 3), "\n")
-      cond_REML <- if (init_lambda) TRUE else REML - old_REML > accu_crit * sum_wt
-      init_lambda <- FALSE
-    }
-
-    # update of convergence check
-    old_dev_pen <- dev_pen
-    dev_pen <- dev + pen
-
-    if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
-                     "=>", format(dev_pen, digits = 3, decimal.mark = ","), "\n")
-    cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
-  }
-
-  out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
-
-  return(out)
-}
-

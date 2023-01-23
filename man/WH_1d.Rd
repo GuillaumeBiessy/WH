@@ -19,7 +19,7 @@ WH_1d(
 )
 }
 \arguments{
-\item{d}{Vector of observed events whose elements should be named.}
+\item{d}{Vector of observed events, with named elements.}
 
 \item{ec}{Vector of central exposure. The central exposure corresponds to the
 sum of the exposure period over the insured population. An individual
@@ -38,20 +38,19 @@ maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"
 
 \item{method}{Method to be used to find the optimal smoothing parameter.
 Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
-optimization is performed. Otherwise, if \code{criterion = "REML"} or the
-\code{criterion} argument is missing, default to \code{"fs"} which means the
-generalized Fellner-Schall method is used. For other criteria default to
-\code{"perf"} meaning the \code{optimize} function from package \code{stats} will be
-used.}
+optimization is performed. Otherwise, default to \code{"perf"} which means the
+performance iteration method is used. The alternative \code{"outer"} method is
+guaranteed to converge but slower. Both those methods rely on the
+\code{optimize} function from package \code{stats}.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are considered
 smooth and are therefore unpenalized. Should be left to the default of \code{2}
 for most practical applications.}
 
 \item{framework}{Default framework is \code{"ml"} which stands for maximum
-likelihood unless the \code{y} argument is also provided, in which case the
+likelihood unless the \code{y} argument is also provided, in which case an
 \code{"reg"} or regression framework is used. The regression framework is an
-asymptotical approximation of the maximum likelihood likelihood framework.}
+approximate gaussian framework is used instead.}
 
 \item{y}{Optional vector of observations whose elements should be named. Used
 only in the regression framework and even in this case will be
@@ -66,8 +65,7 @@ using Whittaker-Henderson smoothing outside of the survival analysis
 framework.}
 
 \item{quiet}{Should messages and warnings be displayed ? Default to \code{FALSE},
-may be set to \code{TRUE} for experts who want to make numerous calls to this
-function.}
+may be set to \code{TRUE} if numerous calls to this function are made.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
@@ -94,12 +92,12 @@ extrapolation.
 \description{
 Main package function to apply Whittaker-Henderson smoothing in a
 unidimensional survival analysis framework. It takes as input a vector of
-observed events and a vector of associated central exposure, both depending
-on a single covariate, and build a smooth version of the log-hazard rate.
-Smoothing parameters may be supplied or automatically chosen according to a
-specific criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
+observed events and a vector of associated central exposure, both
+depending on a single covariate, and build a smooth version of the log-hazard
+rate. Smoothing parameters may be supplied or automatically chosen according
+to an adequate criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
 \code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
-framework or an asymptotic (approximate) gaussian framework.
+framework (the default) or an approximate gaussian framework.
 }
 \examples{
 keep <- which(portfolio_mort$ec > 0)
@@ -112,13 +110,12 @@ wt <- d
 
 # Maximum likelihood
 WH_1d(d, ec, lambda = 1e2)
-WH_1d(d, ec) # default generalized Fellner-Schall method
-WH_1d(d, ec, method = "perf") # alternative method base on optimize function
+WH_1d(d, ec) # default performance iteration method based on the optimize function
 
-testthat::expect_equal(WH_1d(d, ec, method = "fs"),
-                       WH_1d(d, ec, method = "perf"),
+testthat::expect_equal(WH_1d(d, ec),
+                       WH_1d(d, ec, method = "outer"),
                        tolerance = 1e-1)
-# generalized Fellner-Schall method is approximate in maximum likelihood framework
+# performance iteration method is approximate in maximum likelihood framework
 
 WH_1d(d, ec, criterion = "GCV")
 # alternative optimization criteria for smoothing parameter selection
@@ -131,13 +128,9 @@ WH_1d(d, ec, framework = "reg", lambda = 1e2)
 # Setting framework = "reg" forces computation of y from d and ec
 
 WH_1d(y = y, wt = wt)
-WH_1d(y = y, wt = wt, method = "perf")
-testthat::expect_equal(WH_1d(y = y, wt = wt, method = "fs"),
-                       WH_1d(y = y, wt = wt, method = "perf"),
+testthat::expect_equal(WH_1d(y = y, wt = wt),
+                       WH_1d(y = y, wt = wt, method = "outer"),
                        tolerance = 1e-5)
-# generalized Fellner-Schall method is exact in regression framework
-
-WH_1d(y = y, wt = wt, criterion = "GCV")
-# alternative optimization criteria for smoothing parameter selection
+# performance iteration method is exact in regression framework
 
 }

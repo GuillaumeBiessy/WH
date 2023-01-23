@@ -15,7 +15,7 @@ positions}
 \item{n_coef}{Number of additional coefficients to be added on each side of
 the fit to ensure a smooth transition. If this is lower than the number of
 new observations, will provide an approximate extrapolation but much
-faster. Default of \code{10} should be already pretty accurate.}
+faster. Default of \code{10} should already be pretty accurate.}
 
 \item{...}{Not used}
 }
