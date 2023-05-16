@@ -470,7 +470,7 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   D2_sup <- D_mat_pred[ind_sup - object$q, ind_sup, drop = FALSE]
   D2 <- blockdiag(D2_inf, D2_sup)
 
-  D2_inv <- if (nrow(D2) == 0) matrix(0, n_new, n_new) else solve(D2)
+  D2_inv <- if (n_new == 0) matrix(0, 0, 0) else solve(D2)
 
   A_pred <- matrix(0, n_pred, n)
   A_pred[ind_fit,] <- object$U
@@ -495,10 +495,6 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' @param object An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param newdata A list containing two vectors indicating the new observation
 #'   positions
-#' @param n_coef Number of additional coefficients to be added on each side of
-#'   the fit to ensure a smooth transition. If this is lower than the number of
-#'   new observations, will provide an approximate extrapolation but much
-#'   faster. Default of `10` should already be pretty accurate.
 #' @param ... Not used
 #'
 #' @returns An object of class `"WH_2d"` with additional components for model
@@ -514,7 +510,7 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
 #'
 #' @export
-predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
+predict.WH_2d <- function(object, newdata = NULL, ...) {
 
   if (!inherits(object, "WH_2d")) stop("object must be of class WH_2d")
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
@@ -529,40 +525,24 @@ predict.WH_2d <- function(object, newdata = NULL, n_coef = 10, ...) {
   n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
   n_pred <- n + n_inf + n_sup
 
-  p_inf <- pmin(n_inf, n_coef)
-  p_sup <- pmin(n_sup, n_coef)
-
   wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
   wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
-  which_pos <- which(wt_pred != 0)
 
-  eig <- purrr::pmap(list(
-    data = data, full_data = full_data, q = object$q, p = object$p, p_inf = p_inf, p_sup = p_sup),
-    extend_eigen_dec)
+  # W_pred <- diag(wt_pred) # extended weight matrix
+  D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
+  P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
+    object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
+  diag(P_pred) <- diag(P_pred) + c(wt_pred)
+  Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
 
-  U_pred_eig <- purrr::map(eig, "U")
-  D_eig <- purrr::map(eig, "D")
-  DU_eig <-  purrr::map2(D_eig, U_pred_eig, `%*%`)
-  cross_DU_eig <- purrr::map(DU_eig, crossprod)
-  U_pred <- U_pred_eig[[2]] %x% U_pred_eig[[1]]
-  cross_U_eig <- purrr::map(U_pred_eig, crossprod)
-
-  S_lambda <- object$lambda[[1]] * cross_U_eig[[2]] %x% cross_DU_eig[[1]] +
-    object$lambda[[2]] * cross_DU_eig[[2]] %x% cross_U_eig[[1]]
-
-  U_pred_pos <- U_pred[which_pos,]
-  wt_pred_pos <- c(wt_pred)[which_pos]
-
-  tUWU <- t(U_pred_pos) %*% (wt_pred_pos * U_pred_pos)
-  Psi_pred <- (tUWU + S_lambda) |> chol() |> chol2inv()
-
-  ind_coef_2d <- rep(c(rep(TRUE, object$p[[1]]), rep(FALSE, (p_inf + p_sup)[[1]])), object$p[[2]]) |> which()
+  ind_rows <- c(rep(FALSE, n_inf[[1]]), rep(TRUE, n[[1]]), rep(FALSE, n_sup[[1]]))
+  ind_coef_2d <- c(rep(FALSE, n_pred[[1]] * n_inf[[2]]), rep(ind_rows, n[[2]])) |> which()
 
   Psi_inv <- Psi_pred[ind_coef_2d, ind_coef_2d] |> chol() |> chol2inv()
+  A_pred <- Psi_pred[,ind_coef_2d] %*% Psi_inv
 
-  A_pred <- U_pred %*% Psi_pred[,ind_coef_2d] %*% Psi_inv
-  y_pred <- A_pred %*% c(object$beta_hat)
-  std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% object$Psi)))
+  y_pred <- c(A_pred %*% c(object$y_hat))
+  std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% (object$U %*% object$Psi %*% t(object$U)))))
 
   dim(y_pred) <- dim(std_y_pred) <- n_pred # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
@@ -606,11 +586,11 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 
     df[[dim1]] <- x_pred
 
-    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y <- df$wt <- df$res <- df$edf_obs <- NA_real_
     df$y[x_pred %in% x] <- c(object$y)
     df$wt[x_pred %in% x] <- c(object$wt)
     df$res[x_pred %in% x] <- c(object$res)
-    df$edf[x_pred %in% x] <- c(object$edf)
+    df$edf_obs[x_pred %in% x] <- c(object$edf_obs)
 
     if("ec" %in% names(object) && "d" %in% names(object)) {
 
@@ -621,7 +601,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
     }
 
     df[,c(dim1, intersect(
-      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf_obs"),
       names(object)))]
 
   } else {
@@ -635,11 +615,11 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
     df[[dim1]] <- rep(x_pred, times = length(t_pred))
     df[[dim2]] <- rep(t_pred, each = length(x_pred))
 
-    df$y <- df$wt <- df$res <- df$edf <- NA_real_
+    df$y <- df$wt <- df$res <- df$edf_obs <- NA_real_
     df$y[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$y)
     df$wt[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$wt)
     df$res[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$res)
-    df$edf[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$edf)
+    df$edf_obs[df[[dim1]] %in% x & df[[dim2]] %in% t] <- c(object$edf_obs)
 
     if("ec" %in% names(object) && "d" %in% names(object)) {
 
@@ -650,7 +630,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
     }
 
     df[,c(dim1, dim2, intersect(
-      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf"),
+      c("ec", "d", "y", "y_hat", "std_y_hat", "wt", "res", "edf_obs"),
       names(object)))]
   }
 }
@@ -686,8 +666,8 @@ print.WH_1d <- function(x, ...) {
   cat("An object fitted using the WH_1D function\n")
   cat("Initial data contains", length(x$y), "data points:\n")
   cat("  Observation positions: ", as.numeric(names(x$y)[[1]]), " to ",as.numeric(names(x$y)[[length(x$y)]]), "\n")
-  cat("Optimal smoothing parameter selected:", format(x$lambda, digits = 2), "\n")
-  cat("Associated degrees of freedom:", format(sum(x$edf), digits = 2), "\n\n")
+  cat("Smoothing parameter selected:", format(x$lambda, digits = 2), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf_obs), digits = 2), "\n\n")
   invisible(x)
 }
 
@@ -714,10 +694,10 @@ print.WH_2d <- function(x, ...) {
 
   cat("An object fitted using the WH_2D function\n")
   cat("Initial data contains", prod(dim(x$y)), "data points:\n")
-  cat("  First  dimension: ", as.numeric(rownames(x$y)[[1]]), " to ",as.numeric(rownames(x$y)[[nrow(x$y)]]), "\n")
+  cat("  First dimension: ", as.numeric(rownames(x$y)[[1]]), " to ",as.numeric(rownames(x$y)[[nrow(x$y)]]), "\n")
   cat("  Second dimension: ", as.numeric(colnames(x$y)[[1]]), " to ",as.numeric(colnames(x$y)[[ncol(x$y)]]), "\n")
-  cat("Optimal smoothing parameters selected:", format(x$lambda, digits = 2), "\n")
-  cat("Associated degrees of freedom:", format(sum(x$edf), digits = 2), "\n\n")
+  cat("Smoothing parameters selected:", format(x$lambda, digits = 2), "\n")
+  cat("Associated degrees of freedom:", format(sum(x$edf_obs), digits = 2), "\n\n")
   invisible(x)
 }
 
@@ -773,7 +753,7 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
            graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
          },
          edf = {
-           plot(df$x, df$edf,
+           plot(df$x, df$edf_obs,
                 xlab = "x", ylab = "degrees of freedom", type = "b")
            graphics::abline(a = 0, b = 0, lty = 2, col = "blue")
            graphics::abline(a = 1, b = 0, lty = 2, col = "blue")
@@ -885,6 +865,8 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
   # Loop
   while (cond_dev_pen) {
 
+    old_dev_pen <- dev_pen
+
     # update of parameters, working vector and weight matrix
     if (!reg) {
 
@@ -905,13 +887,12 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
     y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
 
-    # update of convergence check
-    old_dev_pen <- dev_pen
-
     res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
+
     RESS <- sum(beta_hat * s * beta_hat)
     pen <- lambda * RESS
+
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -922,7 +903,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
   edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
 
   aux <- rowSums(U * (U %*% Psi))
-  edf <- wt * aux # effective degrees of freedom by observation / parameter
+  edf_obs <- wt * aux # effective degrees of freedom by observation / parameter
   std_y_hat <- sqrt(aux) # standard deviation of fit
 
   sum_edf <- sum(edf_par) # effective degrees of freedom
@@ -931,12 +912,12 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
 
   diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
-  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf) <-
+  names(y_hat) <- names(std_y_hat) <- names(res) <- names(edf_obs) <-
     names(wt) <- names(z) <- names(y) # set names for output vectors
 
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat,
-              res = res, edf = edf, edf_par = edf_par, diagnosis = diagnosis,
-              beta_hat = beta_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res, edf_obs = edf_obs,
+              beta_hat = beta_hat, edf_par = edf_par, diagnosis = diagnosis,
+              U = U, Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_1d"
 
   return(out)
@@ -991,7 +972,6 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
   WH_1d_aux <- function(log_lambda) {
 
     lambda <- exp(log_lambda)
-    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
     if (!reg) {
 
@@ -1004,6 +984,8 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
 
     # Loop
     while (cond_dev_pen) {
+
+      old_dev_pen <- dev_pen
 
       # update of working vector and weight matrix
       if (!reg) {
@@ -1025,13 +1007,12 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
       y_hat <- c(U %*% beta_hat)
       if (!reg) new_wt <- exp(y_hat + off)
 
-      # update of convergence check
-      old_dev_pen <- dev_pen
-
       res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
+
       RESS <- sum(beta_hat * s * beta_hat)
       pen <- lambda * RESS
+
       dev_pen <- dev + pen
 
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1039,21 +1020,25 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
       cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
     }
 
-    sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
+    if (criterion != "REML") sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
-    switch(criterion,
-           AIC = dev + 2 * sum_edf,
-           BIC = dev + log(n_pos) * sum_edf,
-           GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
-           REML = {
-             tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
-             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-             REML <- dev_pen - tr_log_P + tr_log_Psi
-           })
+    score <- switch(criterion,
+                    AIC = dev + 2 * sum_edf,
+                    BIC = dev + log(n_pos) * sum_edf,
+                    GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
+                    REML = {
+                      tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
+                      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+                      REML <- dev + pen - tr_log_P + tr_log_Psi
+                    })
+
+    if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+    return(score)
   }
 
   lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_crit * sum_wt)$minimum)
-  out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
+  out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = n, q = q, reg = reg,
+                            verbose = verbose, accu_dev = accu_dev)
 
   return(out)
 }
@@ -1103,6 +1088,8 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
   # Loop
   while (cond_dev_pen) {
 
+    old_dev_pen <- dev_pen
+
     # update of working vector and weight matrix
     if (!reg) {
 
@@ -1126,29 +1113,26 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
       beta_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% beta_hat)
-      # if (!reg) new_wt <- exp(y_hat + off)
-
-      # update of convergence check
-      old_dev_pen <- dev_pen
-
-      # res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       res <- if (reg) (sqrt(wt) * (y - y_hat)) else sqrt(wt) * (z - y_hat) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- sum(beta_hat * s * beta_hat)
-      pen <- lambda * RESS
-      dev_pen <- dev + pen
 
-      sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
+      if (criterion != "REML") sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
-      switch(criterion,
-             AIC = dev + 2 * sum_edf,
-             BIC = dev + log(n_pos) * sum_edf,
-             GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
-             REML = {
-               tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
-               tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-               REML <- dev_pen - tr_log_P + tr_log_Psi
-             })
+      score <- switch(criterion,
+                      AIC = dev + 2 * sum_edf,
+                      BIC = dev + log(n_pos) * sum_edf,
+                      GCV = n_pos * dev / (n_pos - sum_edf) ^ 2,
+                      REML = {
+                        RESS <- sum(beta_hat * s * beta_hat)
+                        pen <- lambda * RESS
+                        tr_log_P <- (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
+                        tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+                        REML <- dev + pen - tr_log_P + tr_log_Psi
+                      })
+
+      if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+
+      return(score)
     }
 
     lambda <- exp(stats::optimize(f = WH_1d_aux, interval = 25 * c(- 1, 1), tol = accu_crit * sum_wt)$minimum)
@@ -1160,16 +1144,14 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
 
     beta_hat <- c(Psi %*% tUWz) # fitted value
 
-    RESS <- sum(beta_hat * s * beta_hat)
     y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
-
-    # update of convergence check
-    old_dev_pen <- dev_pen
-
     res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
+
+    RESS <- sum(beta_hat * s * beta_hat)
     pen <- lambda * RESS
+
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1177,7 +1159,8 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
     cond_dev_pen <-  if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
-  out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
+  out <- WH_1d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = n, q = q, reg = reg,
+                            verbose = verbose, accu_dev = accu_dev)
 
   return(out)
 }
@@ -1239,6 +1222,8 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   # Loop
   while (cond_dev_pen) {
 
+    old_dev_pen <- dev_pen
+
     # update of parameters, working vector and weight matrix
     if (!reg) {
 
@@ -1258,14 +1243,12 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     beta_hat <- c(Psi %*% tUWz) # fitted value
     y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
-
-    # update of convergence check
-    old_dev_pen <- dev_pen
-
     res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
+
     RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
     pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1278,7 +1261,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   sum_edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
 
   aux <- rowSums(U * (U %*% Psi))
-  edf <- c(wt) * aux # effective degrees of freedom by observation / parameter
+  edf_obs <-c(wt) * aux # effective degrees of freedom by observation / parameter
   std_y_hat <- sqrt(aux) # standard deviation of fit
 
   sum_edf <- sum(edf_par) # effective degrees of freedom
@@ -1287,14 +1270,14 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
 
   diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
-  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf) <-
+  dim(y_hat) <- dim(std_y_hat) <- dim(res) <- dim(edf_obs) <-
     dim(wt) <- dim(y) # set dimensions for output matrices
-  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf) <-
+  dimnames(y_hat) <- dimnames(std_y_hat) <- dimnames(res) <- dimnames(edf_obs) <-
     dimnames(wt) <- dimnames(y) # set names for output matrices
 
-  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res, edf = edf,
-              edf_par = edf_par, omega_j = omega_j, sum_edf_random = sum_edf_random, diagnosis = diagnosis,
-              beta_hat = beta_hat, U = U, Psi = Psi, lambda = lambda, p = p, q = q)
+  out <- list(y = y, wt = wt, y_hat = y_hat, std_y_hat = std_y_hat, res = res, edf_obs = edf_obs,
+              beta_hat = beta_hat, edf_par = edf_par, diagnosis = diagnosis,
+              U = U, Psi = Psi, lambda = lambda, p = p, q = q)
   class(out) <- "WH_2d"
 
   return(out)
@@ -1346,8 +1329,6 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
   WH_2d_aux <- function(log_lambda) {
 
     lambda <- exp(log_lambda)
-    if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
-
     s_lambda <- purrr::map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
@@ -1362,6 +1343,8 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
 
     # Loop
     while (cond_dev_pen) {
+
+      old_dev_pen <- dev_pen
 
       # update of parameters, working vector and weight matrix
       if (!reg) {
@@ -1383,13 +1366,12 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
       y_hat <- c(U %*% beta_hat)
       if (!reg) new_wt <- exp(y_hat + off)
 
-      # update of convergence check
-      old_dev_pen <- dev_pen
-
       res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
+
       RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
       pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+
       dev_pen <- dev + pen
 
       if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
@@ -1397,23 +1379,28 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
       cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
     }
 
-    sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
+    sum_edf <- if (criterion != "REML") sum(Psi * tUWU) # effective degrees of freedom
 
-    switch(criterion,
-           AIC = dev + 2 * sum_edf,
-           BIC = dev + log(prod(n_pos)) * sum_edf,
-           GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
-           REML = {
-             tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
-             tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-             REML <- dev_pen - tr_log_P + tr_log_Psi
-           })
+    score <- switch(criterion,
+                    AIC = dev + 2 * sum_edf,
+                    BIC = dev + log(prod(n_pos)) * sum_edf,
+                    GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
+                    REML = {
+                      tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+                      tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+                      REML <- dev + pen - tr_log_P + tr_log_Psi
+                    })
+
+    if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+
+    return(score)
   }
 
   lambda <- exp(stats::optim(par = log(lambda),
                              fn = WH_2d_aux,
                              control = list(reltol = accu_crit * sum_wt))$par)
-  out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
+  out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = n, q = q, reg = reg,
+                            verbose = verbose, accu_dev = accu_dev)
 
   return(out)
 }
@@ -1499,20 +1486,24 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
       # res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
       res <- if (reg) sqrt(wt) * (y - y_hat) else sqrt(wt) * (z - y_hat) # (weighted) residuals
       dev <- sum(res * res)
-      RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
-      pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
-      dev_pen <- dev + pen
-      sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
 
-      switch(criterion,
-             AIC = dev + 2 * sum_edf,
-             BIC = dev + log(prod(n_pos)) * sum_edf,
-             GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
-             REML = {
-               tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
-               tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-               REML <- dev_pen - tr_log_P + tr_log_Psi
-             })
+      if (criterion != "REML") sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
+
+      score <- switch(criterion,
+                      AIC = dev + 2 * sum_edf,
+                      BIC = dev + log(prod(n_pos)) * sum_edf,
+                      GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
+                      REML = {
+                        tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+                        tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
+                        RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
+                        pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+                        REML <- dev + pen - tr_log_P + tr_log_Psi
+                      })
+
+      if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+
+      return(score)
     }
 
     lambda <- exp(stats::optim(par = log(lambda),
@@ -1549,7 +1540,8 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     cond_dev_pen <- if (reg) FALSE else (old_dev_pen - dev_pen) > accu_dev * sum_wt
   }
 
-  out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = p, q = q, reg = reg)
+  out <- WH_2d_fixed_lambda(d = d, ec = ec, y = y, wt = wt, lambda = lambda, p = n, q = q, reg = reg,
+                            verbose = verbose, accu_dev = accu_dev)
 
   return(out)
 }

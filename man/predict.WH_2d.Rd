@@ -4,18 +4,13 @@
 \alias{predict.WH_2d}
 \title{Predict new values using a fitted 2D WH model}
 \usage{
-\method{predict}{WH_2d}(object, newdata = NULL, n_coef = 10, ...)
+\method{predict}{WH_2d}(object, newdata = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
 positions}
-
-\item{n_coef}{Number of additional coefficients to be added on each side of
-the fit to ensure a smooth transition. If this is lower than the number of
-new observations, will provide an approximate extrapolation but much
-faster. Default of \code{10} should already be pretty accurate.}
 
 \item{...}{Not used}
 }
