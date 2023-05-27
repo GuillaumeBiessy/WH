@@ -516,20 +516,20 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   if (length(newdata) != 2 || !is.numeric(newdata[[1]]) || !is.numeric(newdata[[2]])) stop(
     "newdata should be a list with two elements containing the row names and column names for predicted values")
 
-  data <- dimnames(object$y) |> purrr::map(as.numeric)
-  full_data <- purrr::map2(data, newdata, \(x,y) sort(union(x, y)))
-  ind_fit <- purrr::map2(data, full_data, \(x,y) which(y %in% x))
+  data <- dimnames(object$y) |> lapply(as.numeric)
+  full_data <- map2(data, newdata, \(x,y) sort(union(x, y)))
+  ind_fit <- map2(data, full_data, \(x,y) which(y %in% x))
 
-  n <- purrr::map_int(data, length)
-  n_inf <- purrr::map2_int(data, full_data, \(x,y) sum(y < min(x)))
-  n_sup <- purrr::map2_int(data, full_data, \(x,y) sum(y > max(x)))
+  n <- map(data, length, "integer")
+  n_inf <- map2(data, full_data, \(x,y) sum(y < min(x)), "integer")
+  n_sup <- map2(data, full_data, \(x,y) sum(y > max(x)), "integer")
   n_pred <- n + n_inf + n_sup
 
   wt_pred <- matrix(0, n_pred[[1]], n_pred[[2]])
   wt_pred[ind_fit[[1]], ind_fit[[2]]] <- object$wt
 
   # W_pred <- diag(wt_pred) # extended weight matrix
-  D_mat_pred <- purrr::map2(n_pred, object$q, build_D_mat) # extended difference matrices
+  D_mat_pred <- map2(n_pred, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_pred[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_pred[[1]]) # extended penalization matrix
   diag(P_pred) <- diag(P_pred) + c(wt_pred)
@@ -1186,11 +1186,9 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+  eig <- list(eigen_dec(n[[1]], q[[1]], p[[1]]), eigen_dec(n[[2]], q[[2]], p[[2]]))
+  U <- eig[[2]]$U %x% eig[[1]]$U
+  s <- list(rep(eig[[1]]$s, p[[2]]), rep(eig[[2]]$s, each = p[[1]]))
 
   sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
@@ -1213,7 +1211,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     new_wt <- exp(y_hat + off)
   }
 
-  s_lambda <- purrr::map2(lambda, s, `*`)
+  s_lambda <- map2(lambda, s, `*`)
   sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
   dev_pen <- Inf
@@ -1246,8 +1244,8 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
 
-    RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
-    pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    RESS <- map(s, \(x) sum(beta_hat * x * beta_hat), "numeric")
+    pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
 
     dev_pen <- dev + pen
 
@@ -1257,15 +1255,15 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
   }
 
   edf_par <- colSums(Psi * tUWU) |> matrix(p[[1]], p[[2]]) # effective degrees of freedom by parameter
-  omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
-  sum_edf_random <- purrr::map_dbl(omega_j, \(x) sum(x * edf_par))
+  omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+  sum_edf_random <- map(omega_j, \(x) sum(x * edf_par), "numeric")
 
   aux <- rowSums(U * (U %*% Psi))
   edf_obs <-c(wt) * aux # effective degrees of freedom by observation / parameter
   std_y_hat <- sqrt(aux) # standard deviation of fit
 
   sum_edf <- sum(edf_par) # effective degrees of freedom
-  tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+  tr_log_P <- map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
   tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
 
   diagnosis <- get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
@@ -1299,11 +1297,9 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
   # Initialization
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+  eig <- list(eigen_dec(n[[1]], q[[1]], p[[1]]), eigen_dec(n[[2]], q[[2]], p[[2]]))
+  U <- eig[[2]]$U %x% eig[[1]]$U
+  s <- list(rep(eig[[1]]$s, p[[2]]), rep(eig[[2]]$s, each = p[[1]]))
 
   sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
@@ -1329,7 +1325,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
   WH_2d_aux <- function(log_lambda) {
 
     lambda <- exp(log_lambda)
-    s_lambda <- purrr::map2(lambda, s, `*`)
+    s_lambda <- map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     if (!reg) {
@@ -1369,8 +1365,8 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
       res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
 
-      RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
-      pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+      RESS <- map(s, \(x) sum(beta_hat * x * beta_hat), "numeric")
+      pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
 
       dev_pen <- dev + pen
 
@@ -1386,7 +1382,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
                     BIC = dev + log(prod(n_pos)) * sum_edf,
                     GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
                     REML = {
-                      tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+                      tr_log_P <- map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
                       tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
                       REML <- dev + pen - tr_log_P + tr_log_Psi
                     })
@@ -1419,11 +1415,9 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
   # Initialization
   n <- if (reg) dim(y) else dim(d)
   if (missing(p)) p <- n
-  eig <- purrr::pmap(list(n = n, q = q, p = p), eigen_dec)
-  U_eig <- purrr::map(eig, "U")
-  U <- U_eig |> rev() |> purrr::reduce(kronecker)
-  s_eig <- purrr::map(eig, "s")
-  s <- list(rep(s_eig[[1]], p[[2]]), rep(s_eig[[2]], each = p[[1]]))
+  eig <- list(eigen_dec(n[[1]], q[[1]], p[[1]]), eigen_dec(n[[2]], q[[2]], p[[2]]))
+  U <- eig[[2]]$U %x% eig[[1]]$U
+  s <- list(rep(eig[[1]]$s, p[[2]]), rep(eig[[2]]$s, each = p[[1]]))
 
   sum_wt <- if (reg) sum(wt) else sum(d)
   which_pos <- if (reg) which(wt != 0) else which(ec != 0)
@@ -1468,10 +1462,11 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
       lambda <- exp(log_lambda)
       if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
-      s_lambda <- purrr::map2(lambda, s, `*`)
+      s_lambda <- map2(lambda, s, `*`)
       sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
-      Psi_chol <- tUWU
+
+          Psi_chol <- tUWU
       diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
       Psi_chol <- Psi_chol |> chol()
       Psi <- Psi_chol |> chol2inv()
@@ -1494,10 +1489,10 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
                       BIC = dev + log(prod(n_pos)) * sum_edf,
                       GCV = prod(n_pos) * dev / (prod(n_pos) - sum_edf) ^ 2,
                       REML = {
-                        tr_log_P <- purrr::map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
+                        tr_log_P <- map2(lambda, s, `*`) |> do.call(what = `+`) |> Filter(f = \(x) x > 0) |> log() |> sum()
                         tr_log_Psi <- 2 * (Psi_chol |> diag() |> log() |> sum())
-                        RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
-                        pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+                        RESS <- map(s, \(x) sum(beta_hat * x * beta_hat), "numeric")
+                        pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
                         REML <- dev + pen - tr_log_P + tr_log_Psi
                       })
 
@@ -1510,19 +1505,20 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
                                fn = WH_2d_aux,
                                control = list(reltol = accu_crit * sum_wt))$par)
 
-    s_lambda <- purrr::map2(lambda, s, `*`)
+    s_lambda <- map2(lambda, s, `*`)
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     Psi_chol <- tUWU
-    diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+    dXW<RFREEEAQW
+    rezag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
     beta_hat <- c(Psi %*% tUWz) # fitted value
 
-    RESS <- purrr::map_dbl(s, \(x) sum(beta_hat * x * beta_hat))
+    RESS <- map(s, \(x) sum(beta_hat * x * beta_hat), "numeric")
     edf_par <- colSums(Psi * tUWU) # effective degrees of freedom by parameter
-    omega_j <- purrr::map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
+    omega_j <- map(s_lambda, \(x) ifelse(x == 0, 0, x / sum_s_lambda))
 
     y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
@@ -1532,7 +1528,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
     res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
-    pen <- purrr::map2(lambda, RESS, `*`) |> do.call(what = `+`)
+    pen <- map2(lambda, RESS, `*`) |> do.call(what = `+`)
     dev_pen <- dev + pen
 
     if (verbose) cat("dev_pen :", format(old_dev_pen, digits = 3, decimal.mark = ","),
