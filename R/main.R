@@ -1509,8 +1509,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     sum_s_lambda <- s_lambda |> do.call(what = `+`)
 
     Psi_chol <- tUWU
-    dXW<RFREEEAQW
-    rezag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
+    diag(Psi_chol) <- diag(Psi_chol) + sum_s_lambda
     Psi_chol <- Psi_chol |> chol()
     Psi <- Psi_chol |> chol2inv()
 
