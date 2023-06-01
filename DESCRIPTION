@@ -20,6 +20,8 @@ URL: https://github.com/GuillaumeBiessy/WH
 BugReports: https://github.com/GuillaumeBiessy/WH/issues
 Depends: 
     R (>= 4.3)
+Imports: 
+    stats
 Suggests: 
     knitr,
     rmarkdown,
