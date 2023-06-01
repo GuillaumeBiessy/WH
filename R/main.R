@@ -260,7 +260,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' * `y_hat` The matrix of fitted value
 #' * `std_y_hat` The matrix of standard deviation associated with the fitted value
 #' * `res` The matrix of model deviance residuals
-#' * `edf` The matrix of effective degrees of freedom associated with each observation
+#' * `edf_obs` The matrix of effective degrees of freedom associated with each observation
 #' * `edf_par` The matrix of effective degrees of freedom associated with each eigenvector
 #' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
 #' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
@@ -305,7 +305,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' # rank-reduction is used to find an approximate solution with 200 parameters
 #'
 #' @export
-WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 200,
+WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
                   q = c(2, 2), framework, y, wt, quiet = FALSE, ...) {
 
   if (missing(framework)) framework <- if (!missing(y)) "reg" else "ml"
@@ -373,6 +373,7 @@ WH_2d <- function(d, ec, lambda, criterion, method, p, max_dim = 200,
       if (!is.numeric(lambda) || any(lambda <= 0)) stop(
         "smoothing parameters should be strictly positive numbers")
       method <- "fixed_lambda"
+      max_dim <- Inf
     } else {
       if (!quiet) message("Using performance iteration / Nelder-Mead method")
       method <- "perf"
@@ -569,7 +570,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 
   if (!inherits(object, c("WH_1d", "WH_2d"))) stop("object must be of class WH_1d or WH_2d")
-  if (length(dim1) != 1 || length(dim2) != 1) stop("The dim1 and dim2 optional arguments should be of length 1")
+  if (length(dim1) != 1 || length(dim2) != 1) stop("The optional dim1 and dim2 arguments should be of length 1")
 
   if ("y_pred" %in% names(object)) {
     object$y_hat <- object$y_pred
@@ -884,9 +885,9 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
     Psi <- Psi_chol |> chol2inv()
 
     beta_hat <- c(Psi %*% tUWz) # fitted parameter
+
     y_hat <- c(U %*% beta_hat)
     if (!reg) new_wt <- exp(y_hat + off)
-
     res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
     dev <- sum(res * res)
 
@@ -1004,9 +1005,9 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
       Psi <- Psi_chol |> chol2inv()
 
       beta_hat <- c(Psi %*% tUWz) # fitted value
+
       y_hat <- c(U %*% beta_hat)
       if (!reg) new_wt <- exp(y_hat + off)
-
       res <- if (reg) (sqrt(wt) * (y - y_hat)) else compute_res_deviance(d, new_wt) # (weighted) residuals
       dev <- sum(res * res)
 
@@ -1032,7 +1033,8 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
                       REML <- dev + pen - tr_log_P + tr_log_Psi
                     })
 
-    if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+    if (verbose) cat(criterion, " :", format(
+      if (criterion == "REML") - score / 2 else score, digits = 3, decimal.mark = ","), "\n")
     return(score)
   }
 
@@ -1104,7 +1106,6 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
     WH_1d_aux <- function(log_lambda) {
 
       lambda <- exp(log_lambda)
-      if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
       Psi_chol <- tUWU
       diag(Psi_chol) <- diag(Psi_chol) + lambda * s
@@ -1112,8 +1113,9 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
       Psi <- Psi_chol |> chol2inv()
 
       beta_hat <- c(Psi %*% tUWz) # fitted value
+
       y_hat <- c(U %*% beta_hat)
-      res <- if (reg) (sqrt(wt) * (y - y_hat)) else sqrt(wt) * (z - y_hat) # (weighted) residuals
+      res <- sqrt(wt) * ((if (reg) y else z) - y_hat) # (weighted) residuals
       dev <- sum(res * res)
 
       if (criterion != "REML") sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
@@ -1130,7 +1132,8 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
                         REML <- dev + pen - tr_log_P + tr_log_Psi
                       })
 
-      if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+      if (verbose) cat(criterion, " :", format(
+        if (criterion == "REML") - score / 2 else score, digits = 3, decimal.mark = ","), "\n")
 
       return(score)
     }
@@ -1391,7 +1394,8 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
                       REML <- dev + pen - tr_log_P + tr_log_Psi
                     })
 
-    if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+    if (verbose) cat(criterion, " :", format(
+      if (criterion == "REML") - score / 2 else score, digits = 3, decimal.mark = ","), "\n")
 
     return(score)
   }
@@ -1452,6 +1456,8 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
   # Loop
   while (cond_dev_pen) {
 
+    old_dev_pen <- dev_pen
+
     # update of parameters, working vector and weight matrix
     if (!reg) {
 
@@ -1466,7 +1472,6 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     WH_2d_aux <- function(log_lambda) {
 
       lambda <- exp(log_lambda)
-      if (verbose) cat("lambda : ", format(lambda, digits = 3), "\n")
 
       s_lambda <- purrr::map2(lambda, s, `*`)
       sum_s_lambda <- s_lambda |> do.call(what = `+`)
@@ -1478,13 +1483,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
 
       beta_hat <- c(Psi %*% tUWz) # fitted value
       y_hat <- c(U %*% beta_hat)
-      # if (!reg) new_wt <- exp(y_hat + off)
-
-      # update of convergence check
-      old_dev_pen <- dev_pen
-
-      # res <- if (reg) sqrt(wt) * (y - y_hat) else compute_res_deviance(d, new_wt) # (weighted) residuals
-      res <- if (reg) sqrt(wt) * (y - y_hat) else sqrt(wt) * (z - y_hat) # (weighted) residuals
+      res <- sqrt(wt) * ((if (reg) y else z) - y_hat) # (weighted) residuals
       dev <- sum(res * res)
 
       if (criterion != "REML") sum_edf <- sum(Psi * tUWU) # effective degrees of freedom
@@ -1501,7 +1500,8 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
                         REML <- dev + pen - tr_log_P + tr_log_Psi
                       })
 
-      if (verbose) cat(criterion, " :", format(score, digits = 3, decimal.mark = ","), "\n")
+      if (verbose) cat(criterion, " :", format(
+        if (criterion == "REML") - score / 2 else score, digits = 3, decimal.mark = ","), "\n")
 
       return(score)
     }

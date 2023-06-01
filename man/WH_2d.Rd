@@ -10,8 +10,8 @@ WH_2d(
   lambda,
   criterion,
   method,
-  p,
   max_dim = 200,
+  p,
   q = c(2, 2),
   framework,
   y,
@@ -48,15 +48,15 @@ performance iteration method is used. The alternative \code{"outer"} method is
 guaranteed to converge but slower. Both those methods rely on the \code{optim}
 function from package \code{stats}.}
 
+\item{max_dim}{Number of parameters to be kept in the optimization problem.
+Default is \code{200}. Values higher than \code{2000} may result in very high
+computation times and memory usage.}
+
 \item{p}{Optional vector of size \code{2}. Maximum number of eigenvectors to keep
 on each dimension after performing the eigen decomposition of the
 penalization matrix. If missing, will be automatically computed so that the
 dimensions of (square) matrices involved in the optimization problem
 remains lower that the \code{max_dim} argument}
-
-\item{max_dim}{Number of parameters to be kept in the optimization problem.
-Default is \code{200}. Values higher than \code{2000} may result in very high
-computation times and memory usage.}
 
 \item{q}{Order of penalization vector of size \code{2}. Polynoms of degrees
 \verb{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
@@ -95,7 +95,7 @@ An object of class \code{WH_2d} i.e. a list containing :
 \item \code{y_hat} The matrix of fitted value
 \item \code{std_y_hat} The matrix of standard deviation associated with the fitted value
 \item \code{res} The matrix of model deviance residuals
-\item \code{edf} The matrix of effective degrees of freedom associated with each observation
+\item \code{edf_obs} The matrix of effective degrees of freedom associated with each observation
 \item \code{edf_par} The matrix of effective degrees of freedom associated with each eigenvector
 \item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
 \item \code{Psi} The variance-covariance matrix associated with the fit, required for extrapolation.

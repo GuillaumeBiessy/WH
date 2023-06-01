@@ -12,6 +12,12 @@ cum_index <- function(n) {
   purrr::map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
 }
 
+#' Diagonal merging of matrices
+#'
+#' @param ... One or several object of type `matrix`
+#'
+#' @returns A matrix obtained by merging the input matrices diagonally
+#' @keywords internal
 blockdiag <- function(...) {
 
   L  <- Filter(Negate(is.null), list(...))

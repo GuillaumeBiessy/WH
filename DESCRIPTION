@@ -1,13 +1,13 @@
 Package: WH
 Type: Package
 Title: Whittaker-Henderson Smoothing for Survival Data
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: utils::person("Guillaume", "Biessy", email = "guillaume.biessy78@gmail.com",
   role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3756-7345"))
 Description: Implementation of Whittaker-Henderson Smoothing for the gradation 
     of actuarial tables for person insurance risks such as mortality, disability, 
     long-term care and unemployment. The package handles tables in 1 or 2 dimensions
-    and performs automatic selection of the smoothing parameters. Smoothing is 
+    and performs automatic selection of smoothing parameters. Smoothing is 
     applied to vectors / matrices containing the number of observed events and 
     the associated central risk exposure in the framework of maximum likelihood 
     estimation or an approximate regression framework. Optimal parameter selection
@@ -19,7 +19,7 @@ LazyData: true
 URL: https://github.com/GuillaumeBiessy/WH
 BugReports: https://github.com/GuillaumeBiessy/WH/issues
 Depends: 
-    R (>= 4.1)
+    R (>= 4.3)
 Suggests: 
     knitr,
     rmarkdown,
