@@ -9,7 +9,7 @@ build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
 cum_index <- function(n) {
 
-  purrr::map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
+  map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
 }
 
 #' Diagonal merging of matrices
@@ -22,8 +22,8 @@ blockdiag <- function(...) {
 
   L  <- Filter(Negate(is.null), list(...))
 
-  n1 <- purrr::map(L, nrow)
-  n2 <- purrr::map(L, ncol)
+  n1 <- lapply(L, nrow)
+  n2 <- lapply(L, ncol)
 
   M  <- matrix(0, do.call(sum, n1), do.call(sum, n2))
 
@@ -41,11 +41,9 @@ blockdiag <- function(...) {
 #' @param q Order of the penalization matrix
 #' @param p Number of eigenvectors to keep
 #'
-#' @returns A list with components : - \code{X} a matrix whose columns are the
-#'   eigenvectors associated with 0 eigenvalues - \code{Z} a matrix whose
-#'   columns are the eigenvectors associated with non-0 eigenvalues sorted in
-#'   ascending order - \code{s} a vector containing the eigenvalues sorted in
-#'   ascending order
+#' @returns A list with components : - \code{U} a matrix whose columns are the
+#'   eigenvectors of the penalization matrix - \code{s} a vector containing the
+#'   eigenvalues sorted in ascending order
 #' @keywords internal
 eigen_dec <- function(n, q, p) {
 
@@ -108,4 +106,56 @@ get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
                     AIC = AIC, BIC = BIC, GCV = GCV, REML = REML)
 
   return(out)
+}
+
+#' Lapply with Custom Return Type
+#'
+#' @param x A vector or list
+#' @param f A function
+#' @param output_type The desired return type. Should be one of "list" (the
+#'   default), "integer", "numeric" or "character".
+#'
+#' @returns A list (if output_type = "list") or a vector, sharing names with x,
+#'   built by applying f to each element of x. This is a very rough
+#'   implementation of the map function from the wonderful package purrr meant
+#'   to remove the dependency from this package.
+#' @keywords internal
+map <- function(x, f, output_type = "list") {
+
+  nx <- length(x)
+  l <- vector(output_type, nx)
+  for (i in seq_len(nx)) {
+    l[[i]] <- f(x[[i]])
+  }
+  names(l) <- names(x)
+
+  return(l)
+}
+
+#' Lapply with Custom Return Type
+#'
+#' @param x,y A couple of vectors or lists with the same size
+#' @param f A function
+#' @param output_type The desired return type. Should be one of "list" (the
+#'   default), "integer", "numeric" or "character".
+#'
+#' @returns A list (if output_type = "list") or a vector, sharing names with x,
+#'   built by applying f to each element of x and y simultaneously. This is a
+#'   very rough implementation of the map2 function from the wonderful package
+#'   purrr meant to remove the dependency from this package.
+#' @keywords internal
+map2 <- function(x, y, f, output_type = "list") {
+
+  nx <- length(x)
+  ny <- length(y)
+
+  if (nx != ny) stop("Inputs should have the same length")
+
+  l <- vector(output_type, nx)
+  for (i in seq_len(nx)) {
+    l[[i]] <- f(x[[i]], y[[i]])
+  }
+  names(l) <- names(x)
+
+  return(l)
 }

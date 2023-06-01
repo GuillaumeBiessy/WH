@@ -14,11 +14,9 @@ eigen_dec(n, q, p)
 \item{p}{Number of eigenvectors to keep}
 }
 \value{
-A list with components : - \code{X} a matrix whose columns are the
-eigenvectors associated with 0 eigenvalues - \code{Z} a matrix whose
-columns are the eigenvectors associated with non-0 eigenvalues sorted in
-ascending order - \code{s} a vector containing the eigenvalues sorted in
-ascending order
+A list with components : - \code{U} a matrix whose columns are the
+eigenvectors of the penalization matrix - \code{s} a vector containing the
+eigenvalues sorted in ascending order
 }
 \description{
 Eigen decomposition of penalization matrix
