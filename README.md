@@ -44,8 +44,7 @@ In the latter expression, $\Delta^q$ denotes the forward difference
 operator of order $q$, such that for any $i\in[1,n - q]$:
 
 $$
-(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ 
-k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
+(\Delta^q\boldsymbol{\theta})_i = \sum_{k = 0}^q \begin{pmatrix} q \\ k \end{pmatrix} (- 1)^{q - k} \theta_{i + k}.
 $$
 
 Let us define $W = \text{Diag}(\mathbf{w})$, the diagonal matrix of
