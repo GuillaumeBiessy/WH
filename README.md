@@ -44,7 +44,7 @@ In the latter expression, $\Delta^q$ denotes the forward difference
 operator of order $q$, such that for any $i\in[1,n - q]$:
 
 $$
-{(\Delta^q \boldsymbol{\theta})}_i = \sum_{k = 0}^q \begin{pmatrix} q \\ k \end{pmatrix} {(- 1)}^{q - k} {\theta}_{i + k}.
+(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
 $$
 
 Let us define $W = \text{Diag}(\mathbf{w})$, the diagonal matrix of
@@ -97,11 +97,11 @@ $$
 
 where:
 
-$F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
-represents a fidelity criterion to the observations,
+- $F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
+  represents a fidelity criterion to the observations,
 
-$R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
-is a smoothness criterion.
+- $R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
+  is a smoothness criterion.
 
 This latter criterion can be written as the sum of two one-dimensional
 regularization criteria, with orders $q_x$ and $q_z$, applied
