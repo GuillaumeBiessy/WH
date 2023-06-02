@@ -19,7 +19,7 @@ LazyData: true
 URL: https://github.com/GuillaumeBiessy/WH
 BugReports: https://github.com/GuillaumeBiessy/WH/issues
 Depends: 
-    R (>= 4.3)
+    R (>= 4.2)
 Imports: 
     stats
 Suggests: 
