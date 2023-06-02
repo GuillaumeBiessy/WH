@@ -50,7 +50,8 @@ In the latter expression, $\Delta^q$ denotes the forward difference operator of 
 
 
 $$
-(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
+(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ 
+k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
 $$
 
 Let us define $W = \text{Diag}(\mathbf{w})$, the diagonal matrix of weights, and $D_{n,q}$ as the order $q$ difference matrix of dimensions $(n-q) \times n$, such that $(D_{n,q}\boldsymbol{\theta})_i = (\Delta^q\boldsymbol{\theta})_i$ for all $i \in [1, n-q]$. The most commonly used difference matrices of order 1 and 2 have the following forms:
