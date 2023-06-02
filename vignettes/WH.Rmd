@@ -33,7 +33,7 @@ Let $\mathbf{y}$ be a vector of observations and $\mathbf{w}$ a vector of positi
 
 $$
 \hat{\mathbf{y}} = \underset{\boldsymbol{\theta}}{\text{argmin}}\{F(\mathbf{y},\mathbf{w},\boldsymbol{\theta}) + R_{\lambda,q}(\boldsymbol{\theta})\}
-$${#eq-WH1}
+$$
 
 where:
 
@@ -75,7 +75,7 @@ The associated estimator for smoothing becomes:
 
 $$
 \hat{\mathbf{y}} = \underset{\boldsymbol{\theta}}{\text{argmin}} \left\lbrace(\mathbf{y} - \boldsymbol{\theta})^TW(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^TP_{\lambda}\boldsymbol{\theta}\right\rbrace
-$${#eq-WH2}
+$$
 
 where $P_{\lambda} = \lambda D_{n,q}^TD_{n,q}$.
 
@@ -102,25 +102,25 @@ R_{\lambda,q}(\boldsymbol{\theta}) &= \boldsymbol{\theta}^{T}(\lambda_x I_{n_z} 
 \end{aligned}
 $$
 
-and the estimator associated with the smoothing takes the form:
+and the estimator associated with the smoothing takes the same form as in the one-dimensional case:
 
 $$
 \hat{\mathbf{y}} = \underset{\boldsymbol{\theta}}{\text{argmin}} \left\lbrace(\mathbf{y} - \boldsymbol{\theta})^TW(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^TP_{\lambda}\boldsymbol{\theta}\right\rbrace
 $$
 
-of @eq-WH2 except in this case $P_{\lambda} = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}$.
+except in this case $P_{\lambda} = \lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}$.
 
-## Explicit solution
+### Explicit solution
 
-@eq-WH2 has an explicit solution:
+Whittaker-Henderson estimator has an explicit solution:
 
-$$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$${#eq-WH3}
+$$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.$$
 
-It follows that $(W + P_{\lambda})\hat{\boldsymbol{\theta}} = W\mathbf{y}$, and if $W + P_{\lambda}$ is invertible, then $\hat{\mathbf{y}}$ is indeed a solution of @eq-WH3. When $\lambda \neq 0$, $W + P_{\lambda}$ is invertible as long as $\mathbf{w}$ has $q$ non-zero elements in the one-dimensional case, and $\Omega$ has at least $q_x \times q_z$ non-zero elements distributed over $q_x$ different rows and $q_z$ different columns in the two-dimensional case. These are sufficient conditions, which are always satisfied in practice and will not be demonstrated here.
+It follows that $(W + P_{\lambda})\hat{\boldsymbol{\theta}} = W\mathbf{y}$, and if $W + P_{\lambda}$ is invertible, then $\hat{\mathbf{y}}$ is indeed a solution for the original equation. When $\lambda \neq 0$, $W + P_{\lambda}$ is invertible as long as $\mathbf{w}$ has $q$ non-zero elements in the one-dimensional case, and $\Omega$ has at least $q_x \times q_z$ non-zero elements distributed over $q_x$ different rows and $q_z$ different columns in the two-dimensional case. These are sufficient conditions, which are always satisfied in practice and will not be demonstrated here.
 
 ## How to use the package ?
 
@@ -187,13 +187,12 @@ WH_2d_fit |> predict(newdata = list(age = 50:99,
 ```
 
 
-* Finally the `output_to_df` converts an `"WH_1d"` or `"WH_2d"` object into a `data.frame`. Information about the fit is lost in the process. This may be useful to produce better visualizations, for example using the ggplot2 package.
+* Finally the `output_to_df` function converts an `"WH_1d"` or `"WH_2d"` object into a `data.frame`. Information about the fit is discarded in the process. This function may be useful to produce better visualizations from the data, for example using the ggplot2 package.
 
 ```{r}
 WH_1d_df <- WH_1d_fit |> output_to_df()
 WH_2d_df <- WH_2d_fit |> output_to_df()
 ```
-
 
 ## Further WH smoothing theory
 
@@ -218,38 +217,41 @@ In the sense of the penalization of order $q_x$, the space of observation vector
 
 ### Credibility intervals
 
-Let $B$ a matrix such that $P_\lambda = B^TB$. The smoothing equation may be rearranged:
+From the explicit solution of WH smoothinh, $\mathbb{E}(\hat{\mathbf{y}}) = (W + P_{\lambda})^{-1}W\mathbb{E}(\mathbf{y}) \ne \mathbb{E}(\mathbf{y})$ when $\lambda \ne 0$. This implies that penalization introduces a smoothing bias, which prevents the construction of a confidence interval centered around $\mathbb{E}(\mathbf{y})$. Therefore, in this section, we turn to a Bayesian approach where smoothing can be interpreted more naturally.
 
-$$(y - \theta)^TW(y - \theta) + \theta^TP_\lambda\theta = \left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2$$
-
-which corresponds to an weighted mean square problem. In particular, if $y \sim \mathcal{N}(\theta,\sigma^2W^{- 1})$ then $\sqrt{W}y \sim \mathcal{N}(\sqrt{W}\theta,\sigma^2I_n)$ and the framework of regression may be used. Note that $\theta = \mathbb{E}(y)$ is in this case both the parameter vector and the underlying law WH smoothing is trying to estimate.
-
-In the cas of 0 weights, the matrix $W^{- 1}$ is not properly defined. By defining $w_\ast$ the subvector of stricly positive weights and $y_\ast$ the associated observation vector and noting $W_\ast = \text{Diag}(w_\ast)$, the previous quantity may be rewritten:
-
-$$\left\Vert\begin{pmatrix}\sqrt{W}y \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W} \\ B\end{pmatrix}\theta\right\Vert^2 = \left\Vert\begin{pmatrix}\sqrt{W_\ast}y_\ast \\ 0\end{pmatrix} - \begin{pmatrix}\sqrt{W_\ast} \\ B\end{pmatrix}\theta\right\Vert^2$$
-
-and the problem may now be expressed properly in terms of $y_\ast$ and $w_\ast$. Nevertheless to keep things simple we stick with $y$ and $w$ and consider that $W^{- 1}$ contains infinite values associated with initial 0 weights in $w$.
-
-The previous explicit solution to the smoothing equation garanties the normality of $\hat{y}$. In the framework of regression, the law of error propagation yields: 
-
-$$\text{Var}(\hat{y}) = \text{Var}[(W + P_\lambda)^{- 1}Wy] = (W + P_\lambda)^{- 1}W\text{Var}(y) W(W + P_\lambda)^{- 1} = \sigma^2 (W + P_\lambda)^{- 1}W(W + P_\lambda)^{- 1}.$$
-Unfortunately $\mathbb{E}(\hat{y}) = (W + P_\lambda)^{- 1}W\mathbb{E}(y) \ne \mathbb{E}(y)$ if $\lambda \ne 0$. The penalization introduces a *smoothing bias* and those results may not be used to compute a confidence interval for $\theta$.
-
-An alternative is to adopt a bayesian interpretation of the smoothing equation and to interpretate the penalization as an *a priori* of the form $\exp(- \theta^{T}P_\lambda\theta / 2\sigma^2)$ on $\theta$, which boils down to assume that $\theta \sim \mathcal{N}(0, \sigma^2P_\lambda^{-})$ (where $A^-$ corresponds to the pseudo-inverse of a matrix $A$). Bayes formula then yields:
+Let us suppose that $\mathbf{y} | \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ where $P_{\lambda}^{-}$ denotes the pseudo-inverse of the matrix $P_{\lambda}$. The Bayes' formula allows us to express the posterior likelihood $f(\boldsymbol{\theta} | \mathbf{y})$ associated with these choices in the following form:
 
 $$\begin{aligned}
-f(\theta | y) &\propto f_y(y | \theta) f_\theta(\theta) \\
-&\propto \exp\left(- \frac{1}{2\sigma^2}(y - \theta)^{T}W(y - \theta)\right)\exp\left(-\frac{1}{2\sigma^2}\theta^{T}P_\lambda\theta\right) \\
-&\propto \exp\left(- \frac{1}{2\sigma^2}\left[(y - \theta)^{T}W(y - \theta) +\theta^{T}P_\lambda\theta\right]\right)
+f(\boldsymbol{\theta} | \mathbf{y}) &= \frac{f(\mathbf{y} | \boldsymbol{\theta}) f(\boldsymbol{\theta})}{f(y)} \\
+&\propto f(\mathbf{y} | \boldsymbol{\theta}) f(\boldsymbol{\theta}) \\
+&\propto \exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right)\exp\left(-\frac{1}{2}\boldsymbol{\theta}^TP_{\lambda} \boldsymbol{\theta}\right) \\
+&\propto \exp\left(- \frac{1}{2}\left[(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^TP_{\lambda}\boldsymbol{\theta}\right]\right).
 \end{aligned}$$
 
-The mode of the posterior distribution $\hat{\theta} = \text{argmax} [f(\theta | y)]$, also known as *maximum a posteriori* (MAP) therefore matches the solution $\hat{y}$ of the smoothing equation. Furthermore, a Taylor extension of $\ln f(\theta | y)$ in $\theta = \hat{y}$ allows the posterior distribution to be recognized as $\mathcal{N}(\hat{y}, \sigma^2(W + P_\lambda)^{- 1})$.
+The mode of the posterior distribution, $\hat{\boldsymbol{\theta}} = \underset{\boldsymbol{\theta}}{\text{argmax}} [f(\boldsymbol{\theta} | \mathbf{y})]$, also known as the maximum a posteriori (MAP) estimate, coincides with the explicit solution $\hat{\mathbf{y}}$. 
 
-An unbiased estimator of $\sigma^2$ is then given by:
+A second-order Taylor expansion of the log-posterior likelihood around $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
-$$\hat{\sigma}^2 = \frac{\Vert\sqrt{W}(y - \hat{y})\Vert^2}{n_* - \text{edf}}$$ where $n_*$ corresponds to the number of non 0 weights and $\text{edf} = \text{tr}(H) = \text{tr}[(W + P_\lambda)^{- 1}W]$.
+$$\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})$${#eq-taylor1}
 
-This result allows $100(1 -\alpha)\%$ credibility intervals of the form $[\hat{y} \pm t_{n - \text{edf}}(\frac{1 - \alpha}{2})\sqrt{\text{diag}\left\lbrace(W + P_\lambda)^{- 1}\right\rbrace}]$ to be computed where $t_{n_* - \text{edf}}$ is the distribution function for the student law of parameter $n_* - \text{edf}$. Let us note that the use of student distribution instead of the normal distribution is linked with the presence of an unknown $\sigma^2$ parameter.
+$$\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).$$
+
+Note that this last derivative no longer depends on $\boldsymbol{\theta}$, and higher-order derivatives beyond 2 are all zero. The Taylor expansion allows for an exact computation of $\ln f(\boldsymbol{\theta} | \mathbf{y})$. By substituting the result back into the Taylor expansion, we obtain:
+
+$$\begin{aligned}
+f(\boldsymbol{\theta} | \mathbf{y}) &\propto \exp\left[\ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) - \frac{1}{2} (\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})\right] \\
+&\propto \exp\left[- \frac{1}{2} (\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})\right]
+\end{aligned}$$
+
+which can immediately be recognized as the density of the $\mathcal{N}(\hat{\boldsymbol{\theta}},(W + P_{\lambda})^{- 1})$ distribution.
+
+The assumption $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ corresponds to a simple Bayesian formalization of the smoothness criterion. It reflects a (improper) prior belief of the modeler about the underlying distribution of the observation vector $\mathbf{y}$.
+
+The use of Whittaker-Henderson smoothing in the Bayesian framework and the construction of credible intervals are conditioned on the validity of the assumption $\mathbf{y} | \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$. The components of the observation vector should be independent and have known variances. The weight vector $\mathbf{w}$ used should contain the inverses of these variances. Under these assumptions, credible intervals at $100(1 - \alpha)$% for smoothing can be constructed and take the form:
+
+$$\mathbb{E}(\mathbf{y}) | \mathbf{y} \in \left[\hat{\mathbf{y}} \pm \Phi\left(1 -\frac{\alpha}{2}\right)\sqrt{\textbf{diag}\left\lbrace(W + P_{\lambda})^{-1}\right\rbrace}\right]$$
+
+with probability $1 -\frac{\alpha}{2}$ where $\hat{\mathbf{y}} = (W + P_{\lambda})^{- 1}W\mathbf{y}$ and $\Phi$ denotes the cumulative distribution function of the standard normal distribution. According to @marra2012, these credible intervals provide satisfactory coverage of the corresponding frequentist confidence intervals and can therefore be used as practical substitutes.
 
 ## What should I use as observations and weights ?
 
@@ -352,5 +354,7 @@ by noting $\eta_k = X\beta_k$, $\Psi_k = (X^{T}W_kX + P_\lambda)^{- 1}$, $W_k = 
 The posterior distribution of $\beta | y$ may be asymptotically approached by $\mathcal{N}(\hat{\beta}, (X^TW_{\hat{\beta}}X + P_\lambda)^{- 1})$, which allows $100(1 -\alpha)\%$ credibility intervals of the form $\left[\hat{\beta} \pm \Phi(1 - \alpha / 2) \sqrt{\text{diag}\lbrace(X^TW_{\hat{\beta}}X + P_\lambda)^{- 1}\rbrace}\right]$ where $\Phi$ is the cumulative distribution function of the normal distribution. 
 
 ## How is the optimal smoothing parameter determined ?
+
+In the definition of WH smoothing, $(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})$ represents a fidelity criterion to the observations, and $\boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}$ represents a smoothness criterion. The relative importance of these criteria is controlled by the parameter (or pair of parameters in the two-dimensional case) $\lambda$. The result of smoothing is highly sensitive to the chosen value of the smoothing parameter.
 
 # References {-}
