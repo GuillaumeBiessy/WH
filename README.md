@@ -137,7 +137,7 @@ $$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$
-0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right\Vert_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
+0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right{\vert}_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
 $$
 
 It follows that
@@ -333,11 +333,11 @@ A second-order Taylor expansion of the log-posterior likelihood around
 $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
 $$
-\ln f(\boldsymbol{\theta} \vert \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} \vert \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
+\ln f(\boldsymbol{\theta} \vert \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} \vert \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right{\vert}_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right{\vert}_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
 $$
 
 $$
-\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
+\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right{\vert}_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right{\vert}_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
 $$
 
 Note that this last derivative no longer depends on
@@ -630,14 +630,14 @@ $f(\boldsymbol{\theta} \vert\lambda)$ introduced previously:
 
 $$
 \begin{aligned}
-f(\mathbf{y} \vert \boldsymbol{\theta}) &= \sqrt{\frac{\vert W\vert_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
-f(\boldsymbol{\theta} \vert\lambda) &= \sqrt{\frac{\vertP_{\lambda}\vert_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
+f(\mathbf{y} \vert \boldsymbol{\theta}) &= \sqrt{\frac{\vert W{\vert}_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
+f(\boldsymbol{\theta} \vert\lambda) &= \sqrt{\frac{\vert P_{\lambda}{\vert}_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
 \end{aligned}
 $$
 
-where $\vertA\vert_{+}$ denotes the product of the non-zero eigenvalues
-of $A$, $n_*$ is the number of non-zero diagonal elements of $W$, and
-$q$ is the number of zero eigenvalues of $P_{\lambda}$
+where $\vert A{\vert}_{+}$ denotes the product of the non-zero
+eigenvalues of $A$, $n_*$ is the number of non-zero diagonal elements of
+$W$, and $q$ is the number of zero eigenvalues of $P_{\lambda}$
 ($q = q_x \times q_z$ in the two-dimensional case). Based on the Taylor
 expansion performed to obtain credibility intervals, let us recall that:
 
@@ -653,7 +653,7 @@ $$
 &= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \int \exp\left[- \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda}) \right]\text{d}\boldsymbol{\theta} \\
 &= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \sqrt{\frac{(2\pi)^p}{\vert W + P_{\lambda}\vert}} \\
 &= f_\mathbf{y}(\mathbf{y} \vert \hat{\boldsymbol{\theta}}_{\lambda}) f_{\boldsymbol{\theta}}(\hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \sqrt{\frac{(2\pi)^p}{\vert W + P_{\lambda}\vert}} \\
-&= \sqrt{\frac{\vert W\vert_{+}\vert P_{\lambda} \vert_{+}}{(2\pi)^{n_* - q}\vert W + P_{\lambda}\vert}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
+&= \sqrt{\frac{\vert W{\vert}_{+}\vert P_{\lambda} {\vert}_{+}}{(2\pi)^{n_* - q}\vert W + P_{\lambda}\vert}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
 \end{aligned}
 $$
 
@@ -662,7 +662,7 @@ The associated log-likelihood can be expressed as follows:
 $$
 \begin{aligned}
 \ell^m_\text{reg}(\lambda) = - \frac{1}{2}&\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^{T}P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right. \\
-&\left.- \ln\vert W\vert_{+} - \ln\vertP_{\lambda}\Vert_{+} + \ln\VertW + P_{\lambda}\Vert + (n_* - q)\ln(2\pi)\right].
+&\left.- \ln\vert W{\vert}_{+} - \ln\vert P_{\lambda}{\vert}_{+} + \ln\vert W + P_{\lambda}\vert + (n_* - q)\ln(2\pi)\right].
 \end{aligned}
 $$
 
