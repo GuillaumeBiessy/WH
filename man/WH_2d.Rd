@@ -131,26 +131,22 @@ wt <- d
 # Maximum likelihood
 WH_2d(d, ec, lambda = c(1e2, 1e2))
 WH_2d(d, ec) # performance iteration default method
-
+WH_2d(d, ec, method = "outer") # slower but safer outer iteration method
 WH_2d(d, ec, criterion = "GCV")
 # alternative optimization criteria for smoothing parameter selection
 
 # Regression
-WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2))
-# regression framework is triggered when y is supplied
-WH_2d(d, y = y, lambda = c(1e2, 1e2)) # d is used as wt
+WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2)) # regression framework is triggered when y is supplied
 WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 # setting framework = "reg" forces computation of y from d and ec
 
+# Rank reduction
 keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
 keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
-
-# Rank reduction
 d  <- portfolio_LTC$d[keep_age2, keep_duration2]
 ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
-
 prod(dim(d)) # problem dimension is 1,232 !
 WH_2d(d, ec)
-# rank-reduction is used to find an approximate solution with 200 parameters
+# rank-reduction is used to find an approximate solution using 200 parameters
 
 }

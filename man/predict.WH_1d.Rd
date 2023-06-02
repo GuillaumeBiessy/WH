@@ -27,6 +27,9 @@ keep <- which(portfolio_mort$ec > 0)
 d <- portfolio_mort$d[keep]
 ec <- portfolio_mort$ec[keep]
 
-WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
+fit <- WH_1d(d, ec)
+newdata = 18:99
+pred <- predict(fit, newdata)
+plot(pred)
 
 }

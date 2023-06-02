@@ -24,6 +24,6 @@ keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
-WH_2d(d, ec) |> summary()
+WH_2d(d, ec)
 
 }

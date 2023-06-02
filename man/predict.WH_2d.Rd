@@ -29,6 +29,9 @@ keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
-WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
+fit <- WH_2d(d, ec)
+newdata <- list(age = 50:99, duration = 0:19)
+pred <- predict(fit, newdata)
+plot(pred)
 
 }

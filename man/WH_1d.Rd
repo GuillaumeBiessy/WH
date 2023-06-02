@@ -92,10 +92,10 @@ extrapolation.
 \description{
 Main package function to apply Whittaker-Henderson smoothing in a
 unidimensional survival analysis framework. It takes as input a vector of
-observed events and a vector of associated central exposure, both
-depending on a single covariate, and build a smooth version of the log-hazard
-rate. Smoothing parameters may be supplied or automatically chosen according
-to an adequate criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
+observed events and a vector of associated central exposure, both depending
+on a single covariate, and build a smooth version of the log-hazard rate.
+Smoothing parameters may be supplied or automatically chosen according to an
+adequate criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
 \code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
 framework (the default) or an approximate gaussian framework.
 }
@@ -110,27 +110,13 @@ wt <- d
 
 # Maximum likelihood
 WH_1d(d, ec, lambda = 1e2)
-WH_1d(d, ec) # default performance iteration method based on the optimize function
-
-testthat::expect_equal(WH_1d(d, ec),
-                       WH_1d(d, ec, method = "outer"),
-                       tolerance = 1e-1)
-# performance iteration method is approximate in maximum likelihood framework
-
+WH_1d(d, ec) # default outer iteration method based on the optimize function
 WH_1d(d, ec, criterion = "GCV")
-# alternative optimization criteria for smoothing parameter selection
+# alternative optimization criterion for smoothing parameter selection
 
 # Regression
-WH_1d(y = y, wt = wt, lambda = 1e2)
-# regression framework is default when y is supplied
-WH_1d(d, y = y, lambda = 1e2) # d is used as wt
+WH_1d(y = y, wt = wt, lambda = 1e2) # regression framework is default when y is supplied
 WH_1d(d, ec, framework = "reg", lambda = 1e2)
-# Setting framework = "reg" forces computation of y from d and ec
-
-WH_1d(y = y, wt = wt)
-testthat::expect_equal(WH_1d(y = y, wt = wt),
-                       WH_1d(y = y, wt = wt, method = "outer"),
-                       tolerance = 1e-5)
-# performance iteration method is exact in regression framework
+# setting framework = "reg" forces computation of y from d and ec
 
 }

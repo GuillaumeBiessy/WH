@@ -29,8 +29,9 @@ keep <- which(portfolio_mort$ec > 0)
 d <- portfolio_mort$d[keep]
 ec <- portfolio_mort$ec[keep]
 
-WH_1d(d, ec) |> plot()
-WH_1d(d, ec) |> plot("res")
-WH_1d(d, ec) |> plot("edf")
+fit <- WH_1d(d, ec)
+plot(fit)
+plot(fit, "res")
+plot(fit, "edf")
 
 }

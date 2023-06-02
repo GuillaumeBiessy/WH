@@ -4,10 +4,10 @@
 #'
 #' Main package function to apply Whittaker-Henderson smoothing in a
 #' unidimensional survival analysis framework. It takes as input a vector of
-#' observed events and a vector of associated central exposure, both
-#' depending on a single covariate, and build a smooth version of the log-hazard
-#' rate. Smoothing parameters may be supplied or automatically chosen according
-#' to an adequate criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
+#' observed events and a vector of associated central exposure, both depending
+#' on a single covariate, and build a smooth version of the log-hazard rate.
+#' Smoothing parameters may be supplied or automatically chosen according to an
+#' adequate criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
 #' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
 #' framework (the default) or an approximate gaussian framework.
 #'
@@ -79,28 +79,14 @@
 #'
 #' # Maximum likelihood
 #' WH_1d(d, ec, lambda = 1e2)
-#' WH_1d(d, ec) # default performance iteration method based on the optimize function
-#'
-#' testthat::expect_equal(WH_1d(d, ec),
-#'                        WH_1d(d, ec, method = "outer"),
-#'                        tolerance = 1e-1)
-#' # performance iteration method is approximate in maximum likelihood framework
-#'
+#' WH_1d(d, ec) # default outer iteration method based on the optimize function
 #' WH_1d(d, ec, criterion = "GCV")
-#' # alternative optimization criteria for smoothing parameter selection
+#' # alternative optimization criterion for smoothing parameter selection
 #'
 #' # Regression
-#' WH_1d(y = y, wt = wt, lambda = 1e2)
-#' # regression framework is default when y is supplied
-#' WH_1d(d, y = y, lambda = 1e2) # d is used as wt
+#' WH_1d(y = y, wt = wt, lambda = 1e2) # regression framework is default when y is supplied
 #' WH_1d(d, ec, framework = "reg", lambda = 1e2)
-#' # Setting framework = "reg" forces computation of y from d and ec
-#'
-#' WH_1d(y = y, wt = wt)
-#' testthat::expect_equal(WH_1d(y = y, wt = wt),
-#'                        WH_1d(y = y, wt = wt, method = "outer"),
-#'                        tolerance = 1e-5)
-#' # performance iteration method is exact in regression framework
+#' # setting framework = "reg" forces computation of y from d and ec
 #'
 #' @export
 WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, quiet = FALSE, ...) {
@@ -282,27 +268,23 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' # Maximum likelihood
 #' WH_2d(d, ec, lambda = c(1e2, 1e2))
 #' WH_2d(d, ec) # performance iteration default method
-#'
+#' WH_2d(d, ec, method = "outer") # slower but safer outer iteration method
 #' WH_2d(d, ec, criterion = "GCV")
 #' # alternative optimization criteria for smoothing parameter selection
 #'
 #' # Regression
-#' WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2))
-#' # regression framework is triggered when y is supplied
-#' WH_2d(d, y = y, lambda = c(1e2, 1e2)) # d is used as wt
+#' WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2)) # regression framework is triggered when y is supplied
 #' WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 #' # setting framework = "reg" forces computation of y from d and ec
 #'
+#' # Rank reduction
 #' keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
 #' keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
-#'
-#' # Rank reduction
 #' d  <- portfolio_LTC$d[keep_age2, keep_duration2]
 #' ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
-#'
 #' prod(dim(d)) # problem dimension is 1,232 !
 #' WH_2d(d, ec)
-#' # rank-reduction is used to find an approximate solution with 200 parameters
+#' # rank-reduction is used to find an approximate solution using 200 parameters
 #'
 #' @export
 WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
@@ -441,7 +423,10 @@ WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
 #' d <- portfolio_mort$d[keep]
 #' ec <- portfolio_mort$ec[keep]
 #'
-#' WH_1d(d, ec) |> predict(newdata = 18:99) |> plot()
+#' fit <- WH_1d(d, ec)
+#' newdata = 18:99
+#' pred <- predict(fit, newdata)
+#' plot(pred)
 #'
 #' @export
 predict.WH_1d <- function(object, newdata = NULL, ...) {
@@ -508,7 +493,10 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
-#' WH_2d(d, ec) |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
+#' fit <- WH_2d(d, ec)
+#' newdata <- list(age = 50:99, duration = 0:19)
+#' pred <- predict(fit, newdata)
+#' plot(pred)
 #'
 #' @export
 predict.WH_2d <- function(object, newdata = NULL, ...) {
@@ -565,6 +553,32 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #'
 #' @returns A data.frame gathering information about the fitted and predicted
 #'   values, the model variance, residuals and effective degrees of freedom...
+#'
+#' @examples
+#' keep <- which(portfolio_mort$ec > 0)
+#' d <- portfolio_mort$d[keep]
+#' ec <- portfolio_mort$ec[keep]
+#'
+#' y <- log(d / ec)
+#' y[d == 0] <- - 20
+#' wt <- d
+#'
+#' fit_1d <- WH_1d(d, ec)
+#' output_to_df(fit_1d)
+#'
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#'
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
+#'
+#' y <- log(d / ec) # observation vector
+#' y[d == 0] <- - 20
+#' wt <- d
+#'
+#' # Maximum likelihood
+#' fit_2d <- WH_2d(d, ec)
+#' output_to_df(fit_2d)
 #'
 #' @export
 output_to_df <- function(object, dim1 = "x", dim2 = "t") {
@@ -654,10 +668,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' y[d == 0] <- - 20
 #' wt <- d
 #'
-#' WH_1d(d, ec) |> summary()
-#' WH_1d(d, ec, method = "perf") |> summary()
-#' WH_1d(d, ec, criterion = "GCV") |> summary()
-#' WH_1d(y = y, wt = wt) |> summary()
+#' WH_1d(d, ec)
 #'
 #' @export
 print.WH_1d <- function(x, ...) {
@@ -686,7 +697,7 @@ print.WH_1d <- function(x, ...) {
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
-#' WH_2d(d, ec) |> summary()
+#' WH_2d(d, ec)
 #'
 #' @export
 print.WH_2d <- function(x, ...) {
@@ -721,9 +732,10 @@ print.WH_2d <- function(x, ...) {
 #' d <- portfolio_mort$d[keep]
 #' ec <- portfolio_mort$ec[keep]
 #'
-#' WH_1d(d, ec) |> plot()
-#' WH_1d(d, ec) |> plot("res")
-#' WH_1d(d, ec) |> plot("edf")
+#' fit <- WH_1d(d, ec)
+#' plot(fit)
+#' plot(fit, "res")
+#' plot(fit, "edf")
 #'
 #' @export
 plot.WH_1d <- function(x, what = "fit", trans, ...) {
@@ -778,8 +790,9 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
 #'
-#' WH_2d(d, ec) |> plot()
-#' WH_2d(d, ec) |> plot("std_y_hat")
+#' fit <- WH_2d(d, ec)
+#' plot(fit)
+#' plot(fit, "std_y_hat")
 #'
 #' @export
 plot.WH_2d <- function(x, what = "y_hat", trans, ...) {

@@ -21,3 +21,30 @@ values, the model variance, residuals and effective degrees of freedom...
 \description{
 Store WH model fit results in a data.frame
 }
+\examples{
+keep <- which(portfolio_mort$ec > 0)
+d <- portfolio_mort$d[keep]
+ec <- portfolio_mort$ec[keep]
+
+y <- log(d / ec)
+y[d == 0] <- - 20
+wt <- d
+
+fit_1d <- WH_1d(d, ec)
+output_to_df(fit_1d)
+
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
+
+y <- log(d / ec) # observation vector
+y[d == 0] <- - 20
+wt <- d
+
+# Maximum likelihood
+fit_2d <- WH_2d(d, ec)
+output_to_df(fit_2d)
+
+}
