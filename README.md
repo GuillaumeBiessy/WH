@@ -97,11 +97,11 @@ $$
 
 where:
 
-- $F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
-  represents a fidelity criterion to the observations,
+$F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
+represents a fidelity criterion to the observations,
 
-- $R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
-  is a smoothness criterion.
+$R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
+is a smoothness criterion.
 
 This latter criterion can be written as the sum of two one-dimensional
 regularization criteria, with orders $q_x$ and $q_z$, applied
