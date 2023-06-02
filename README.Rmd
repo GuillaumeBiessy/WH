@@ -103,6 +103,7 @@ This latter criterion can be written as the sum of two one-dimensional regulariz
 $$
 \begin{aligned}
 F(\mathbf{y},\mathbf{w}, \boldsymbol{\theta}) &= (\mathbf{y} - \boldsymbol{\theta})^TW(\mathbf{y} - \boldsymbol{\theta}) \\
+
 R_{\lambda,q}(\boldsymbol{\theta}) &= \boldsymbol{\theta}^{T}(\lambda_x I_{n_z} \otimes D_{n_x,q_x}^{T}D_{n_x,q_x} + \lambda_z D_{n_z,q_z}^{T}D_{n_z,q_z} \otimes I_{n_x}) \boldsymbol{\theta}.
 \end{aligned}
 $$
@@ -124,7 +125,7 @@ $$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$
-0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
+0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right\Vert_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
 $$
 
 It follows that $(W + P_{\lambda})\hat{\boldsymbol{\theta}} = W\mathbf{y}$, and if $W + P_{\lambda}$ is invertible, then $\hat{\mathbf{y}}$ is indeed a solution for the original equation. When $\lambda \neq 0$, $W + P_{\lambda}$ is invertible as long as $\mathbf{w}$ has $q$ non-zero elements in the one-dimensional case, and $\Omega$ has at least $q_x \times q_z$ non-zero elements distributed over $q_x$ different rows and $q_z$ different columns in the two-dimensional case. These are sufficient conditions, which are always satisfied in practice and will not be demonstrated here.
@@ -207,34 +208,34 @@ WH_2d_df <- WH_2d_fit |> output_to_df()
 
 From the explicit solution of WH smoothinh, $\mathbb{E}(\hat{\mathbf{y}}) = (W + P_{\lambda})^{-1}W\mathbb{E}(\mathbf{y}) \ne \mathbb{E}(\mathbf{y})$ when $\lambda \ne 0$. This implies that penalization introduces a smoothing bias, which prevents the construction of a confidence interval centered around $\mathbb{E}(\mathbf{y})$. Therefore, in this section, we turn to a Bayesian approach where smoothing can be interpreted more naturally.
 
-Let us suppose that $\mathbf{y} | \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ where $P_{\lambda}^{-}$ denotes the pseudo-inverse of the matrix $P_{\lambda}$. The Bayes' formula allows us to express the posterior likelihood $f(\boldsymbol{\theta} | \mathbf{y})$ associated with these choices in the following form:
+Let us suppose that $\mathbf{y} \vert \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ where $P_{\lambda}^{-}$ denotes the pseudo-inverse of the matrix $P_{\lambda}$. The Bayes' formula allows us to express the posterior likelihood $f(\boldsymbol{\theta} \vert \mathbf{y})$ associated with these choices in the following form:
 
 $$
 \begin{aligned}
-f(\boldsymbol{\theta} | \mathbf{y}) &= \frac{f(\mathbf{y} | \boldsymbol{\theta}) f(\boldsymbol{\theta})}{f(y)} \\
-&\propto f(\mathbf{y} | \boldsymbol{\theta}) f(\boldsymbol{\theta}) \\
+f(\boldsymbol{\theta} \vert \mathbf{y}) &= \frac{f(\mathbf{y} \vert \boldsymbol{\theta}) f(\boldsymbol{\theta})}{f(y)} \\
+&\propto f(\mathbf{y} \vert \boldsymbol{\theta}) f(\boldsymbol{\theta}) \\
 &\propto \exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right)\exp\left(-\frac{1}{2}\boldsymbol{\theta}^TP_{\lambda} \boldsymbol{\theta}\right) \\
 &\propto \exp\left(- \frac{1}{2}\left[(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^TP_{\lambda}\boldsymbol{\theta}\right]\right).
 \end{aligned}
 $$
 
-The mode of the posterior distribution, $\hat{\boldsymbol{\theta}} = \underset{\boldsymbol{\theta}}{\text{argmax}} [f(\boldsymbol{\theta} | \mathbf{y})]$, also known as the maximum a posteriori (MAP) estimate, coincides with the explicit solution $\hat{\mathbf{y}}$. 
+The mode of the posterior distribution, $\hat{\boldsymbol{\theta}} = \underset{\boldsymbol{\theta}}{\text{argmax}} [f(\boldsymbol{\theta} \vert \mathbf{y})]$, also known as the maximum a posteriori (MAP) estimate, coincides with the explicit solution $\hat{\mathbf{y}}$. 
 
 A second-order Taylor expansion of the log-posterior likelihood around $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
 $$
-\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
+\ln f(\boldsymbol{\theta} \vert \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} \vert \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
 $$
 
 $$
-\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
+\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} \vert \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
 $$
 
-Note that this last derivative no longer depends on $\boldsymbol{\theta}$, and higher-order derivatives beyond 2 are all zero. The Taylor expansion allows for an exact computation of $\ln f(\boldsymbol{\theta} | \mathbf{y})$. By substituting the result back into the Taylor expansion, we obtain:
+Note that this last derivative no longer depends on $\boldsymbol{\theta}$, and higher-order derivatives beyond 2 are all zero. The Taylor expansion allows for an exact computation of $\ln f(\boldsymbol{\theta} \vert \mathbf{y})$. By substituting the result back into the Taylor expansion, we obtain:
 
 $$
 \begin{aligned}
-f(\boldsymbol{\theta} | \mathbf{y}) &\propto \exp\left[\ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) - \frac{1}{2} (\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})\right] \\
+f(\boldsymbol{\theta} \vert \mathbf{y}) &\propto \exp\left[\ln f(\hat{\boldsymbol{\theta}} \vert \mathbf{y}) - \frac{1}{2} (\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})\right] \\
 &\propto \exp\left[- \frac{1}{2} (\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})\right]
 \end{aligned}
 $$
@@ -243,10 +244,10 @@ which can immediately be recognized as the density of the $\mathcal{N}(\hat{\bol
 
 The assumption $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ corresponds to a simple Bayesian formalization of the smoothness criterion. It reflects a (improper) prior belief of the modeler about the underlying distribution of the observation vector $\mathbf{y}$.
 
-The use of Whittaker-Henderson smoothing in the Bayesian framework and the construction of credible intervals are conditioned on the validity of the assumption $\mathbf{y} | \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$. The components of the observation vector should be independent and have known variances. The weight vector $\mathbf{w}$ used should contain the inverses of these variances. Under these assumptions, credible intervals at $100(1 - \alpha)$% for smoothing can be constructed and take the form:
+The use of Whittaker-Henderson smoothing in the Bayesian framework and the construction of credible intervals are conditioned on the validity of the assumption $\mathbf{y} \vert \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$. The components of the observation vector should be independent and have known variances. The weight vector $\mathbf{w}$ used should contain the inverses of these variances. Under these assumptions, credible intervals at $100(1 - \alpha)$% for smoothing can be constructed and take the form:
 
 $$
-\mathbb{E}(\mathbf{y}) | \mathbf{y} \in \left[\hat{\mathbf{y}} \pm \Phi\left(1 -\frac{\alpha}{2}\right)\sqrt{\textbf{diag}\left\lbrace(W + P_{\lambda})^{-1}\right\rbrace}\right]
+\mathbb{E}(\mathbf{y}) \vert \mathbf{y} \in \left[\hat{\mathbf{y}} \pm \Phi\left(1 -\frac{\alpha}{2}\right)\sqrt{\textbf{diag}\left\lbrace(W + P_{\lambda})^{-1}\right\rbrace}\right]
 $$
 
 with probability $1 -\frac{\alpha}{2}$ where $\hat{\mathbf{y}} = (W + P_{\lambda})^{- 1}W\mathbf{y}$ and $\Phi$ denotes the cumulative distribution function of the standard normal distribution. According to @marra2012, these credible intervals provide satisfactory coverage of the corresponding frequentist confidence intervals and can therefore be used as practical substitutes.
@@ -347,7 +348,7 @@ These likelihood equations have an explicit solution given by $\hat{\boldsymbol{
 Thus, we have shown that in the framework of duration models, using the crude rates estimator, asymptotically $\ln(\mathbf{d} / \mathbf{e}_c) \sim \mathcal{N}(\ln\boldsymbol{\mu}, W^{-1})$, where $W = \text{Diag}(\mathbf{d})$. This justifies applying the Whittaker-Henderson smoothing to the observation vector $y = \ln(\mathbf{d} / \mathbf{e}_c)$ and weight vector $\mathbf{w} = \mathbf{d}$. We obtain the following associated credibility intervals:
 
 $$
-\ln\boldsymbol{\mu} | \mathbf{d}, \mathbf{e_c} \in \left[\hat{\boldsymbol{\theta}} \pm \Phi\left(1 -\frac{\alpha}{2}\right)\sqrt{\textbf{diag}\left\lbrace(\text{Diag}(\mathbf{d}) + P_{\lambda})^{-1}\right\rbrace}\right]
+\ln\boldsymbol{\mu} \vert \mathbf{d}, \mathbf{e_c} \in \left[\hat{\boldsymbol{\theta}} \pm \Phi\left(1 -\frac{\alpha}{2}\right)\sqrt{\textbf{diag}\left\lbrace(\text{Diag}(\mathbf{d}) + P_{\lambda})^{-1}\right\rbrace}\right]
 $$
 
 where $\hat{\boldsymbol{\theta}} = (\text{Diag}(\mathbf{d}) + P_{\lambda})^{-1}\text{Diag}(\mathbf{d})[\ln(\mathbf{d}) - \ln \mathbf{e}_c]$. Results on $\boldsymbol{\mu}$ can be obtained directly by exponentiating the above expression.
@@ -360,36 +361,36 @@ On one hand, there are criteria based on the minimization of the model's predict
 
 On the other hand, there are criteria based on the maximization of a likelihood function known as the marginal likelihood. This type of criterion was introduced by @patterson1971reml in the Gaussian case, initially under the name of restricted likelihood (REML), and used by @anderssen1974time for the selection of smoothing parameters. @wahba1985comparison and @kauermann2005note show that criteria minimizing prediction error have the best asymptotic performance, but their convergence to the optimal smoothing parameters is slower. For finite sample sizes, criteria based on the maximization of a likelihood function are considered a more robust choice by many authors, such as @reiss2009smoothing or @wood2011reml. For these reasons, we will favor the marginal likelihood as the selection criterion, especially since this choice naturally fits into the Bayesian framework introduced in the past sections.
 
-Let us start from the notations and assumptions from last sections, namely $\mathbf{y} | \boldsymbol{\theta} \sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} | \lambda \sim \mathcal{N}(0, P_{\lambda} ^{-})$. In a purely Bayesian approach, it would be necessary to define a prior distribution on $\lambda$ and then estimate the posterior distribution of each parameter vector using methods such as Markov Chain Monte Carlo. The empirical Bayesian approach we adopt seeks to find the value of $\lambda$ that maximizes the marginal likelihood:
+Let us start from the notations and assumptions from last sections, namely $\mathbf{y} \vert \boldsymbol{\theta} \sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} \vert \lambda \sim \mathcal{N}(0, P_{\lambda} ^{-})$. In a purely Bayesian approach, it would be necessary to define a prior distribution on $\lambda$ and then estimate the posterior distribution of each parameter vector using methods such as Markov Chain Monte Carlo. The empirical Bayesian approach we adopt seeks to find the value of $\lambda$ that maximizes the marginal likelihood:
 
 $$
-\mathcal{L}^m_\text{norm}(\lambda) = f(\mathbf{y} | \lambda) = \int f(\mathbf{y}, \boldsymbol{\theta} | \lambda)\text{d}\boldsymbol{\theta}  = \int  f(\mathbf{y} | \boldsymbol{\theta}) f(\boldsymbol{\theta} |\lambda)\text{d}\boldsymbol{\theta}.
+\mathcal{L}^m_\text{norm}(\lambda) = f(\mathbf{y} \vert \lambda) = \int f(\mathbf{y}, \boldsymbol{\theta} \vert \lambda)\text{d}\boldsymbol{\theta}  = \int f(\mathbf{y} \vert \boldsymbol{\theta}) f(\boldsymbol{\theta} \vert\lambda)\text{d}\boldsymbol{\theta}.
 $$
 
-This corresponds to the maximum likelihood method applied to the smoothing parameter. Let us explicitly rewrite the expressions of $f(\mathbf{y} | \boldsymbol{\theta})$ and $f(\boldsymbol{\theta} |\lambda)$ introduced previously:
+This corresponds to the maximum likelihood method applied to the smoothing parameter. Let us explicitly rewrite the expressions of $f(\mathbf{y} \vert \boldsymbol{\theta})$ and $f(\boldsymbol{\theta} \vert\lambda)$ introduced previously:
 
 $$
 \begin{aligned}
-f(\mathbf{y} | \boldsymbol{\theta}) &= \sqrt{\frac{|W|_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
-f(\boldsymbol{\theta} |\lambda) &= \sqrt{\frac{|P_{\lambda}|_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
+f(\mathbf{y} \vert \boldsymbol{\theta}) &= \sqrt{\frac{\vert W\vert_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
+f(\boldsymbol{\theta} \vert\lambda) &= \sqrt{\frac{\vertP_{\lambda}\vert_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
 \end{aligned}
 $$
 
-where $|A|_{+}$ denotes the product of the non-zero eigenvalues of $A$, $n_*$ is the number of non-zero diagonal elements of $W$, and $q$ is the number of zero eigenvalues of $P_{\lambda}$ ($q = q_x \times q_z$ in the two-dimensional case). Based on the Taylor expansion performed to obtain credibility intervals, let us recall that:
+where $\vertA\vert_{+}$ denotes the product of the non-zero eigenvalues of $A$, $n_*$ is the number of non-zero diagonal elements of $W$, and $q$ is the number of zero eigenvalues of $P_{\lambda}$ ($q = q_x \times q_z$ in the two-dimensional case). Based on the Taylor expansion performed to obtain credibility intervals, let us recall that:
 
 $$
-\ln f(\mathbf{y}, \boldsymbol{\theta} | \lambda) = \ln f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T} (W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})
+\ln f(\mathbf{y}, \boldsymbol{\theta} \vert \lambda) = \ln f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T} (W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})
 $$
 
 which leads to:
 
 $$
 \begin{aligned}
-\mathcal{L}^m_\text{norm}(\lambda) &= \int \exp[\ln f(\mathbf{y}, \boldsymbol{\theta} | \lambda)]\text{d}\boldsymbol{\theta} \\
-&= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \int \exp\left[- \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda}) \right]\text{d}\boldsymbol{\theta} \\
-&= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \sqrt{\frac{(2\pi)^p}{|W + P_{\lambda}|}} \\
-&= f_\mathbf{y}(\mathbf{y} | \hat{\boldsymbol{\theta}}_{\lambda}) f_{\boldsymbol{\theta}}(\hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \sqrt{\frac{(2\pi)^p}{|W + P_{\lambda}|}} \\
-&= \sqrt{\frac{|W|_{+}| P_{\lambda} |_{+}}{(2\pi)^{n_* - q}|W + P_{\lambda}|}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
+\mathcal{L}^m_\text{norm}(\lambda) &= \int \exp[\ln f(\mathbf{y}, \boldsymbol{\theta} \vert \lambda)]\text{d}\boldsymbol{\theta} \\
+&= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \int \exp\left[- \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda}) \right]\text{d}\boldsymbol{\theta} \\
+&= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \sqrt{\frac{(2\pi)^p}{\vert W + P_{\lambda}\vert}} \\
+&= f_\mathbf{y}(\mathbf{y} \vert \hat{\boldsymbol{\theta}}_{\lambda}) f_{\boldsymbol{\theta}}(\hat{\boldsymbol{\theta}}_{\lambda} \vert \lambda) \sqrt{\frac{(2\pi)^p}{\vert W + P_{\lambda}\vert}} \\
+&= \sqrt{\frac{\vert W\vert_{+}\vert P_{\lambda} \vert_{+}}{(2\pi)^{n_* - q}\vert W + P_{\lambda}\vert}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
 \end{aligned}
 $$
 
@@ -398,7 +399,7 @@ The associated log-likelihood can be expressed as follows:
 $$
 \begin{aligned}
 \ell^m_\text{reg}(\lambda) = - \frac{1}{2}&\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^{T}P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right. \\
-&\left.- \ln|W|_{+} - \ln|P_{\lambda}|_{+} + \ln|W + P_{\lambda}| + (n_* - q)\ln(2\pi)\right].
+&\left.- \ln\vert W\vert_{+} - \ln\vertP_{\lambda}\Vert_{+} + \ln\VertW + P_{\lambda}\Vert + (n_* - q)\ln(2\pi)\right].
 \end{aligned}
 $$
 
