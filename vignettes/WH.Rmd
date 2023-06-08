@@ -381,4 +381,4 @@ Once the selection of $\lambda$ has been determined using the estimator $\hat{\l
 
 See the upcoming paper
 
-# References {-}
+## References {-}
