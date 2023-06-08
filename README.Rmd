@@ -129,7 +129,7 @@ $$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$
-0 = \frac{\partial}{\partial \boldsymbol{\theta}}|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
+0 = \frac{\partial}{\partial \boldsymbol{\theta}}\vert_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
 $$
 
 It follows that $(W + P_{\lambda})\hat{\boldsymbol{\theta}} = W\mathbf{y}$, and if $W + P_{\lambda}$ is invertible, then $\hat{\mathbf{y}}$ is indeed a solution for the original equation. When $\lambda \neq 0$, $W + P_{\lambda}$ is invertible as long as $\mathbf{w}$ has $q$ non-zero elements in the one-dimensional case, and $\Omega$ has at least $q_x \times q_z$ non-zero elements distributed over $q_x$ different rows and $q_z$ different columns in the two-dimensional case. These are sufficient conditions, which are always satisfied in practice and will not be demonstrated here.
@@ -228,11 +228,11 @@ The mode of the posterior distribution, $\hat{\boldsymbol{\theta}} = \underset{\
 A second-order Taylor expansion of the log-posterior likelihood around $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
 $$
-\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} .\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
+\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} .\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
 $$
 
 $$
-\text{where} \quad \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
+\text{where} \quad \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\vert_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
 $$
 
 Note that this last derivative no longer depends on $\boldsymbol{\theta}$, and higher-order derivatives beyond 2 are all zero. The Taylor expansion allows for an exact computation of $\ln f(\boldsymbol{\theta} | \mathbf{y})$. By substituting the result back into the Taylor expansion, we obtain:
@@ -381,12 +381,12 @@ This corresponds to the maximum likelihood method applied to the smoothing param
 
 $$
 \begin{aligned}
-f(\mathbf{y} | \boldsymbol{\theta}) &= \sqrt{\frac{|W|_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
-f(\boldsymbol{\theta} |\lambda) &= \sqrt{\frac{|P_{\lambda}|_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
+f(\mathbf{y} | \boldsymbol{\theta}) &= \sqrt{\frac{|W\vert_{+}}{(2\pi)^{n_*}}}\exp\left(- \frac{1}{2}(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta})\right) \\
+f(\boldsymbol{\theta} |\lambda) &= \sqrt{\frac{|P_{\lambda}\vert_{+}}{(2\pi)^{p - q}}} \exp\left(- \frac{1}{2}\boldsymbol{\theta}^{T}P_{\lambda} \boldsymbol{\theta}\right)
 \end{aligned}
 $$
 
-where $|A|_{+}$ denotes the product of the non-zero eigenvalues of $A$, $n_*$ is the number of non-zero diagonal elements of $W$, and $q$ is the number of zero eigenvalues of $P_{\lambda}$ ($q = q_x \times q_z$ in the two-dimensional case). Based on the Taylor expansion performed to obtain credibility intervals, let us recall that:
+where $|A\vert_{+}$ denotes the product of the non-zero eigenvalues of $A$, $n_*$ is the number of non-zero diagonal elements of $W$, and $q$ is the number of zero eigenvalues of $P_{\lambda}$ ($q = q_x \times q_z$ in the two-dimensional case). Based on the Taylor expansion performed to obtain credibility intervals, let us recall that:
 
 $$
 \ln f(\mathbf{y}, \boldsymbol{\theta} | \lambda) = \ln f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T} (W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})
@@ -400,7 +400,7 @@ $$
 &= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \int \exp\left[- \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda})^{T}(W + P_{\lambda})(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}_{\lambda}) \right]\text{d}\boldsymbol{\theta} \\
 &= f(\mathbf{y}, \hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \sqrt{\frac{(2\pi)^p}{|W + P_{\lambda}|}} \\
 &= f_\mathbf{y}(\mathbf{y} | \hat{\boldsymbol{\theta}}_{\lambda}) f_{\boldsymbol{\theta}}(\hat{\boldsymbol{\theta}}_{\lambda} | \lambda) \sqrt{\frac{(2\pi)^p}{|W + P_{\lambda}|}} \\
-&= \sqrt{\frac{|W|_{+}| P_{\lambda} |_{+}}{(2\pi)^{n_* - q}|W + P_{\lambda}|}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
+&= \sqrt{\frac{|W\vert_{+}| P_{\lambda} \vert_{+}}{(2\pi)^{n_* - q}|W + P_{\lambda}|}} \exp\left(- \frac{1}{2}\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^T P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right]\right).
 \end{aligned}
 $$
 
@@ -409,7 +409,7 @@ The associated log-likelihood can be expressed as follows:
 $$
 \begin{aligned}
 \ell^m_\text{reg}(\lambda) = - \frac{1}{2}&\left[(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda})^{T}W(\mathbf{y} -\hat{\boldsymbol{\theta}}_{\lambda}) + \hat{\boldsymbol{\theta}}_{\lambda}^{T}P_{\lambda} \hat{\boldsymbol{\theta}}_{\lambda}\right. \\
-&\left.- \ln|W|_{+} - \ln|P_{\lambda}|_{+} + \ln|W + P_{\lambda}| + (n_* - q)\ln(2\pi)\right].
+&\left.- \ln|W\vert_{+} - \ln|P_{\lambda}\vert_{+} + \ln|W + P_{\lambda}| + (n_* - q)\ln(2\pi)\right].
 \end{aligned}
 $$
 
