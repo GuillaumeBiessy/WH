@@ -41,11 +41,11 @@ where:
   represents a smoothness criterion.
 
 In the latter expression, $\Delta^q$ denotes the forward difference
-operator of order $q$, such that for any $i\in[1,n - q]$:
+operator of order $q$, such that:
 
 $$
-(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
-$$
+(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}
+$$ for any $i\in[1,n - q]$.
 
 Let us define $W = \text{Diag}(\mathbf{w})$, the diagonal matrix of
 weights, and $D_{n,q}$ as the order $q$ difference matrix of dimensions
@@ -97,11 +97,13 @@ $$
 
 where:
 
-- $F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$
-  represents a fidelity criterion to the observations,
+$$F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$$
 
-- $R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$
-  is a smoothness criterion.
+represents a fidelity criterion to the observations and
+
+$$R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$$
+
+is a smoothness criterion.
 
 This latter criterion can be written as the sum of two one-dimensional
 regularization criteria, with orders $q_x$ and $q_z$, applied
@@ -141,7 +143,7 @@ $$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$
-0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
+0 = \frac{\partial}{\partial \boldsymbol{\theta}}|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
 $$
 
 It follows that
@@ -337,11 +339,11 @@ A second-order Taylor expansion of the log-posterior likelihood around
 $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
 $$
-\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
+\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} .\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
 $$
 
 $$
-\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
+\text{where} \quad \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
 $$
 
 Note that this last derivative no longer depends on
@@ -475,9 +477,11 @@ $$
 The assumption of piecewise constant mortality rate implies that:
 
 $$
-\begin{aligned}
-\mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x_i + t_i,\boldsymbol{\theta}) &= \mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x,\boldsymbol{\theta})\quad\text{and}\\ \mathbf{1}(x \le x_i + u < x + 1)\mu(x_i + u,\boldsymbol{\theta}) &= \mathbf{1}(x \le x_i + u < x + 1) \ln\mu(x,\boldsymbol{\theta}).
-\end{aligned}
+\mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x_i + t_i,\boldsymbol{\theta}) = \mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x,\boldsymbol{\theta})$$
+
+and
+
+$$\mathbf{1}(x \le x_i + u < x + 1)\mu(x_i + u,\boldsymbol{\theta}) = \mathbf{1}(x \le x_i + u < x + 1) \ln\mu(x,\boldsymbol{\theta}).
 $$
 
 It is then possible to interchange the two summations to obtain the
@@ -547,10 +551,12 @@ Nelder and Wedderburn 1972). However, the initial assumptions are not
 the same for both models.
 
 These likelihood equations have an explicit solution given by
-$\hat{\boldsymbol{\theta}} = \ln(\mathbf{d} / \mathbf{e}_c)$. This
-model, which treats each age independently, is known as the crude rates
-estimator. The properties of the maximum likelihood estimator imply that
-asymptotically
+
+$$\hat{\boldsymbol{\theta}} = \ln(\mathbf{d} / \mathbf{e}_c).$$
+
+This model, which treats each age independently, is known as the crude
+rates estimator. The properties of the maximum likelihood estimator
+imply that asymptotically
 $\hat{\boldsymbol{\theta}} \sim \mathcal{N}(\boldsymbol{\theta}, W_{\hat{\boldsymbol{\theta}}}^{-1})$,
 where $W_{\hat{\boldsymbol{\theta}}}$ is a diagonal matrix with elements
 $\exp(\hat{\boldsymbol{\theta}}) \odot \mathbf{e}_c = (\mathbf{d} / \mathbf{e}_c) \odot \mathbf{e}_c = \mathbf{d}$.

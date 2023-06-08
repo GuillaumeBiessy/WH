@@ -377,4 +377,8 @@ $$\begin{aligned}
 
 Once the selection of $\lambda$ has been determined using the estimator $\hat{\lambda} = \underset{\lambda}{\text{argmax}}\: \ell^m_\text{reg}(\lambda)$, the lack of an explicit solution to this equation forces us to resort to numerical methods for its resolution. The Newton algorithm could once again be employed here and is a robust choice. This approach was notably adopted by @wood2011reml. However, explicitly calculating the derivatives of the likelihood $\ell^m_\text{reg}$ is rather difficult from an operational perspective. Instead, we will use general heuristics such as those provided by @brent1973optimize and @nelder1965optim, which are applicable to any sufficiently smooth function. These heuristics do not require derivative calculations and are implemented in the `optimize` and `optim` functions of the statistical programming language $\mathsf{R}$.
 
+## Advanced WH smoothing theory
+
+See the upcoming paper
+
 # References {-}

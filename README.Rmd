@@ -46,12 +46,13 @@ where:
 
 -   $R_{\lambda,q}(\boldsymbol{\theta}) = \lambda \underset{i = 1}{\overset{n - q}{\sum}} (\Delta^q\boldsymbol{\theta})_i^2$ represents a smoothness criterion.
 
-In the latter expression, $\Delta^q$ denotes the forward difference operator of order $q$, such that for any $i\in[1,n - q]$:
+In the latter expression, $\Delta^q$ denotes the forward difference operator of order $q$, such that:
 
 $$
-(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}.
+(\Delta^q\boldsymbol{\theta})_i = \underset{k = 0}{\overset{q}{\sum}} \begin{pmatrix}q \\ k\end{pmatrix}(- 1)^{q - k} \theta_{i + k}
 $$
-
+for any $i\in[1,n - q]$.
+ 
 Let us define $W = \text{Diag}(\mathbf{w})$, the diagonal matrix of weights, and $D_{n,q}$ as the order $q$ difference matrix of dimensions $(n-q) \times n$, such that $(D_{n,q}\boldsymbol{\theta})_i = (\Delta^q\boldsymbol{\theta})_i$ for all $i \in [1, n-q]$. The most commonly used difference matrices of order 1 and 2 have the following forms:
 
 $$
@@ -94,9 +95,13 @@ $$
 
 where:
 
-- $F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$ represents a fidelity criterion to the observations,
+$$F(Y,\Omega, \Theta) = \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z} \Omega_{i,j}(Y_{i,j} - \Theta_{i,j})^2$$
 
-- $R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$ is a smoothness criterion.
+represents a fidelity criterion to the observations and
+
+$$R_{\lambda,q}(\Theta) = \lambda_x \sum_{j = 1}^{n_z}\sum_{i = 1}^{n_x - q_x} (\Delta^{q_x}\Theta_{\bullet,j})_i^2 + \lambda_z \sum_{i = 1}^{n_x}\sum_{j = 1}^{n_z - q_z} (\Delta^{q_z}\Theta_{i,\bullet})_j^2$$
+
+is a smoothness criterion.
 
 This latter criterion can be written as the sum of two one-dimensional regularization criteria, with orders $q_x$ and $q_z$, applied respectively to all rows and all columns of $\Theta$. It is also possible to adopt matrix notations by defining $\mathbf{y} = \textbf{vec}(Y)$, $\mathbf{w} = \textbf{vec}(\Omega)$, and $\boldsymbol{\theta} = \textbf{vec}(\Theta)$ as the vectors obtained by stacking the columns of the matrices $Y$, $\Omega$, and $\Theta$, respectively. Additionally, let us denote $W = \text{Diag}(\mathbf{w})$ and $n = n_x \times n_z$. The fidelity and smoothness criteria can then be rewritten as linear combinations of the vectors $\mathbf{y}$, $\mathbf{w}$, and $\boldsymbol{\theta}$:
 
@@ -124,7 +129,7 @@ $$\hat{\mathbf{y}} = (W + P_{\lambda})^{-1}W\mathbf{y}.$$
 Indeed, as a minimum, $\hat{\mathbf{y}}$ satisfies:
 
 $$
-0 = \left.\frac{\partial}{\partial \boldsymbol{\theta}}\right|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
+0 = \frac{\partial}{\partial \boldsymbol{\theta}}|_{\hat{\mathbf{y}}}\left\lbrace(\mathbf{y} - \boldsymbol{\theta})^{T}W(\mathbf{y} - \boldsymbol{\theta}) + \boldsymbol{\theta}^{T}P_{\lambda}\boldsymbol{\theta}\right\rbrace = - 2 X^TW(y - \hat{\mathbf{y}}) +2X^TP_{\lambda} \hat{\mathbf{y}}.
 $$
 
 It follows that $(W + P_{\lambda})\hat{\boldsymbol{\theta}} = W\mathbf{y}$, and if $W + P_{\lambda}$ is invertible, then $\hat{\mathbf{y}}$ is indeed a solution for the original equation. When $\lambda \neq 0$, $W + P_{\lambda}$ is invertible as long as $\mathbf{w}$ has $q$ non-zero elements in the one-dimensional case, and $\Omega$ has at least $q_x \times q_z$ non-zero elements distributed over $q_x$ different rows and $q_z$ different columns in the two-dimensional case. These are sufficient conditions, which are always satisfied in practice and will not be demonstrated here.
@@ -223,11 +228,11 @@ The mode of the posterior distribution, $\hat{\boldsymbol{\theta}} = \underset{\
 A second-order Taylor expansion of the log-posterior likelihood around $\hat{\mathbf{y}} = \hat{\boldsymbol{\theta}}$ gives us:
 
 $$
-\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
+\ln f(\boldsymbol{\theta} | \mathbf{y}) = \ln f(\hat{\boldsymbol{\theta}} | \mathbf{y}) + \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}^{T}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}}) + \frac{1}{2}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})^{T} .\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}}(\boldsymbol{\theta} - \hat{\boldsymbol{\theta}})
 $$
 
 $$
-\text{where} \quad \left.\frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \left.\frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}\right|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
+\text{where} \quad \frac{\partial \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = 0 \quad \text{and} \quad \frac{\partial^2 \ln f(\boldsymbol{\theta} | \mathbf{y})}{\partial \boldsymbol{\theta} \partial \boldsymbol{\theta}^{T}}|_{\boldsymbol{\theta} = \hat{\boldsymbol{\theta}}} = - (W + P_{\lambda}).
 $$
 
 Note that this last derivative no longer depends on $\boldsymbol{\theta}$, and higher-order derivatives beyond 2 are all zero. The Taylor expansion allows for an exact computation of $\ln f(\boldsymbol{\theta} | \mathbf{y})$. By substituting the result back into the Taylor expansion, we obtain:
@@ -297,9 +302,11 @@ $$
 The assumption of piecewise constant mortality rate implies that:
 
 $$
-\begin{aligned}
-\mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x_i + t_i,\boldsymbol{\theta}) &= \mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x,\boldsymbol{\theta})\quad\text{and}\\ \mathbf{1}(x \le x_i + u < x + 1)\mu(x_i + u,\boldsymbol{\theta}) &= \mathbf{1}(x \le x_i + u < x + 1) \ln\mu(x,\boldsymbol{\theta}).
-\end{aligned}
+\mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x_i + t_i,\boldsymbol{\theta}) = \mathbf{1}(x \le x_i + t_i < x + 1) \ln\mu(x,\boldsymbol{\theta})$$
+
+and
+
+$$\mathbf{1}(x \le x_i + u < x + 1)\mu(x_i + u,\boldsymbol{\theta}) = \mathbf{1}(x \le x_i + u < x + 1) \ln\mu(x,\boldsymbol{\theta}).
 $$
 
 
@@ -342,7 +349,11 @@ $$\frac{\partial \ell}{\partial \boldsymbol{\theta}} = \left[\mathbf{d} -\exp(\b
 
 Note that these likelihood equations are exactly what we would obtain by assuming that the observed numbers of deaths, conditional on the observed exposures to risk $\mathbf{e}_c$, follow Poisson distributions with parameters $\boldsymbol{\mu}(\boldsymbol{\theta}) \odot \mathbf{e}_c$. The model presented here has many similarities with a Poisson GLM [@nelder1972glm]. However, the initial assumptions are not the same for both models.
 
-These likelihood equations have an explicit solution given by $\hat{\boldsymbol{\theta}} = \ln(\mathbf{d} / \mathbf{e}_c)$. This model, which treats each age independently, is known as the crude rates estimator. The properties of the maximum likelihood estimator imply that asymptotically $\hat{\boldsymbol{\theta}} \sim \mathcal{N}(\boldsymbol{\theta}, W_{\hat{\boldsymbol{\theta}}}^{-1})$, where $W_{\hat{\boldsymbol{\theta}}}$ is a diagonal matrix with elements $\exp(\hat{\boldsymbol{\theta}}) \odot \mathbf{e}_c = (\mathbf{d} / \mathbf{e}_c) \odot \mathbf{e}_c = \mathbf{d}$. It should be noted that the asymptotic nature and the validity of this approximation are related to the number of individuals $m$ in the portfolio and not the size $n$ of the vectors $\mathbf{d}$ and $\mathbf{e}_c$.
+These likelihood equations have an explicit solution given by 
+
+$$\hat{\boldsymbol{\theta}} = \ln(\mathbf{d} / \mathbf{e}_c).$$ 
+
+This model, which treats each age independently, is known as the crude rates estimator. The properties of the maximum likelihood estimator imply that asymptotically $\hat{\boldsymbol{\theta}} \sim \mathcal{N}(\boldsymbol{\theta}, W_{\hat{\boldsymbol{\theta}}}^{-1})$, where $W_{\hat{\boldsymbol{\theta}}}$ is a diagonal matrix with elements $\exp(\hat{\boldsymbol{\theta}}) \odot \mathbf{e}_c = (\mathbf{d} / \mathbf{e}_c) \odot \mathbf{e}_c = \mathbf{d}$. It should be noted that the asymptotic nature and the validity of this approximation are related to the number of individuals $m$ in the portfolio and not the size $n$ of the vectors $\mathbf{d}$ and $\mathbf{e}_c$.
 
 Thus, we have shown that in the framework of duration models, using the crude rates estimator, asymptotically $\ln(\mathbf{d} / \mathbf{e}_c) \sim \mathcal{N}(\ln\boldsymbol{\mu}, W^{-1})$, where $W = \text{Diag}(\mathbf{d})$. This justifies applying the Whittaker-Henderson smoothing to the observation vector $y = \ln(\mathbf{d} / \mathbf{e}_c)$ and weight vector $\mathbf{w} = \mathbf{d}$. We obtain the following associated credibility intervals:
 
