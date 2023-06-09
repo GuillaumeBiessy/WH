@@ -22,9 +22,12 @@ disability, long-term care, lapse, mortgage default, and unemployment.
 
 ## How to use the package?
 
-The `WH` package features two main functions `WH_1d` and `WH_2d`
-corresponding to the one-dimensional and two-dimensional cases
-respectively. Two arguments are mandatory for those functions:
+The `WH` package may easily be installed from CRAN by running the code
+`install.packages("WH")` in the $\mathsf{R}$ Console.
+
+It features two main functions `WH_1d` and `WH_2d` corresponding to the
+one-dimensional and two-dimensional cases respectively. Two arguments
+are mandatory for those functions:
 
 - The vector (or matrix in the two-dimension case) `d` corresponding to
   the number of observed events of interest by age (or by age and
