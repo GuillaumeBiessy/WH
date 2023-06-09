@@ -268,7 +268,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' # Maximum likelihood
 #' WH_2d(d, ec, lambda = c(1e2, 1e2))
 #' WH_2d(d, ec) # performance iteration default method
-#' WH_2d(d, ec, method = "outer") # slower but safer outer iteration method
+#' \donttest{WH_2d(d, ec, method = "outer")} # slower but safer outer iteration method
 #' WH_2d(d, ec, criterion = "GCV")
 #' # alternative optimization criteria for smoothing parameter selection
 #'

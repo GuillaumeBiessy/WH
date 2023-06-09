@@ -1,6 +1,6 @@
 Package: WH
 Type: Package
-Title: Whittaker-Henderson Smoothing for Survival Data
+Title: Whittaker-Henderson Smoothing
 Version: 1.0.0
 Authors@R: utils::person("Guillaume", "Biessy", email = "guillaume.biessy78@gmail.com",
   role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3756-7345"))

@@ -1,9 +1,5 @@
-This is the first submission for this package.
-
 ## R CMD check results
 
-There were no ERRORs, WARNINGs or NOTEs.
+0 errors | 0 warnings | 1 note
 
-## Downstream dependencies
-
-There are currently no downstream dependencies for this package.
+* This is a new release.
