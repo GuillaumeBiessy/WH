@@ -1,12 +1,6 @@
-citHeader("To cite WH in publications use:")
-
-citEntry(
-  entry    = "Article",
-  title    = "Une vision moderne du lissage de whittaker-Henderson",
+bibentry(
+  bibtype  = "Unpublished",
+  title    = "Revisiting Whittaker-Henderson Smoothing",
   author   = person("Guillaume Biessy"),
-  journal  = "Working Paper",
-  year     = "2022",
-  textVersion = paste("Guillaume Biessy (2022).",
-                 "Une vision moderne du lissage de whittaker-Henderson",
-                 "Working Paper")
+  note     = "Submitted to Insurance: Mathematics and Economics in June 2023"
 )

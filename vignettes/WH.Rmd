@@ -5,7 +5,7 @@ vignette: >
   %\VignetteIndexEntry{Revisiting Whittaker-Henderson Smoothing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-bibliography: biblio.bib  
+bibliography: biblio.bib
 ---
 
 ```{r setup, include = FALSE}
@@ -379,6 +379,6 @@ Once the selection of $\lambda$ has been determined using the estimator $\hat{\l
 
 ## Advanced WH smoothing theory
 
-See the upcoming paper available [here](https://hal.science/hal-04124043)
+See the upcoming paper which will soon be available [here](https://hal.science/hal-04124043)
 
 ## References {-}

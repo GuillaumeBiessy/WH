@@ -23,11 +23,15 @@ set.seed(1)
 portfolio_mort <- c(2e4, 1e5, 5e5) |>
   map(\(x) portfolio_mort[sample(nrow(portfolio_mort), x),]) |>
   set_names(c("20k", "100k", "500k")) |>
-  map(slice_portfolio,
+  purrr::map(slice_portfolio,
       timescales = list(age = list(y = 0:120)),
       covariates = list(Sexe = NULL),
       exits = 1) |>
-  map(\(x) list(d = rowSums(x$exit), ec = rowSums(x$expo / 365.25))) |>
-  (\(x) x[[1]])()
+  purrr::map(\(x) list(d = rowSums(x$exit), ec = rowSums(x$expo / 365.25))) |>
+  (\(x) x[[2]])()
+
+keep <- which(portfolio_mort$ec > 0)
+portfolio_mort$d <- portfolio_mort$d[keep]
+portfolio_mort$ec <- portfolio_mort$ec[keep]
 
 usethis::use_data(portfolio_mort, overwrite = TRUE)

@@ -6,3 +6,4 @@
 ^tests/benchmark\.R$
 ^\.github$
 ^cran-comments\.md$
+^CRAN-SUBMISSION$

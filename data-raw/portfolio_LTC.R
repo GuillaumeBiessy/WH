@@ -25,13 +25,19 @@ set.seed(1)
 portfolio_LTC <- c(1e3, 5e3, 2.5e4) |>
   map(\(x) portfolio_LTC[sample(nrow(portfolio_LTC), x),]) |>
   set_names(c("1k", "5k", "25k")) |>
-  map(slice_portfolio,
+  purrr::map(slice_portfolio,
       timescales = list(age = list(y = 0:120),
                         duration = list(y = seq(0, 30, 1))),
       covariates = list(Sexe = NULL),
       exits = 1) |>
-  map(\(x) list(d = x$exit |> aperm(c(3,4,1,2)) |> colSums(dims = 2),
+  purrr::map(\(x) list(d = x$exit |> aperm(c(3,4,1,2)) |> colSums(dims = 2),
                 ec = (x$expo / 365.25)  |> aperm(c(3,1,2)) |> colSums())) |>
-  (\(x) x[[1]])()
+  (\(x) x[[2]])()
+
+keep_age <- which(rowSums(portfolio_LTC$ec) > 0)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 0)
+
+portfolio_LTC$d  <- portfolio_LTC$d[keep_age, keep_duration]
+portfolio_LTC$ec <- portfolio_LTC$ec[keep_age, keep_duration]
 
 usethis::use_data(portfolio_LTC, overwrite = TRUE)

@@ -169,8 +169,8 @@ WH_2d_df <- WH_2d_fit |> output_to_df()
 
 ## Further WH smoothing theory
 
-See the package vignette or the upcoming paper available
-[here](https://hal.science/hal-04124043)
+See the package vignette or the upcoming paper which will soon be
+available [here](https://hal.science/hal-04124043)
 
 ## References
 
