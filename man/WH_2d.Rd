@@ -118,8 +118,8 @@ the bidimensional case may prove overwhelming and the function integrates a
 rank-reduction procedure to avoid such issues.
 }
 \examples{
-keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -131,7 +131,7 @@ wt <- d
 # Maximum likelihood
 WH_2d(d, ec, lambda = c(1e2, 1e2))
 WH_2d(d, ec) # performance iteration default method
-\donttest{WH_2d(d, ec, method = "outer")} # slower but safer outer iteration method
+WH_2d(d, ec, method = "outer") # slower but safer outer iteration method
 WH_2d(d, ec, criterion = "GCV")
 # alternative optimization criteria for smoothing parameter selection
 
@@ -141,11 +141,13 @@ WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2))
 # setting framework = "reg" forces computation of y from d and ec
 
 # Rank reduction
-keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
-keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
-d  <- portfolio_LTC$d[keep_age2, keep_duration2]
-ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
-prod(dim(d)) # problem dimension is 1,232 !
+keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+
+d  <- portfolio_LTC$d[keep_age, keep_duration]
+ec <- portfolio_LTC$ec[keep_age, keep_duration]
+
+prod(dim(d)) # problem dimension is 627 !
 WH_2d(d, ec)
 # rank-reduction is used to find an approximate solution using 200 parameters
 

@@ -4,4 +4,4 @@
 
 * This is a new release.
 
-* URL: https://hal.science/hal-04124043 should work as soon as the deposit is approved by HAL.
+* The URL https://hal.science/hal-04124043 in vignette should be working as soon as the deposit has been approved by HAL.

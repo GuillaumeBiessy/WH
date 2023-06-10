@@ -23,9 +23,8 @@ prediction.
 Extrapolate the model for new observations.
 }
 \examples{
-keep <- which(portfolio_mort$ec > 0)
-d <- portfolio_mort$d[keep]
-ec <- portfolio_mort$ec[keep]
+d <- portfolio_mort$d
+ec <- portfolio_mort$ec
 
 fit <- WH_1d(d, ec)
 newdata = 18:99

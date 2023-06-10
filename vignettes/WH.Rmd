@@ -140,17 +140,16 @@ The package also embed two fictive agregated datasets to illustrate how to use i
 
 ```{r fit-1d}
 # One-dimensional case
-keep <- which(portfolio_mort$ec > 0)
-d <- portfolio_mort$d[keep]
-ec <- portfolio_mort$ec[keep]
+d <- portfolio_mort$d
+ec <- portfolio_mort$ec
 
 WH_1d_fit <- WH_1d(d, ec)
 ```
 
 ```{r fit-2d}
 # Two-dimensional case
-keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]

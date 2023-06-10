@@ -100,9 +100,8 @@ adequate criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC
 framework (the default) or an approximate gaussian framework.
 }
 \examples{
-keep <- which(portfolio_mort$ec > 0)
-d <- portfolio_mort$d[keep]
-ec <- portfolio_mort$ec[keep]
+d <- portfolio_mort$d
+ec <- portfolio_mort$ec
 
 y <- log(d / ec)
 y[d == 0] <- - 20

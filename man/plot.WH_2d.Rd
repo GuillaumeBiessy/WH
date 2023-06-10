@@ -22,9 +22,8 @@ A plot representing the given element of the fit...
 Plot 2D WH fit
 }
 \examples{
-
-keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]

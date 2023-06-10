@@ -69,9 +69,8 @@
 #' * `q` The supplied order for the penalization.
 #'
 #' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
+#' d <- portfolio_mort$d
+#' ec <- portfolio_mort$ec
 #'
 #' y <- log(d / ec)
 #' y[d == 0] <- - 20
@@ -255,8 +254,8 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' * `q` The supplied vector of orders for the penalization.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 #'
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -268,7 +267,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' # Maximum likelihood
 #' WH_2d(d, ec, lambda = c(1e2, 1e2))
 #' WH_2d(d, ec) # performance iteration default method
-#' \donttest{WH_2d(d, ec, method = "outer")} # slower but safer outer iteration method
+#' WH_2d(d, ec, method = "outer") # slower but safer outer iteration method
 #' WH_2d(d, ec, criterion = "GCV")
 #' # alternative optimization criteria for smoothing parameter selection
 #'
@@ -278,11 +277,13 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' # setting framework = "reg" forces computation of y from d and ec
 #'
 #' # Rank reduction
-#' keep_age2 <- which(rowSums(portfolio_LTC$ec) > 0)
-#' keep_duration2 <- which(colSums(portfolio_LTC$ec) > 0)
-#' d  <- portfolio_LTC$d[keep_age2, keep_duration2]
-#' ec <- portfolio_LTC$ec[keep_age2, keep_duration2]
-#' prod(dim(d)) # problem dimension is 1,232 !
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#'
+#' d  <- portfolio_LTC$d[keep_age, keep_duration]
+#' ec <- portfolio_LTC$ec[keep_age, keep_duration]
+#'
+#' prod(dim(d)) # problem dimension is 627 !
 #' WH_2d(d, ec)
 #' # rank-reduction is used to find an approximate solution using 200 parameters
 #'
@@ -419,9 +420,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
 #'   prediction.
 #'
 #' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
+#' d <- portfolio_mort$d
+#' ec <- portfolio_mort$ec
 #'
 #' fit <- WH_1d(d, ec)
 #' newdata = 18:99
@@ -487,8 +487,8 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #'   prediction.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 #'
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -555,9 +555,8 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #'   values, the model variance, residuals and effective degrees of freedom...
 #'
 #' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
+#' d <- portfolio_mort$d
+#' ec <- portfolio_mort$ec
 #'
 #' y <- log(d / ec)
 #' y[d == 0] <- - 20
@@ -566,8 +565,8 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #' fit_1d <- WH_1d(d, ec)
 #' output_to_df(fit_1d)
 #'
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 #'
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -660,9 +659,8 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
+#' d <- portfolio_mort$d
+#' ec <- portfolio_mort$ec
 #'
 #' y <- log(d / ec)
 #' y[d == 0] <- - 20
@@ -691,8 +689,8 @@ print.WH_1d <- function(x, ...) {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 #'
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -728,9 +726,8 @@ print.WH_2d <- function(x, ...) {
 #' @returns A plot representing the desired element of the fit
 #'
 #' @examples
-#' keep <- which(portfolio_mort$ec > 0)
-#' d <- portfolio_mort$d[keep]
-#' ec <- portfolio_mort$ec[keep]
+#' d <- portfolio_mort$d
+#' ec <- portfolio_mort$ec
 #'
 #' fit <- WH_1d(d, ec)
 #' plot(fit)
@@ -783,9 +780,8 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
 #' @returns A plot representing the given element of the fit...
 #'
 #' @examples
-#'
-#' keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+#' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+#' keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 #'
 #' d  <- portfolio_LTC$d[keep_age, keep_duration]
 #' ec <- portfolio_LTC$ec[keep_age, keep_duration]

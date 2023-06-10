@@ -59,9 +59,8 @@ to use it:
 
 ``` r
 # One-dimensional case
-keep <- which(portfolio_mort$ec > 0)
-d <- portfolio_mort$d[keep]
-ec <- portfolio_mort$ec[keep]
+d <- portfolio_mort$d
+ec <- portfolio_mort$ec
 
 WH_1d_fit <- WH_1d(d, ec)
 Using outer iteration / Brent method
@@ -69,8 +68,8 @@ Using outer iteration / Brent method
 
 ``` r
 # Two-dimensional case
-keep_age <- which(rowSums(portfolio_LTC$ec) > 1e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e2)
+keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
+keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
 
 d  <- portfolio_LTC$d[keep_age, keep_duration]
 ec <- portfolio_LTC$ec[keep_age, keep_duration]
@@ -90,15 +89,15 @@ WH_1d_fit
 An object fitted using the WH_1D function
 Initial data contains 74 data points:
   Observation positions:  19  to  92 
-Smoothing parameter selected: 23372 
-Associated degrees of freedom: 4.6 
+Smoothing parameter selected: 13454 
+Associated degrees of freedom: 7.5 
 WH_2d_fit
 An object fitted using the WH_2D function
-Initial data contains 176 data points:
-  First dimension:  74  to  89 
-  Second dimension:  0  to  10 
-Smoothing parameters selected: 126.2   9.4 
-Associated degrees of freedom: 9.2 
+Initial data contains 90 data points:
+  First dimension:  75  to  89 
+  Second dimension:  0  to  5 
+Smoothing parameters selected: 301   2 
+Associated degrees of freedom: 13 
 ```
 
 - The `plot` function generates rough plots of the model fit, the
