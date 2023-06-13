@@ -1,3 +1,5 @@
+# WH 1.1.0
+
 # WH 1.0.0
 
 * Official candidate for release
