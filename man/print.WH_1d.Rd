@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{print.WH_1d}
 \alias{print.WH_1d}
-\title{Display of 1D WH object}
+\title{Print Method for a Whittaker-Henderson Fit}
 \usage{
 \method{print}{WH_1d}(x, ...)
 }
@@ -15,7 +15,7 @@
 Invisibly returns \code{x}.
 }
 \description{
-Display of 1D WH object
+Print Method for a Whittaker-Henderson Fit
 }
 \examples{
 d <- portfolio_mort$d

@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{output_to_df}
 \alias{output_to_df}
-\title{Store WH model fit results in a data.frame}
+\title{Provide WH model Fit Results as a Data.frame}
 \usage{
 output_to_df(object, dim1 = "x", dim2 = "t")
 }
@@ -10,16 +10,16 @@ output_to_df(object, dim1 = "x", dim2 = "t")
 \item{object}{An object of class  \code{"WH_1d"} or \code{"WH_2d"} returned
 by one of the eponymous functions \code{\link[=WH_1d]{WH_1d()}} or \code{\link[=WH_2d]{WH_2d()}}}
 
-\item{dim1}{The (optional) name to be given to the first dimension}
+\item{dim1}{The optional name to be given to the first dimension}
 
-\item{dim2}{The (optional) name to be given to the second dimension}
+\item{dim2}{The optional name to be given to the second dimension}
 }
 \value{
-A data.frame gathering information about the fitted and predicted
+A data.frame regrouping information about the fitted and predicted
 values, the model variance, residuals and effective degrees of freedom...
 }
 \description{
-Store WH model fit results in a data.frame
+Provide WH model Fit Results as a Data.frame
 }
 \examples{
 d <- portfolio_mort$d

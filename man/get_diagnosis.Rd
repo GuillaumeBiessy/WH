@@ -20,7 +20,7 @@ get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 \item{tr_log_Psi}{Trace of logarithm of variance-covariance matrix}
 }
 \value{
-A data.frame containing various diagnosis about the fit
+A data.frame containing various diagnoses about the fit
 }
 \description{
 Diagnosis for Model Fit

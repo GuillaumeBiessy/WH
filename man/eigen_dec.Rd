@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{eigen_dec}
 \alias{eigen_dec}
-\title{Eigen decomposition of penalization matrix}
+\title{Eigen Decomposition of Penalization Matrix}
 \usage{
 eigen_dec(n, q, p)
 }
@@ -19,6 +19,6 @@ eigenvectors of the penalization matrix - \code{s} a vector containing the
 eigenvalues sorted in ascending order
 }
 \description{
-Eigen decomposition of penalization matrix
+Eigen Decomposition of Penalization Matrix
 }
 \keyword{internal}

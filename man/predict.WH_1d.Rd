@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{predict.WH_1d}
 \alias{predict.WH_1d}
-\title{Predict new values using a fitted 1D WH model}
+\title{Prediction for a Whittaker-Henderson Fit}
 \usage{
 \method{predict}{WH_1d}(object, newdata = NULL, ...)
 }
@@ -16,11 +16,12 @@ adequate order}
 \item{...}{Not used}
 }
 \value{
-An object of class \code{"WH_1d"} with additional components for model
-prediction.
+An object of class \code{"WH_1d"} with additional components \code{y_pred} and
+\code{std_y_pred} corresponding to the model predictions and associated standard
+deviations.
 }
 \description{
-Extrapolate the model for new observations.
+Extrapolate the Whittaker-Henderson fit for new observations.
 }
 \examples{
 d <- portfolio_mort$d

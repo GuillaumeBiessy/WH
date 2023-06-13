@@ -21,21 +21,18 @@ WH_2d(
 )
 }
 \arguments{
-\item{d}{Matrix of observed events whose rows and columns should be named.
-Required in case of maximum likelihood estimation}
+\item{d}{Matrix of observed events, whose rows and columns must be named.}
 
-\item{ec}{Matrix of central exposure. Required in case of maximum likelihood
-estimation. The central exposure corresponds to the sum of the exposure
-period over the insured population. An individual experiencing an event of
-interest during the year will no longer be exposed afterward and the
-exposure should be reduced accordingly.}
+\item{ec}{Matrix of central exposure. The central exposure corresponds to the
+sum of the exposure duration over the insured population. An individual
+experiencing an event of interest during the year will no longer be exposed
+afterward and the exposure should be computed accordingly.}
 
 \item{lambda}{Smoothing parameter vector of size \code{2}. If missing, an
 optimization procedure will be used to find the optimal smoothing
-parameter. If provided, no optimal smoothing parameter search will take
-place unless the \code{criterion} argument is also provided, in which case
-\code{lambda} will be used as the starting parameter for the optimization
-procedure.}
+parameter. If supplied, no optimal smoothing parameter search will take
+place unless the \code{method} argument is also supplied, in which case \code{lambda}
+will be used as the starting parameter for the optimization procedure.}
 
 \item{criterion}{Criterion to be used for the selection of the optimal
 smoothing parameter. Default is \code{"REML"} which stands for restricted
@@ -44,19 +41,19 @@ maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"
 \item{method}{Method to be used to find the optimal smoothing parameter.
 Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 optimization is performed. Otherwise, default to \code{"perf"} which means the
-performance iteration method is used. The alternative \code{"outer"} method is
-guaranteed to converge but slower. Both those methods rely on the \code{optim}
-function from package \code{stats}.}
+faster performance iteration method is used. The alternative \code{"outer"}
+method is safer but slower. Both those methods rely on the \code{optim} function
+from package \code{stats}.}
 
 \item{max_dim}{Number of parameters to be kept in the optimization problem.
-Default is \code{200}. Values higher than \code{2000} may result in very high
+Default is \code{200}. Values higher than \code{1000} may result in very high
 computation times and memory usage.}
 
 \item{p}{Optional vector of size \code{2}. Maximum number of eigenvectors to keep
 on each dimension after performing the eigen decomposition of the
 penalization matrix. If missing, will be automatically computed so that the
-dimensions of (square) matrices involved in the optimization problem
-remains lower that the \code{max_dim} argument}
+number of elements of the (square) matrices involved in the optimization
+problem remains lower that the \code{max_dim} argument}
 
 \item{q}{Order of penalization vector of size \code{2}. Polynoms of degrees
 \verb{(q[[1]] - 1,q[[2]] - 1)} are considered smooth and are therefore
@@ -65,23 +62,21 @@ applications.}
 
 \item{framework}{Default framework is \code{"ml"} which stands for maximum
 likelihood unless the \code{y} argument is also provided, in which case an
-\code{"reg"} or regression framework is used. The regression framework is an
-approximate gaussian framework is used instead.}
+\code{"reg"} or (approximate) regression framework is used.}
 
 \item{y}{Optional matrix of observations whose rows and columns should be
-named. Used only in the regression framework and even in this case will be
-automatically computed if the \code{d} and \code{ec} arguments are supplied. May be
-useful when using Whittaker-Henderson smoothing outside of the survival
-analysis framework.}
+named. Used only in the regression framework and if the \code{d} and \code{ec}
+arguments are missing (otherwise \code{y} is automatically computed from \code{d} and
+\code{ec}). May be useful when using Whittaker-Henderson smoothing outside of
+the survival analysis framework.}
 
-\item{wt}{Optional matrix of weights. As for the observation vector \code{y}, used
-only in the regression framework and even in this case will be
-automatically computed if the \code{d} argument is supplied. May be useful when
-using Whittaker-Henderson smoothing outside of the survival analysis
-framework.}
+\item{wt}{Optional matrix of weights. As for the observation vector \code{y}, Used
+only in the regression framework and if the \code{d} and \code{ec} arguments are
+missing (otherwise \code{wt} is set equal to \code{d}). May be useful when using
+Whittaker-Henderson smoothing outside of the survival analysis framework.}
 
-\item{quiet}{Should messages and warnings be displayed ? Default to \code{FALSE},
-may be set to \code{TRUE} if numerous calls to this function are made.}
+\item{quiet}{Should messages and warnings be silenced ? Default to \code{FALSE},
+may be set to \code{TRUE} is the function is called repeatedly.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
@@ -90,18 +85,22 @@ An object of class \code{WH_2d} i.e. a list containing :
 \itemize{
 \item \code{d} The inputed matrix of observed events (if supplied as input)
 \item \code{ec} The inputed matrix of central exposure (if supplied as input)
-\item \code{y} The observation matrix (either supplied or computed as y = log(d) - log(ec))
-\item \code{wt} The inputed matrix of weights (either supplied or computed as \code{d})
-\item \code{y_hat} The matrix of fitted value
-\item \code{std_y_hat} The matrix of standard deviation associated with the fitted value
-\item \code{res} The matrix of model deviance residuals
+\item \code{y} The observation matrix, either supplied or computed as y = log(d) - log(ec)
+\item \code{wt} The inputed matrix of weights, either supplied or set to \code{d}
+\item \code{y_hat} The matrix of values fitted using Whittaker-Henderson smoothing
+\item \code{std_y_hat} The matrix of standard deviations associated with the fit
+\item \code{res} The matrix of deviance residuals associated with the fit
 \item \code{edf_obs} The matrix of effective degrees of freedom associated with each observation
 \item \code{edf_par} The matrix of effective degrees of freedom associated with each eigenvector
-\item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
-\item \code{Psi} The variance-covariance matrix associated with the fit, required for extrapolation.
-\item \code{lambda} The vector of smoothing parameters used, either supplied. or computed.
-\item \code{p} The number of components kept on each dimension after the rank reduction method is applied.
-\item \code{q} The supplied vector of orders for the penalization.
+\item \code{diagnosis} A data.frame with one line containing the sum of effective degrees of freedom
+for the model, the deviance of the fit as well as the AIC, BIC, GCV and
+REML criteria
+\item \code{Psi} The variance-covariance matrix associated with the fit, which is required
+for the extrapolation step.
+\item \code{lambda} The vector of smoothing parameters used.
+\item \code{p} The number of eigenvectors kept on each dimension if the rank reduction method
+is used.
+\item \code{q} The supplied vector of orders for the penalization matrices.
 }
 }
 \description{

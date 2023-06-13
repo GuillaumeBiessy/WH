@@ -2,24 +2,27 @@
 % Please edit documentation in R/main.R
 \name{plot.WH_2d}
 \alias{plot.WH_2d}
-\title{Plot 2D WH fit}
+\title{Plot Method for a Whittaker-Henderson Fit}
 \usage{
 \method{plot}{WH_2d}(x, what = "y_hat", trans, ...)
 }
 \arguments{
 \item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
 
-\item{what}{What should be plotted (y_hat, std_y_hat, res, edf)}
+\item{what}{Should be one of \code{y_hat} (the default) for model fit, \code{std_y_hat}
+for the associated standard deviation, \code{res} for residuals and \code{edf} for
+the effective degrees of freedom.}
 
-\item{trans}{An (optional) transformation to be applied to the data}
+\item{trans}{An (optional) transformation to be applied to the data. By
+default the identity function}
 
 \item{...}{Not used}
 }
 \value{
-A plot representing the given element of the fit...
+A plot representing the desired element from the fit...
 }
 \description{
-Plot 2D WH fit
+Plot Method for a Whittaker-Henderson Fit
 }
 \examples{
 keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)

@@ -16,9 +16,9 @@ default), "integer", "numeric" or "character".}
 }
 \value{
 A list (if output_type = "list") or a vector, sharing names with x,
-built by applying f to each element of x. This is a very rough
-implementation of the map function from the wonderful package purrr meant
-to remove the dependency from this package.
+built by applying f to each element of x. This is a rough implementation
+of the \code{map} function from the \code{purrr} package and aims at removing the
+dependency from that package.
 }
 \description{
 Lapply with Custom Return Type

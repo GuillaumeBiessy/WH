@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{map2}
 \alias{map2}
-\title{Lapply with Custom Return Type}
+\title{Bivariate Lapply with Custom Return Type}
 \usage{
 map2(x, y, f, output_type = "list")
 }
@@ -17,10 +17,10 @@ default), "integer", "numeric" or "character".}
 \value{
 A list (if output_type = "list") or a vector, sharing names with x,
 built by applying f to each element of x and y simultaneously. This is a
-very rough implementation of the map2 function from the wonderful package
-purrr meant to remove the dependency from this package.
+rough implementation of the \code{map2} function from the \code{purrr} package
+purrr aims at removing the dependency from that package.
 }
 \description{
-Lapply with Custom Return Type
+Bivariate Lapply with Custom Return Type
 }
 \keyword{internal}

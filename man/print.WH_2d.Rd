@@ -2,7 +2,7 @@
 % Please edit documentation in R/main.R
 \name{print.WH_2d}
 \alias{print.WH_2d}
-\title{Display of 2D WH object}
+\title{Print Method for a Whittaker-Henderson Fit}
 \usage{
 \method{print}{WH_2d}(x, ...)
 }
@@ -15,7 +15,7 @@
 Invisibly returns \code{x}.
 }
 \description{
-Display of 2D WH object
+Print Method for a Whittaker-Henderson Fit
 }
 \examples{
 keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)

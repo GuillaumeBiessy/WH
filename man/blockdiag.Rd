@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{blockdiag}
 \alias{blockdiag}
-\title{Diagonal merging of matrices}
+\title{Diagonal Stacking of Matrices}
 \usage{
 blockdiag(...)
 }
@@ -10,9 +10,9 @@ blockdiag(...)
 \item{...}{One or several object of type \code{matrix}}
 }
 \value{
-A matrix obtained by merging the input matrices diagonally
+A matrix obtained by stacking the input matrices diagonally
 }
 \description{
-Diagonal merging of matrices
+Diagonal Stacking of Matrices
 }
 \keyword{internal}

@@ -19,17 +19,17 @@ WH_1d(
 )
 }
 \arguments{
-\item{d}{Vector of observed events, with named elements.}
+\item{d}{Vector of observed events, should have named elements.}
 
 \item{ec}{Vector of central exposure. The central exposure corresponds to the
-sum of the exposure period over the insured population. An individual
+sum of the exposure duration over the insured population. An individual
 experiencing an event of interest during the year will no longer be exposed
-afterward and the exposure should be reduced accordingly.}
+afterward and the exposure should be computed accordingly.}
 
 \item{lambda}{Smoothing parameter. If missing, an optimization procedure will
 be used to find the optimal smoothing parameter. If supplied, no optimal
-smoothing parameter search will take place unless the \code{criterion} argument
-is also supplied, in which case \code{lambda} will be used as the starting
+smoothing parameter search will take place unless the \code{method} argument is
+also supplied, in which case \code{lambda} will be used as the starting
 parameter for the optimization procedure.}
 
 \item{criterion}{Criterion to be used for the selection of the optimal
@@ -38,34 +38,31 @@ maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"
 
 \item{method}{Method to be used to find the optimal smoothing parameter.
 Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
-optimization is performed. Otherwise, default to \code{"perf"} which means the
-performance iteration method is used. The alternative \code{"outer"} method is
-guaranteed to converge but slower. Both those methods rely on the
-\code{optimize} function from package \code{stats}.}
+optimization is performed. Otherwise, default to the most reliable
+\code{"outer"} methodbased on the \code{optimize} function from package \code{stats}.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are considered
-smooth and are therefore unpenalized. Should be left to the default of \code{2}
-for most practical applications.}
+completely smooth and are therefore unpenalized. Should be left to the
+default of \code{2} for most practical applications.}
 
 \item{framework}{Default framework is \code{"ml"} which stands for maximum
 likelihood unless the \code{y} argument is also provided, in which case an
-\code{"reg"} or regression framework is used. The regression framework is an
-approximate gaussian framework is used instead.}
+\code{"reg"} or (approximate) regression framework is used.}
 
 \item{y}{Optional vector of observations whose elements should be named. Used
-only in the regression framework and even in this case will be
-automatically computed from the \code{d} and \code{ec} arguments if those are
-supplied. May be useful when using Whittaker-Henderson smoothing outside of
-the survival analysis framework.}
+only in the regression framework and if the \code{d} and \code{ec} arguments are
+missing (otherwise \code{y} is automatically computed from \code{d} and \code{ec}). May be
+useful when using Whittaker-Henderson smoothing outside of the survival
+analysis framework.}
 
 \item{wt}{Optional vector of weights. As for the observation vector \code{y}, used
-only in the regression framework and even in this case will be
-automatically computed if the \code{d} argument is supplied. May be useful when
+only in the regression framework and if the \code{d} and \code{ec} arguments are
+missing (otherwise \code{wt} is automatically set to \code{d}). May be useful when
 using Whittaker-Henderson smoothing outside of the survival analysis
 framework.}
 
-\item{quiet}{Should messages and warnings be displayed ? Default to \code{FALSE},
-may be set to \code{TRUE} if numerous calls to this function are made.}
+\item{quiet}{Should messages and warnings be silenced ? Default to \code{FALSE},
+may be set to \code{TRUE} is the function is called repeatedly.}
 
 \item{...}{Additional parameters passed to the smoothing function called.}
 }
@@ -74,30 +71,33 @@ An object of class \code{WH_1d} i.e. a list containing :
 \itemize{
 \item \code{d} The inputed vector of observed events (if supplied as input)
 \item \code{ec} The inputed vector of central exposure (if supplied as input)
-\item \code{y} The observation vector (either supplied or computed as y = log(d) - log(ec))
-\item \code{wt} The inputed vector of weights (either supplied or computed as \code{d})
-\item \code{y_hat} The vector of fitted value
-\item \code{std_y_hat} The vector of standard deviation associated with the fitted value
-\item \code{res} The vector of model deviance residuals
-\item \code{edf} The vector of effective degrees of freedom associated with each observation
+\item \code{y} The observation vector, either supplied or computed as y = log(d) - log(ec)
+\item \code{wt} The inputed vector of weights, either supplied or computed as \code{d}
+\item \code{y_hat} The vector of values fitted using Whittaker-Henderson smoothing
+\item \code{std_y_hat} The vector of standard deviation associated with the fit
+\item \code{res} The vector of deviance residuals associated with the fit
+\item \code{edf_obs} The vector of effective degrees of freedom associated with each observation
 \item \code{edf_par} The vector of effective degrees of freedom associated with each eigenvector
-\item \code{diagnosis} A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
-\item \code{Psi} The variance-covariance matrix associated with the fit, required for
-extrapolation.
-\item \code{lambda} The smoothing parameter used, either supplied or computed.
-\item \code{p} The number of components kept after rank reduction is used (it should not be in the one-dimension case).
-\item \code{q} The supplied order for the penalization.
+\item \code{diagnosis} A data.frame with one line containing the sum of effective degrees of freedom
+for the model, the deviance of the fit as well as the AIC, BIC, GCV and
+REML criteria
+\item \code{Psi} The variance-covariance matrix associated with the fit, which is required
+for the extrapolation step.
+\item \code{lambda} The smoothing parameter used.
+\item \code{p} The number of eigenvectors kept on each dimension if the rank reduction method
+is used (it should not in the one-dimensional case).
+\item \code{q} The supplied order for the penalization matrix.
 }
 }
 \description{
 Main package function to apply Whittaker-Henderson smoothing in a
-unidimensional survival analysis framework. It takes as input a vector of
+one-dimensional survival analysis framework. It takes as input a vector of
 observed events and a vector of associated central exposure, both depending
 on a single covariate, and build a smooth version of the log-hazard rate.
 Smoothing parameters may be supplied or automatically chosen according to an
 adequate criterion such as \code{"REML"} (the default), \code{"AIC"}, \code{"BIC"} or
 \code{"GCV"}. Whittaker-Henderson may be applied in a full maximum likelihood
-framework (the default) or an approximate gaussian framework.
+framework (the default) or an approximate gaussian framework (the original).
 }
 \examples{
 d <- portfolio_mort$d

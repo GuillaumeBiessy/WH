@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{build_D_mat}
 \alias{build_D_mat}
-\title{Build difference matrix of order q}
+\title{Build Difference Matrix of Given Order}
 \usage{
 build_D_mat(n, q)
 }
@@ -12,10 +12,10 @@ build_D_mat(n, q)
 \item{q}{Order of the penalization matrix}
 }
 \value{
-Difference matrix of order \code{q} for a vector containing \code{n}
-observations.
+The difference matrix of order \code{q} for a vector containing
+\code{n} observations.
 }
 \description{
-Build difference matrix of order q
+Build Difference Matrix of Given Order
 }
 \keyword{internal}

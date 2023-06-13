@@ -2,7 +2,7 @@
 % Please edit documentation in R/tools.R
 \name{compute_res_deviance}
 \alias{compute_res_deviance}
-\title{Deviance residuals for Poisson GLM}
+\title{Deviance Residuals for Poisson GLM}
 \usage{
 compute_res_deviance(D, D_hat)
 }
@@ -16,6 +16,6 @@ A vector or matrix (depending on the input type, will be a matrix
 if at least one of the input is) containing the deviance residuals
 }
 \description{
-Deviance residuals for Poisson GLM
+Deviance Residuals for Poisson GLM
 }
 \keyword{internal}
