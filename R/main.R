@@ -737,7 +737,7 @@ print.WH_2d <- function(x, ...) {
 #' plot(fit, "edf")
 #'
 #' @export
-plot.WH_1d <- function(x, what = "y_hat", trans, ...) {
+plot.WH_1d <- function(x, what = "fit", trans, ...) {
 
   if (!inherits(x, "WH_1d")) stop("x must be of class WH_2d")
   whats <- c("fit", "res", "edf")
