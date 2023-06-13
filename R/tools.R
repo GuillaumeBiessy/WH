@@ -1,9 +1,9 @@
-#' Build difference matrix of order q
+#' Build Difference Matrix of Given Order
 #'
 #' @inheritParams eigen_dec
 #'
-#' @returns Difference matrix of order \code{q} for a vector containing \code{n}
-#'   observations.
+#' @returns The difference matrix of order \code{q} for a vector containing
+#'   \code{n} observations.
 #' @keywords internal
 build_D_mat <- function(n, q) {diff(diag(n), differences = q)}
 
@@ -12,11 +12,11 @@ cum_index <- function(n) {
   map2(n, c(0, cumsum(n)[- length(n)]), \(x, y) y + seq_len(x))
 }
 
-#' Diagonal merging of matrices
+#' Diagonal Stacking of Matrices
 #'
 #' @param ... One or several object of type `matrix`
 #'
-#' @returns A matrix obtained by merging the input matrices diagonally
+#' @returns A matrix obtained by stacking the input matrices diagonally
 #' @keywords internal
 blockdiag <- function(...) {
 
@@ -35,7 +35,7 @@ blockdiag <- function(...) {
   return(M)
 }
 
-#' Eigen decomposition of penalization matrix
+#' Eigen Decomposition of Penalization Matrix
 #'
 #' @param n Number of observations in the problem
 #' @param q Order of the penalization matrix
@@ -66,7 +66,7 @@ eigen_dec <- function(n, q, p) {
   return(out)
 }
 
-#' Deviance residuals for Poisson GLM
+#' Deviance Residuals for Poisson GLM
 #'
 #' @param D Vector or matrix containing the number of observed events
 #' @param D_hat Vector or matrix containing the number of predicted events
@@ -93,7 +93,7 @@ compute_res_deviance <- function(D, D_hat) {
 #' @param tr_log_P Trace of logarithm of penalization matrix
 #' @param tr_log_Psi Trace of logarithm of variance-covariance matrix
 #'
-#' @returns A data.frame containing various diagnosis about the fit
+#' @returns A data.frame containing various diagnoses about the fit
 #' @keywords internal
 get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
 
@@ -116,9 +116,9 @@ get_diagnosis <- function(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi) {
 #'   default), "integer", "numeric" or "character".
 #'
 #' @returns A list (if output_type = "list") or a vector, sharing names with x,
-#'   built by applying f to each element of x. This is a very rough
-#'   implementation of the map function from the wonderful package purrr meant
-#'   to remove the dependency from this package.
+#'   built by applying f to each element of x. This is a rough implementation
+#'   of the `map` function from the `purrr` package and aims at removing the
+#'   dependency from that package.
 #' @keywords internal
 map <- function(x, f, output_type = "list") {
 
@@ -132,7 +132,7 @@ map <- function(x, f, output_type = "list") {
   return(l)
 }
 
-#' Lapply with Custom Return Type
+#' Bivariate Lapply with Custom Return Type
 #'
 #' @param x,y A couple of vectors or lists with the same size
 #' @param f A function
@@ -141,8 +141,8 @@ map <- function(x, f, output_type = "list") {
 #'
 #' @returns A list (if output_type = "list") or a vector, sharing names with x,
 #'   built by applying f to each element of x and y simultaneously. This is a
-#'   very rough implementation of the map2 function from the wonderful package
-#'   purrr meant to remove the dependency from this package.
+#'   rough implementation of the `map2` function from the `purrr` package
+#'   purrr aims at removing the dependency from that package.
 #' @keywords internal
 map2 <- function(x, y, f, output_type = "list") {
 

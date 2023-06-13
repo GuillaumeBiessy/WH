@@ -3,70 +3,70 @@
 #' 1D Whittaker-Henderson Smoothing
 #'
 #' Main package function to apply Whittaker-Henderson smoothing in a
-#' unidimensional survival analysis framework. It takes as input a vector of
+#' one-dimensional survival analysis framework. It takes as input a vector of
 #' observed events and a vector of associated central exposure, both depending
 #' on a single covariate, and build a smooth version of the log-hazard rate.
 #' Smoothing parameters may be supplied or automatically chosen according to an
 #' adequate criterion such as `"REML"` (the default), `"AIC"`, `"BIC"` or
 #' `"GCV"`. Whittaker-Henderson may be applied in a full maximum likelihood
-#' framework (the default) or an approximate gaussian framework.
+#' framework (the default) or an approximate gaussian framework (the original).
 #'
-#' @param d Vector of observed events, with named elements.
+#' @param d Vector of observed events, should have named elements.
 #' @param ec Vector of central exposure. The central exposure corresponds to the
-#'   sum of the exposure period over the insured population. An individual
+#'   sum of the exposure duration over the insured population. An individual
 #'   experiencing an event of interest during the year will no longer be exposed
-#'   afterward and the exposure should be reduced accordingly.
+#'   afterward and the exposure should be computed accordingly.
 #' @param lambda Smoothing parameter. If missing, an optimization procedure will
 #'   be used to find the optimal smoothing parameter. If supplied, no optimal
-#'   smoothing parameter search will take place unless the `criterion` argument
-#'   is also supplied, in which case `lambda` will be used as the starting
+#'   smoothing parameter search will take place unless the `method` argument is
+#'   also supplied, in which case `lambda` will be used as the starting
 #'   parameter for the optimization procedure.
 #' @param criterion Criterion to be used for the selection of the optimal
 #'   smoothing parameter. Default is `"REML"` which stands for restricted
 #'   maximum likelihood. Other options include `"AIC"`, `"BIC"` and `"GCV"`.
 #' @param method Method to be used to find the optimal smoothing parameter.
 #'   Default to `"fixed_lambda"` if `lambda` is supplied, meaning no
-#'   optimization is performed. Otherwise, default to `"perf"` which means the
-#'   performance iteration method is used. The alternative `"outer"` method is
-#'   guaranteed to converge but slower. Both those methods rely on the
-#'   `optimize` function from package `stats`.
+#'   optimization is performed. Otherwise, default to the most reliable
+#'   `"outer"` methodbased on the `optimize` function from package `stats`.
 #' @param q Order of penalization. Polynoms of degrees `q - 1` are considered
-#'   smooth and are therefore unpenalized. Should be left to the default of `2`
-#'   for most practical applications.
+#'   completely smooth and are therefore unpenalized. Should be left to the
+#'   default of `2` for most practical applications.
 #' @param framework Default framework is `"ml"` which stands for maximum
 #'   likelihood unless the `y` argument is also provided, in which case an
-#'   `"reg"` or regression framework is used. The regression framework is an
-#'   approximate gaussian framework is used instead.
+#'   `"reg"` or (approximate) regression framework is used.
 #' @param y Optional vector of observations whose elements should be named. Used
-#'   only in the regression framework and even in this case will be
-#'   automatically computed from the `d` and `ec` arguments if those are
-#'   supplied. May be useful when using Whittaker-Henderson smoothing outside of
-#'   the survival analysis framework.
+#'   only in the regression framework and if the `d` and `ec` arguments are
+#'   missing (otherwise `y` is automatically computed from `d` and `ec`). May be
+#'   useful when using Whittaker-Henderson smoothing outside of the survival
+#'   analysis framework.
 #' @param wt Optional vector of weights. As for the observation vector `y`, used
-#'   only in the regression framework and even in this case will be
-#'   automatically computed if the `d` argument is supplied. May be useful when
+#'   only in the regression framework and if the `d` and `ec` arguments are
+#'   missing (otherwise `wt` is automatically set to `d`). May be useful when
 #'   using Whittaker-Henderson smoothing outside of the survival analysis
 #'   framework.
-#' @param quiet Should messages and warnings be displayed ? Default to `FALSE`,
-#'   may be set to `TRUE` if numerous calls to this function are made.
+#' @param quiet Should messages and warnings be silenced ? Default to `FALSE`,
+#'   may be set to `TRUE` is the function is called repeatedly.
 #' @param ... Additional parameters passed to the smoothing function called.
 #'
 #' @returns An object of class `WH_1d` i.e. a list containing :
 #' * `d` The inputed vector of observed events (if supplied as input)
 #' * `ec` The inputed vector of central exposure (if supplied as input)
-#' * `y` The observation vector (either supplied or computed as y = log(d) - log(ec))
-#' * `wt` The inputed vector of weights (either supplied or computed as `d`)
-#' * `y_hat` The vector of fitted value
-#' * `std_y_hat` The vector of standard deviation associated with the fitted value
-#' * `res` The vector of model deviance residuals
-#' * `edf` The vector of effective degrees of freedom associated with each observation
+#' * `y` The observation vector, either supplied or computed as y = log(d) - log(ec)
+#' * `wt` The inputed vector of weights, either supplied or computed as `d`
+#' * `y_hat` The vector of values fitted using Whittaker-Henderson smoothing
+#' * `std_y_hat` The vector of standard deviation associated with the fit
+#' * `res` The vector of deviance residuals associated with the fit
+#' * `edf_obs` The vector of effective degrees of freedom associated with each observation
 #' * `edf_par` The vector of effective degrees of freedom associated with each eigenvector
-#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
-#' * `Psi` The variance-covariance matrix associated with the fit, required for
-#'   extrapolation.
-#' * `lambda` The smoothing parameter used, either supplied or computed.
-#' * `p` The number of components kept after rank reduction is used (it should not be in the one-dimension case).
-#' * `q` The supplied order for the penalization.
+#' * `diagnosis` A data.frame with one line containing the sum of effective degrees of freedom
+#'   for the model, the deviance of the fit as well as the AIC, BIC, GCV and
+#'   REML criteria
+#' * `Psi` The variance-covariance matrix associated with the fit, which is required
+#'   for the extrapolation step.
+#' * `lambda` The smoothing parameter used.
+#' * `p` The number of eigenvectors kept on each dimension if the rank reduction method
+#'   is used (it should not in the one-dimensional case).
+#' * `q` The supplied order for the penalization matrix.
 #'
 #' @examples
 #' d <- portfolio_mort$d
@@ -195,63 +195,63 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 #' rank-reduction procedure to avoid such issues.
 #'
 #' @inheritParams WH_1d
-#' @param d Matrix of observed events whose rows and columns should be named.
-#'   Required in case of maximum likelihood estimation
-#' @param ec Matrix of central exposure. Required in case of maximum likelihood
-#'   estimation. The central exposure corresponds to the sum of the exposure
-#'   period over the insured population. An individual experiencing an event of
-#'   interest during the year will no longer be exposed afterward and the
-#'   exposure should be reduced accordingly.
+#' @param d Matrix of observed events, whose rows and columns must be named.
+#' @param ec Matrix of central exposure. The central exposure corresponds to the
+#'   sum of the exposure duration over the insured population. An individual
+#'   experiencing an event of interest during the year will no longer be exposed
+#'   afterward and the exposure should be computed accordingly.
 #' @param lambda Smoothing parameter vector of size `2`. If missing, an
 #'   optimization procedure will be used to find the optimal smoothing
-#'   parameter. If provided, no optimal smoothing parameter search will take
-#'   place unless the `criterion` argument is also provided, in which case
-#'   `lambda` will be used as the starting parameter for the optimization
-#'   procedure.
+#'   parameter. If supplied, no optimal smoothing parameter search will take
+#'   place unless the `method` argument is also supplied, in which case `lambda`
+#'   will be used as the starting parameter for the optimization procedure.
 #' @param method Method to be used to find the optimal smoothing parameter.
 #'   Default to `"fixed_lambda"` if `lambda` is supplied, meaning no
 #'   optimization is performed. Otherwise, default to `"perf"` which means the
-#'   performance iteration method is used. The alternative `"outer"` method is
-#'   guaranteed to converge but slower. Both those methods rely on the `optim`
-#'   function from package `stats`.
+#'   faster performance iteration method is used. The alternative `"outer"`
+#'   method is safer but slower. Both those methods rely on the `optim` function
+#'   from package `stats`.
 #' @param p Optional vector of size `2`. Maximum number of eigenvectors to keep
 #'   on each dimension after performing the eigen decomposition of the
 #'   penalization matrix. If missing, will be automatically computed so that the
-#'   dimensions of (square) matrices involved in the optimization problem
-#'   remains lower that the `max_dim` argument
+#'   number of elements of the (square) matrices involved in the optimization
+#'   problem remains lower that the `max_dim` argument
 #' @param max_dim Number of parameters to be kept in the optimization problem.
-#'   Default is `200`. Values higher than `2000` may result in very high
+#'   Default is `200`. Values higher than `1000` may result in very high
 #'   computation times and memory usage.
 #' @param q Order of penalization vector of size `2`. Polynoms of degrees
 #'   `(q[[1]] - 1,q[[2]] - 1)` are considered smooth and are therefore
 #'   unpenalized. Should be left to the default of `c(2,2)` for most practical
 #'   applications.
 #' @param y Optional matrix of observations whose rows and columns should be
-#'   named. Used only in the regression framework and even in this case will be
-#'   automatically computed if the `d` and `ec` arguments are supplied. May be
-#'   useful when using Whittaker-Henderson smoothing outside of the survival
-#'   analysis framework.
-#' @param wt Optional matrix of weights. As for the observation vector `y`, used
-#'   only in the regression framework and even in this case will be
-#'   automatically computed if the `d` argument is supplied. May be useful when
-#'   using Whittaker-Henderson smoothing outside of the survival analysis
-#'   framework.
+#'   named. Used only in the regression framework and if the `d` and `ec`
+#'   arguments are missing (otherwise `y` is automatically computed from `d` and
+#'   `ec`). May be useful when using Whittaker-Henderson smoothing outside of
+#'   the survival analysis framework.
+#' @param wt Optional matrix of weights. As for the observation vector `y`, Used
+#'   only in the regression framework and if the `d` and `ec` arguments are
+#'   missing (otherwise `wt` is set equal to `d`). May be useful when using
+#'   Whittaker-Henderson smoothing outside of the survival analysis framework.
 #'
 #' @returns An object of class `WH_2d` i.e. a list containing :
 #' * `d` The inputed matrix of observed events (if supplied as input)
 #' * `ec` The inputed matrix of central exposure (if supplied as input)
-#' * `y` The observation matrix (either supplied or computed as y = log(d) - log(ec))
-#' * `wt` The inputed matrix of weights (either supplied or computed as `d`)
-#' * `y_hat` The matrix of fitted value
-#' * `std_y_hat` The matrix of standard deviation associated with the fitted value
-#' * `res` The matrix of model deviance residuals
+#' * `y` The observation matrix, either supplied or computed as y = log(d) - log(ec)
+#' * `wt` The inputed matrix of weights, either supplied or set to `d`
+#' * `y_hat` The matrix of values fitted using Whittaker-Henderson smoothing
+#' * `std_y_hat` The matrix of standard deviations associated with the fit
+#' * `res` The matrix of deviance residuals associated with the fit
 #' * `edf_obs` The matrix of effective degrees of freedom associated with each observation
 #' * `edf_par` The matrix of effective degrees of freedom associated with each eigenvector
-#' * `diagnosis` A data.frame with one line containing the effective degrees of freedom of the model, the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
-#' * `Psi` The variance-covariance matrix associated with the fit, required for extrapolation.
-#' * `lambda` The vector of smoothing parameters used, either supplied. or computed.
-#' * `p` The number of components kept on each dimension after the rank reduction method is applied.
-#' * `q` The supplied vector of orders for the penalization.
+#' * `diagnosis` A data.frame with one line containing the sum of effective degrees of freedom
+#'   for the model, the deviance of the fit as well as the AIC, BIC, GCV and
+#'   REML criteria
+#' * `Psi` The variance-covariance matrix associated with the fit, which is required
+#'   for the extrapolation step.
+#' * `lambda` The vector of smoothing parameters used.
+#' * `p` The number of eigenvectors kept on each dimension if the rank reduction method
+#'   is used.
+#' * `q` The supplied vector of orders for the penalization matrices.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
@@ -406,9 +406,9 @@ WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
 
 # Extrapolation----
 
-#' Predict new values using a fitted 1D WH model
+#' Prediction for a Whittaker-Henderson Fit
 #'
-#' Extrapolate the model for new observations.
+#' Extrapolate the Whittaker-Henderson fit for new observations.
 #'
 #' @param object An object of class `"WH_1d"` returned by the [WH_1d()] function
 #' @param newdata A vector containing the position of new observations.
@@ -416,8 +416,9 @@ WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
 #'   adequate order
 #' @param ... Not used
 #'
-#' @returns An object of class `"WH_1d"` with additional components for model
-#'   prediction.
+#' @returns An object of class `"WH_1d"` with additional components `y_pred` and
+#'   `std_y_pred` corresponding to the model predictions and associated standard
+#'   deviations.
 #'
 #' @examples
 #' d <- portfolio_mort$d
@@ -473,18 +474,19 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   return(object)
 }
 
-#' Predict new values using a fitted 2D WH model
+#' Prediction for a Whittaker-Henderson Fit
 #'
-#' Extrapolate the model for new observations in a way that is consistent with
-#' the fitted values
+#' Extrapolate the Whittaker-Henderson fit for new observations in a way that is
+#' consistent with the initial model fit.
 #'
 #' @param object An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param newdata A list containing two vectors indicating the new observation
 #'   positions
 #' @param ... Not used
 #'
-#' @returns An object of class `"WH_2d"` with additional components for model
-#'   prediction.
+#' @returns An object of class `"WH_2d"` with additional components `y_pred` and
+#'   `std_y_pred` corresponding to the model predictions and associated standard
+#'   deviations.
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
@@ -544,14 +546,14 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 
 # Formatting----
 
-#' Store WH model fit results in a data.frame
+#' Provide WH model Fit Results as a Data.frame
 #'
 #' @param object An object of class  `"WH_1d"` or `"WH_2d"` returned
 #'   by one of the eponymous functions [WH_1d()] or [WH_2d()]
-#' @param dim1 The (optional) name to be given to the first dimension
-#' @param dim2 The (optional) name to be given to the second dimension
+#' @param dim1 The optional name to be given to the first dimension
+#' @param dim2 The optional name to be given to the second dimension
 #'
-#' @returns A data.frame gathering information about the fitted and predicted
+#' @returns A data.frame regrouping information about the fitted and predicted
 #'   values, the model variance, residuals and effective degrees of freedom...
 #'
 #' @examples
@@ -651,7 +653,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "t") {
 
 # Display----
 
-#' Display of 1D WH object
+#' Print Method for a Whittaker-Henderson Fit
 #'
 #' @param x An object of class `"WH_1d"` returned by the [WH_1d()] function
 #' @param ... Not used
@@ -681,7 +683,7 @@ print.WH_1d <- function(x, ...) {
   invisible(x)
 }
 
-#' Display of 2D WH object
+#' Print Method for a Whittaker-Henderson Fit
 #'
 #' @param x An object of class `"WH_2d"` returned by the [WH_2d()] function
 #' @param ... Not used
@@ -713,17 +715,17 @@ print.WH_2d <- function(x, ...) {
 
 # Plots----
 
-#' Plot 1D WH fit
+#' Plot Method for a Whittaker-Henderson Fit
 #'
 #' @param x An object of class `"WH_1d"` returned by the [WH_1d()] function
-#' @param what What should be plotted. Should be one of `fit` (the
-#'   default), `res` for residuals and `edf` for the effective degrees
-#'   of freedom.
+#' @param what What should be plotted. Should be one of `fit` (the model fit and
+#'   standard deviation, the default), `res` for residuals and `edf` for the
+#'   effective degrees of freedom.
 #' @param trans An (optional) transformation to be applied to the data. By
 #'   default the identity function
 #' @param ... Not used
 #'
-#' @returns A plot representing the desired element of the fit
+#' @returns A plot representing the desired element from the fit
 #'
 #' @examples
 #' d <- portfolio_mort$d
@@ -735,7 +737,7 @@ print.WH_2d <- function(x, ...) {
 #' plot(fit, "edf")
 #'
 #' @export
-plot.WH_1d <- function(x, what = "fit", trans, ...) {
+plot.WH_1d <- function(x, what = "y_hat", trans, ...) {
 
   if (!inherits(x, "WH_1d")) stop("x must be of class WH_2d")
   whats <- c("fit", "res", "edf")
@@ -770,14 +772,16 @@ plot.WH_1d <- function(x, what = "fit", trans, ...) {
          })
 }
 
-#' Plot 2D WH fit
+#' Plot Method for a Whittaker-Henderson Fit
 #'
+#' @inheritParams plot.WH_1d
 #' @param x An object of class `"WH_2d"` returned by the [WH_2d()] function
-#' @param what What should be plotted (y_hat, std_y_hat, res, edf)
-#' @param trans An (optional) transformation to be applied to the data
+#' @param what Should be one of `y_hat` (the default) for model fit, `std_y_hat`
+#'   for the associated standard deviation, `res` for residuals and `edf` for
+#'   the effective degrees of freedom.
 #' @param ... Not used
 #'
-#' @returns A plot representing the given element of the fit...
+#' @returns A plot representing the desired element from the fit...
 #'
 #' @examples
 #' keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
