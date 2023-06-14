@@ -1,3 +1,5 @@
+# WH (development version)
+
 # WH 1.0.3
 
 * Replaced backquotes by normal quotes in the description field of the DESCRIPTION file
