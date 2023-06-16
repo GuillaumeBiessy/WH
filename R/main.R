@@ -862,7 +862,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -888,7 +888,7 @@ WH_1d_fixed_lambda <- function(d, ec, y, wt, lambda = 1e3, q = 2, p,
       z <- y_hat + d / wt - 1
       wt_pos <- c(wt)[which_pos]
       z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWU <- crossprod(sqrt(wt_pos) * U_pos)
       tUWz <- t(U_pos) %*% (wt_pos * z_pos)
     }
 
@@ -972,7 +972,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -1008,7 +1008,7 @@ WH_1d_outer <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3
         z <- y_hat + d / wt - 1
         wt_pos <- c(wt)[which_pos]
         z_pos <- c(z)[which_pos]
-        tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+        tUWU <- crossprod(sqrt(wt_pos) * U_pos)
         tUWz <- t(U_pos) %*% (wt_pos * z_pos)
       }
 
@@ -1086,7 +1086,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -1112,7 +1112,7 @@ WH_1d_perf <- function(d, ec, y, wt, q = 2, p, criterion = "REML", lambda = 1e3,
       z <- y_hat + d / wt - 1
       wt_pos <- c(wt)[which_pos]
       z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWU <- crossprod(sqrt(wt_pos) * U_pos)
       tUWz <- t(U_pos) %*% (wt_pos * z_pos)
     }
 
@@ -1216,7 +1216,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -1245,7 +1245,7 @@ WH_2d_fixed_lambda <- function(d, ec, y, wt, lambda = c(1e3, 1e3), q = c(2, 2), 
       z <- y_hat + d / wt - 1
       wt_pos <- c(wt)[which_pos]
       z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWU <- crossprod(sqrt(wt_pos) * U_pos)
       tUWz <- t(U_pos) %*% (wt_pos * z_pos)
     }
 
@@ -1327,7 +1327,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -1365,7 +1365,7 @@ WH_2d_outer <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda
         z <- y_hat + d / wt - 1
         wt_pos <- c(wt)[which_pos]
         z_pos <- c(z)[which_pos]
-        tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+        tUWU <- crossprod(sqrt(wt_pos) * U_pos)
         tUWz <- t(U_pos) %*% (wt_pos * z_pos)
       }
 
@@ -1446,7 +1446,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
     z <- y
     wt_pos <- c(wt)[which_pos]
     z_pos <- c(z)[which_pos]
-    tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+    tUWU <- crossprod(sqrt(wt_pos) * U_pos)
     tUWz <- t(U_pos) %*% (wt_pos * z_pos)
 
   } else {
@@ -1472,7 +1472,7 @@ WH_2d_perf <- function(d, ec, y, wt, q = c(2, 2), p, criterion = "REML", lambda 
       z <- y_hat + d / wt - 1
       wt_pos <- c(wt)[which_pos]
       z_pos <- c(z)[which_pos]
-      tUWU <- t(U_pos) %*% (wt_pos * U_pos)
+      tUWU <- crossprod(sqrt(wt_pos) * U_pos)
       tUWz <- t(U_pos) %*% (wt_pos * z_pos)
     }
 
