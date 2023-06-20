@@ -8,8 +8,6 @@ This is a resubmission following recent package acceptance but failure to additi
 
 In this version I have:
 
-* Improved the robustness of the model tests by only considering the model fit, esimated standard deviation and diagnoses while comparing two fits rather than comparing the whole object. This should hopefully prevent test failure with MKL.
+* Improved the robustness of the model tests by only considering the model fit, esimated standard deviation and diagnoses while comparing two fits rather than comparing the whole object. This should hopefully prevent test failure when using the MKL implementation of BLAS / LAPACK.
 
 * Improved the presentation of unit tests by embedding them in calls to `test_that`
-
-* Simplified computation of the matrix `tUWU` by using the `crossprod` function, which should reduce memory usage (by half) and computation time (slightly)
