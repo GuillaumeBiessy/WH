@@ -1,12 +1,10 @@
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
-
-* This is a new release.
+0 errors | 0 warnings | 0 notes
 
 ## Resubmission
 
-This is a resubmission following package acceptance but failure to additional tests using the alternative BLAS / LAPACK implementation from Intel MKL '2022.3.0'. I suspect this is linked to some variability in the results of the eigendecomposition when performed by MKL.
+This is a resubmission following recent package acceptance but failure to additional tests using the alternative BLAS / LAPACK implementation from Intel MKL '2022.3.0'. I suspect this is linked to some variability in the results of the eigendecomposition when performed by MKL.
 
 In this version I have:
 
