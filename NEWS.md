@@ -1,4 +1,4 @@
-# WH (development version)
+# WH 1.0.4
 
 * Simplified computation of the matrix `tUWU` by using the `crossprod` function, which should reduce memory usage (by half) and computation time (slightly)
 
