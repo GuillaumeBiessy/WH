@@ -6,10 +6,12 @@
 
 ## Resubmission
 
-This is a resubmission. In this version I have:
+This is a resubmission following package acceptance but failure to additional tests using the alternative BLAS / LAPACK implementation from Intel MKL '2022.3.0'. I suspect this is linked to some variability in the results of the eigendecomposition when performed by MKL.
 
-* Replaced utils::person by person in the author field of the DESCRIPTION
+In this version I have:
 
-* Updated the description field of the DESCRIPTION file to simplify it and include a link to the paper whose methods are implemented in the package
+* Improved the robustness of the model tests by only considering the model fit, esimated standard deviation and diagnoses while comparing two fits rather than comparing the whole object. This should hopefully prevent test failure with MKL.
 
-* Replaced the backquotes by normal quotes in the description field of the DESCRIPTION
+* Improved the presentation of unit tests by embedding them in calls to `test_that`
+
+* Simplified computation of the matrix `tUWU` by using the `crossprod` function, which should reduce memory usage (by half) and computation time (slightly)
