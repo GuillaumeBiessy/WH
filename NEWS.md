@@ -1,5 +1,9 @@
 # WH (development version)
 
+* Simplified computation of the matrix `tUWU` by using the `crossprod` function, which should reduce memory usage (by half) and computation time (slightly)
+
+* Fixed an issue with the `WH_2d` plot and the what = "edf" argument
+
 # WH 1.0.3
 
 * Replaced backquotes by normal quotes in the description field of the DESCRIPTION file
