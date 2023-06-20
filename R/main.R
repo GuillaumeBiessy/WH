@@ -808,7 +808,8 @@ plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
   x <- unique(df$x)
   t <- unique(df$t)
 
-  data <- matrix(c(df[[what]]), length(t), length(x), byrow = TRUE)
+  data <- matrix(c(if (what == "edf") df[["edf_obs"]] else df[[what]]),
+                 length(t), length(x), byrow = TRUE)
 
   graphics::contour(
     t, x, data,
