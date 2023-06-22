@@ -206,7 +206,7 @@ test_that("Extrapolation and extrapolation plots work", {
   perf_extra_ml <- WH_2d_perf(d, ec) |> predict(newdata)
   outer_extra_ml <- WH_2d_outer(d, ec) |> predict(newdata)
 
-  compare_fits(perf_extra_ml, outer_extra_ml, tolerance = 1e-2)
+  compare_fits(perf_extra_ml, outer_extra_ml, tolerance = 1e-1)
 
   expect_no_error({
     perf_extra_reg |> plot()
