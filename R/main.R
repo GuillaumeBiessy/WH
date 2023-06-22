@@ -377,7 +377,8 @@ WH_2d <- function(d, ec, lambda, criterion, method, max_dim = 200, p,
   if (missing(p)) {
 
     max_ratio <- sqrt(max_dim / (n[[2]] * n[[1]]))
-    p <- floor(pmin(max_ratio, 1) * n)
+    p <- as.integer(pmin(max_ratio, 1) * n)
+    names(p) <- if (framework == "reg") names(dimnames(y)) else names(dimnames(d))
   } else {
     if (!is.numeric(q) || length(q) != 2 || any(q <= 0) ||
         (max(abs(q - round(q))) > .Machine$double.eps ^ 0.5)) stop(

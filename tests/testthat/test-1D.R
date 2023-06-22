@@ -9,20 +9,23 @@ y <- log(d / ec)
 y[d == 0] <- - 20
 wt <- d
 
-compare_fits <- function(f1, f2, tolerance = if (edition_get() >= 3) testthat_tolerance()) {
+compare_fits <- function(f1, f2, tolerance) {
 
-  expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
-  expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = tolerance)
-  expect_equal(f1$diagnosis, f2$diagnosis, tolerance = tolerance)
+  if (missing(tolerance)) expect_identical(f1, f2) else expect_equal(f1, f2, tolerance = tolerance)
+
+  # expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
+  # expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = tolerance)
+  # expect_equal(f1$diagnosis, f2$diagnosis, tolerance = tolerance)
 }
 
-compare_reml <- function(f1, f2, tolerance = if (edition_get() >= 3) testthat_tolerance()) {
+compare_reml <- function(f1, f2, tolerance) {
 
   expect_equal(f1$reml, f2$reml, tolerance = tolerance)
 }
 
 # Regression----
-test_that("Various way of calling regression work", {
+test_that("Various way of invoking the regression framework are valid", {
+
   ref_fixed_lambda <- WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE)
 
   compare_fits(WH_1d(y = y, wt = wt, lambda = 1e2), ref_fixed_lambda)
@@ -30,33 +33,38 @@ test_that("Various way of calling regression work", {
   compare_fits(WH_1d(d, y = y, lambda = 1e2), ref_fixed_lambda)
 })
 
-test_that("Outer iteration method is the default method and calls outer", {
+test_that("Outer iteration method calls the right function and is the default method", {
+
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 
   compare_fits(WH_1d(y = y, wt = wt, method = "outer"), ref_outer)
   compare_fits(WH_1d(y = y, wt = wt), ref_outer)
 })
 
-test_that("Performance iteration method calls perf", {
+test_that("Performance iteration method calls the right function", {
+
   ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
 
   compare_fits(WH_1d(y = y, wt = wt, method = "perf"), ref_perf)
 })
 
-test_that("REML is default criterion", {
+test_that("REML is the default criterion", {
+
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 
   compare_fits(WH_1d(y = y, wt = wt, criterion = "REML"), ref_outer)
 })
 
-test_that("Outer and performance iteration methods give close results", {
+test_that("Outer and performance iteration methods give very close results", {
+
   ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 
   compare_reml(ref_perf, ref_outer, tolerance = 1e-6)
 })
 
-test_that("Other criteria work as well", {
+test_that("Other smoothing parameter selection criteria are working as well", {
+
   compare_fits(WH_1d(y = y, wt = wt, criterion = "AIC"),
                WH_1d_outer(y = y, wt = wt, criterion = "AIC", reg = TRUE))
   compare_fits(WH_1d(y = y, wt = wt, criterion = "BIC"),
@@ -66,6 +74,7 @@ test_that("Other criteria work as well", {
 })
 
 test_that("Rank reduction works", {
+
   ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
   ref_perf_red <- WH_1d_perf(y = y, wt = wt, p = 20, reg = TRUE)
@@ -80,37 +89,43 @@ test_that("Rank reduction works", {
 
 # Maximum likelihood----
 
-test_that("Fixed lambda method works", {
+test_that("Supplying lambda calls the fixed lambda function directly in the ML framework", {
   compare_fits(WH_1d(d, ec, lambda = 1e2),
                WH_1d_fixed_lambda(d, ec, lambda = 1e2))
 })
 
-test_that("Outer iteration method is the default method and calls outer", {
+test_that("Outer iteration method calls the right function and is the default method", {
+
   ref_ml_outer <- WH_1d_outer(d, ec)
 
   compare_fits(WH_1d(d, ec, method = "outer"), ref_ml_outer)
+  compare_fits(WH_1d(d, ec), ref_ml_outer)
 })
 
-test_that("Performance iteration method works", {
+test_that("Performance iteration method calls the right function", {
+
   ref_ml_perf <- WH_1d_perf(d, ec)
 
   compare_fits(WH_1d(d, ec, method = "perf"), ref_ml_perf)
 })
 
-test_that("REML is default criterion", {
+test_that("REML is the default criterion", {
+
   ref_ml_outer <- WH_1d_outer(d, ec)
 
   compare_fits(WH_1d_outer(d, ec, criterion = "REML"), ref_ml_outer)
 })
 
-test_that("Outer and performance iteration methods give close results", {
+test_that("Outer and performance iteration methods give close enough results", {
+
   ref_ml_perf <- WH_1d_perf(d, ec)
   ref_ml_outer <- WH_1d_outer(d, ec)
 
   compare_fits(ref_ml_perf, ref_ml_outer, tolerance = 1e-2)
 })
 
-test_that("Other criteria work as well", {
+test_that("Other smoothing parameter selection criteria are working as well", {
+
   compare_fits(WH_1d(d, ec, criterion = "AIC"),
                WH_1d_outer(d, ec, criterion = "AIC"))
   compare_fits(WH_1d(d, ec, criterion = "BIC"),
@@ -120,6 +135,7 @@ test_that("Other criteria work as well", {
 })
 
 test_that("Rank reduction works", {
+
   ref_ml_perf <- WH_1d_perf(d, ec)
   ref_ml_outer <- WH_1d_outer(d, ec)
   ref_ml_perf_red <- WH_1d_perf(d, ec, p = 20)
@@ -134,7 +150,7 @@ test_that("Rank reduction works", {
 
 # Plots----
 
-test_that("Plots work", {
+test_that("Plot functions work", {
 
   expect_no_error({
     # Regression
@@ -167,7 +183,7 @@ test_that("Plots work", {
 
 # Extrapolation----
 
-test_that("Extrapolation works", {
+test_that("Extrapolation and extrapolation plots work", {
 
   newdata <- 18:99
 
