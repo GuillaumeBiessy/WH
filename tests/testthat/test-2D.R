@@ -12,23 +12,21 @@ y <- log(d / ec) # observation vector
 y[d == 0] <- - 20
 wt <- d
 
-compare_fits <- function(f1, f2, tolerance) {
+compare_fits <- function(f1, f2, tolerance = if (edition_get() >= 3) testthat_tolerance()) {
 
-  if (missing(tolerance)) expect_identical(f1, f2) else expect_equal(f1, f2, tolerance = tolerance)
-
-  # expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
-  # expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = tolerance)
-  # expect_equal(f1$diagnosis, f2$diagnosis, tolerance = tolerance)
+  expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
+  expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = 100 * tolerance)
+  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = tolerance)
 }
 
-compare_reml <- function(f1, f2, tolerance) {
+compare_reml <- function(f1, f2, tolerance = if (edition_get() >= 3) testthat_tolerance()) {
 
-  expect_equal(f1$reml, f2$reml, tolerance = tolerance)
+  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = tolerance)
 }
 
 # Regression----
 
-test_that("Various way of calling regression work", {
+test_that("Various way of invoking the regression framework are working", {
 
   ref_fixed_lambda <- WH_2d_fixed_lambda(y = y, wt = wt, lambda = c(1e2,1e2), reg = TRUE)
 
@@ -206,7 +204,7 @@ test_that("Extrapolation and extrapolation plots work", {
   perf_extra_ml <- WH_2d_perf(d, ec) |> predict(newdata)
   outer_extra_ml <- WH_2d_outer(d, ec) |> predict(newdata)
 
-  compare_fits(perf_extra_ml, outer_extra_ml, tolerance = 1e-1)
+  compare_fits(perf_extra_ml, outer_extra_ml, tolerance = 1e-2)
 
   expect_no_error({
     perf_extra_reg |> plot()

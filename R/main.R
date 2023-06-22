@@ -182,7 +182,7 @@ WH_1d <- function(d, ec, lambda, criterion, method, q = 2, framework, y, wt, qui
 
 #' 2D Whittaker-Henderson Smoothing
 #'
-#' #' Main package function to apply Whittaker-Henderson smoothing in a
+#' Main package function to apply Whittaker-Henderson smoothing in a
 #' bidimensional survival analysis framework. It takes as input a matrix of
 #' observed events and a matrix of associated central exposure, both depending
 #' on two covariates, and build a smooth version of the log-hazard rate.
