@@ -1,5 +1,3 @@
-# WH 1.0.6
-
 # WH 1.0.5
 
 * Further improved tests robustness

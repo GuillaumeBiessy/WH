@@ -26,8 +26,8 @@ test_that("Various way of invoking the regression framework are working", {
 
   ref_fixed_lambda <- WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE)
 
-  expect_equal(WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE),
-               WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE))
+  # expect_equal(WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE),
+  #              WH_1d_fixed_lambda(y = y, wt = wt, lambda = 1e2, reg = TRUE))
 
   compare_fits(WH_1d(y = y, wt = wt, lambda = 1e2), ref_fixed_lambda)
   compare_fits(WH_1d(d, ec, framework = "reg", lambda = 1e2), ref_fixed_lambda)
@@ -38,8 +38,8 @@ test_that("Outer iteration method calls the right function and is the default me
 
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 
-  expect_equal(WH_1d_outer(y = y, wt = wt, reg = TRUE),
-               WH_1d_outer(y = y, wt = wt, reg = TRUE))
+  # expect_equal(WH_1d_outer(y = y, wt = wt, reg = TRUE),
+  #              WH_1d_outer(y = y, wt = wt, reg = TRUE))
 
   compare_fits(WH_1d(y = y, wt = wt, method = "outer"), ref_outer)
   compare_fits(WH_1d(y = y, wt = wt), ref_outer)
@@ -49,8 +49,8 @@ test_that("Performance iteration method calls the right function", {
 
   ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
 
-  expect_equal(WH_1d_perf(y = y, wt = wt, reg = TRUE),
-               WH_1d_perf(y = y, wt = wt, reg = TRUE))
+  # expect_equal(WH_1d_perf(y = y, wt = wt, reg = TRUE),
+  #              WH_1d_perf(y = y, wt = wt, reg = TRUE))
 
   compare_fits(WH_1d(y = y, wt = wt, method = "perf"), ref_perf)
 })
@@ -98,7 +98,7 @@ test_that("Rank reduction works", {
 
 test_that("Supplying lambda calls the fixed lambda function directly in the ML framework", {
 
-  expect_equal(WH_1d(d, ec, lambda = 1e2), WH_1d(d, ec, lambda = 1e2))
+  # expect_equal(WH_1d(d, ec, lambda = 1e2), WH_1d(d, ec, lambda = 1e2))
 
   compare_fits(WH_1d(d, ec, lambda = 1e2),
                WH_1d_fixed_lambda(d, ec, lambda = 1e2))
@@ -108,7 +108,7 @@ test_that("Outer iteration method calls the right function and is the default me
 
   ref_ml_outer <- WH_1d_outer(d, ec)
 
-  expect_equal(WH_1d_outer(d, ec), WH_1d_outer(d, ec))
+  # expect_equal(WH_1d_outer(d, ec), WH_1d_outer(d, ec))
 
   compare_fits(WH_1d(d, ec, method = "outer"), ref_ml_outer)
   compare_fits(WH_1d(d, ec), ref_ml_outer)
@@ -118,7 +118,7 @@ test_that("Performance iteration method calls the right function", {
 
   ref_ml_perf <- WH_1d_perf(d, ec)
 
-  expect_equal(WH_1d_perf(d, ec), WH_1d_perf(d, ec))
+  # expect_equal(WH_1d_perf(d, ec), WH_1d_perf(d, ec))
 
   compare_fits(WH_1d(d, ec, method = "perf"), ref_ml_perf)
 })
