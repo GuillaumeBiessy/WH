@@ -1,5 +1,13 @@
 # WH 1.0.7
 
+* Removed tests of the form `expect_equal(f(x), f(x))` after confirmation they do not work with MKL BLAS
+
+# WH 1.0.6
+
+* Further improved test robustness
+
+* Added tests of the form `expect_equal(f(x), f(x))` for testing purposes
+
 # WH 1.0.5
 
 * Further improved tests robustness
