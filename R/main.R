@@ -508,7 +508,6 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 
   ind_rows <- c(rep(FALSE, n_inf[[1]]), rep(TRUE, n[[1]]), rep(FALSE, n_sup[[1]]))
   ind_fit <- c(rep(FALSE, n_tot[[1]] * n_inf[[2]]), rep(ind_rows, n[[2]])) |> which()
-  ind_tot <- seq_len(prod_n_tot)
 
   D_mat_pred <- map2(n_tot, object$q, build_D_mat) # extended difference matrices
   P_pred <- object$lambda[[1]] * diag(n_tot[[2]]) %x% crossprod(D_mat_pred[[1]]) +
@@ -522,7 +521,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 
   A1 <- diag(prod_n_tot)
   A2 <- matrix(0, prod_n_tot, prod_n_tot)
-  A2[ind_tot, ind_fit] <- A_aux
+  A2[, ind_fit] <- A_aux
   A3 <- A_aux %*% (object$U %*% object$Psi %*% t(object$U)) %*% P_pred[ind_fit,]
 
   A_pred <- A1 - A2 + A3
