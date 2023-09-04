@@ -515,19 +515,10 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   diag(P_pred[ind_fit, ind_fit]) <- diag(P_pred[ind_fit, ind_fit]) + c(object$wt)
   Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
 
-  y_pred <- c(Psi_pred[,ind_fit] %*% c(object$wt * object$z))
-
   A_aux <- Psi_pred[,ind_fit] %*% (Psi_pred[ind_fit, ind_fit] |> chol() |> chol2inv())
 
-  A1 <- diag(prod_n_tot)
-  A2 <- matrix(0, prod_n_tot, prod_n_tot)
-  A2[, ind_fit] <- A_aux
-  A3 <- A_aux %*% (object$U %*% object$Psi %*% t(object$U)) %*% P_pred[ind_fit,]
-
-  A_pred <- A1 - A2 + A3
-
-  y_pred <- A_pred %*% y_pred
-  std_y_pred <- sqrt(rowSums(A_pred * (A_pred %*% Psi_pred)))
+  y_pred <- A_aux %*% c(object$y_hat)
+  std_y_pred <- sqrt(rowSums(A_aux * (A_aux %*% (object$U %*% object$Psi %*% t(object$U)))))
 
   dim(y_pred) <- dim(std_y_pred) <- n_tot # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
