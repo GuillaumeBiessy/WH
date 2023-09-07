@@ -504,6 +504,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   n_sup <- map2(data, full_data, \(x,y) sum(y > max(x)), "integer")
   n_tot <- n + n_inf + n_sup
 
+  prod_n <- prod(n)
   prod_n_tot <- prod(n_inf + n + n_sup)
 
   ind_rows <- c(rep(FALSE, n_inf[[1]]), rep(TRUE, n[[1]]), rep(FALSE, n_sup[[1]]))
@@ -515,10 +516,21 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   diag(P_pred[ind_fit, ind_fit]) <- diag(P_pred[ind_fit, ind_fit]) + c(object$wt)
   Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
 
-  A_aux <- Psi_pred[,ind_fit] %*% (Psi_pred[ind_fit, ind_fit] |> chol() |> chol2inv())
+  Psi <- object$U %*% object$Psi %*% t(object$U)
 
-  y_pred <- A_aux %*% c(object$y_hat)
-  std_y_pred <- sqrt(rowSums(A_aux * (A_aux %*% (object$U %*% object$Psi %*% t(object$U)))))
+  Psi_11_m <- Psi_pred[ind_fit, ind_fit] |> chol() |> chol2inv()
+  Psi_21 <- Psi_pred[- ind_fit, ind_fit]
+
+  A_aux <- matrix(0, prod_n_tot, prod_n)
+  diag(A_aux[ind_fit,]) <- 1
+  A_aux[- ind_fit,] <- Psi_21 %*% Psi_11_m
+
+  y_pred <- c(A_aux %*% Psi %*% c(object$wt * object$z))
+
+  std_y_pred <- rowSums(A_aux * (A_aux %*% Psi))
+  std_y_pred[- ind_fit] <- std_y_pred[- ind_fit] +
+    diag(Psi_pred)[- ind_fit] - rowSums(Psi_21 * (Psi_21 %*% Psi_11_m))
+  std_y_pred <- sqrt(std_y_pred)
 
   dim(y_pred) <- dim(std_y_pred) <- n_tot # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
