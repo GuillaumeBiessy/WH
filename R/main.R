@@ -514,23 +514,23 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   P_pred <- object$lambda[[1]] * diag(n_tot[[2]]) %x% crossprod(D_mat_pred[[1]]) +
     object$lambda[[2]] * crossprod(D_mat_pred[[2]]) %x% diag(n_tot[[1]]) # extended penalization matrix
   diag(P_pred[ind_fit, ind_fit]) <- diag(P_pred[ind_fit, ind_fit]) + c(object$wt)
-  Psi_pred <- P_pred |> chol() |> chol2inv() # unconstrained variance / covariance matrix
 
   Psi <- object$U %*% object$Psi %*% t(object$U)
 
-  Psi_11_m <- Psi_pred[ind_fit, ind_fit] |> chol() |> chol2inv()
-  Psi_21 <- Psi_pred[- ind_fit, ind_fit]
+  P_12 <- P_pred[ind_fit, - ind_fit]
+  P_22_m <- P_pred[- ind_fit, - ind_fit] |> chol() |> chol2inv()
 
-  A_aux <- matrix(0, prod_n_tot, prod_n)
-  diag(A_aux[ind_fit,]) <- 1
-  A_aux[- ind_fit,] <- Psi_21 %*% Psi_11_m
+  P_aux <- P_12 %*% P_22_m
+  P_aux_2 <- Psi %*% P_aux
 
-  y_pred <- c(A_aux %*% Psi %*% c(object$wt * object$z))
+  Psi_pred <- matrix(0, prod_n_tot, prod_n_tot)
+  Psi_pred[ind_fit, ind_fit] <- Psi
+  Psi_pred[ind_fit, - ind_fit] <- - P_aux_2
+  Psi_pred[- ind_fit, ind_fit] <- t(Psi_pred[ind_fit, - ind_fit])
+  Psi_pred[- ind_fit, - ind_fit] <- t(P_aux) %*% P_aux_2 + P_22_m
 
-  std_y_pred <- rowSums(A_aux * (A_aux %*% Psi))
-  std_y_pred[- ind_fit] <- std_y_pred[- ind_fit] +
-    diag(Psi_pred)[- ind_fit] - rowSums(Psi_21 * (Psi_21 %*% Psi_11_m))
-  std_y_pred <- sqrt(std_y_pred)
+  y_pred <- c(Psi_pred[,ind_fit] %*% c(object$wt * object$z))
+  std_y_pred <- sqrt(diag(Psi_pred))
 
   dim(y_pred) <- dim(std_y_pred) <- n_tot # set dimension for output matrices
   dimnames(y_pred) <- dimnames(std_y_pred) <- full_data # set names for output matrices
