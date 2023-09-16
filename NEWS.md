@@ -1,3 +1,5 @@
+# WH 1.1.0
+
 # WH 1.0.7
 
 * Removed tests of the form `expect_equal(f(x), f(x))` after confirmation they do not work with MKL BLAS
