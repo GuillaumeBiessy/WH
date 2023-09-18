@@ -1,3 +1,5 @@
+# WH (development version)
+
 # WH 1.1.0
 
 * Made significant changes to the extrapolation methods provided by be `predict.WH_1d` and `predict.WH_2d` functions. It turns out that the formula used for the extrapolation ignored the innovation error caused by the prior on the extrapolated region, resulting in smaller credibility intervals than they should have been. This now has been fixed.
