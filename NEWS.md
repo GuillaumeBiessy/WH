@@ -1,4 +1,4 @@
-# WH (development version)
+# WH 1.1.1
 
 * Increased tolerance to remove a lone failing test which only occurs when using MKL BLAS
 
