@@ -7,9 +7,8 @@
 #' original smoothing algorithm to maximum likelihood estimation, automatically
 #' selects the smoothing parameter(s) and extrapolates beyond the range of data.
 #'
-#' @docType package
 #' @name WH-package
-NULL
+"_PACKAGE"
 
 #' Agregated Mortality Dataset
 #'

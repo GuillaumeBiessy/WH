@@ -2,6 +2,7 @@
 % Please edit documentation in R/WH-package.R
 \docType{package}
 \name{WH-package}
+\alias{WH}
 \alias{WH-package}
 \title{WH : Enhanced Implementation of Whittaker-Henderson Smoothing}
 \description{
@@ -11,4 +12,16 @@ Insurance risks. \code{WH} is based on the methods described in Biessy (2023)
 \url{doi:10.48550/arXiv.2306.06932}. Among other features, it generalizes the
 original smoothing algorithm to maximum likelihood estimation, automatically
 selects the smoothing parameter(s) and extrapolates beyond the range of data.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/GuillaumeBiessy/WH}
+  \item Report bugs at \url{https://github.com/GuillaumeBiessy/WH/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: Guillaume Biessy \email{guillaume.biessy78@gmail.com} (\href{https://orcid.org/0000-0003-3756-7345}{ORCID}) [copyright holder]
+
 }
