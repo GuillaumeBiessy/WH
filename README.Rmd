@@ -39,7 +39,7 @@ It features two main functions `WH_1d` and `WH_2d` corresponding to the one-dime
 
 * The vector (or matrix in the two-dimension case) `d` corresponding to the number of observed events of interest by age (or by age and duration in the two-dimension case). `d` should have named elements (or rows and columns) for the model results to be extrapolated.
 
-* The vector (or matrix in the two-dimension case) `ec` corresponding to the portfolio central exposure by age (or by age and duration in the two-dimension case) whose dimensions should match those of `d`. The contribution of each individual to the portfolio central exposure corresponds to the time the individual was actually observed with corresponding age (and duration in the two-dimension cas). It always ranges from 0 to 1 and is affected by individuals leaving the portfolio, no matter the cause, as well as censoring and truncating phenomena.
+* The vector (or matrix in the two-dimension case) `ec` corresponding to the portfolio central exposure by age (or by age and duration in the two-dimension case) whose dimensions should match those of `d`. The contribution of each individual to the portfolio central exposure corresponds to the time the individual was actually observed with corresponding age (and duration in the two-dimension case). It always ranges from 0 to 1 and is affected by individuals leaving the portfolio, no matter the cause, as well as censoring and truncating phenomena.
 
 Additional arguments may be supplied, whose description is given in the documentation of the functions.
 

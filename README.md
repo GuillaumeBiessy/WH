@@ -39,7 +39,7 @@ are mandatory for those functions:
   two-dimension case) whose dimensions should match those of `d`. The
   contribution of each individual to the portfolio central exposure
   corresponds to the time the individual was actually observed with
-  corresponding age (and duration in the two-dimension cas). It always
+  corresponding age (and duration in the two-dimension case). It always
   ranges from 0 to 1 and is affected by individuals leaving the
   portfolio, no matter the cause, as well as censoring and truncating
   phenomena.
