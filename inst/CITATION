@@ -2,5 +2,6 @@ bibentry(
   bibtype  = "Unpublished",
   title    = "Revisiting Whittaker-Henderson Smoothing",
   author   = person("Guillaume Biessy"),
+  note     = "Working Paper",
   year     = 2023
 )
