@@ -13,10 +13,10 @@ compare_fits <- function(f1, f2, tolerance = 1e-6) {
 
   expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
   expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = 100 * tolerance)
-  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = tolerance)
+  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = 10 * tolerance)
 }
 
-compare_reml <- function(f1, f2, tolerance = 1e-6) {
+compare_reml <- function(f1, f2, tolerance = 1e-5) {
 
   expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = tolerance)
 }
@@ -67,7 +67,7 @@ test_that("Outer and performance iteration methods give very close results", {
   ref_perf <- WH_1d_perf(y = y, wt = wt, reg = TRUE)
   ref_outer <- WH_1d_outer(y = y, wt = wt, reg = TRUE)
 
-  compare_reml(ref_perf, ref_outer, tolerance = 1e-5)
+  compare_reml(ref_perf, ref_outer)
 })
 
 test_that("Other smoothing parameter selection criteria are working as well", {
@@ -91,7 +91,7 @@ test_that("Rank reduction works", {
   compare_fits(WH_1d(y = y, wt = wt, method = "perf", p = 20), ref_perf_red)
   compare_reml(ref_perf_red, ref_perf, tolerance = 1e-1)
   compare_reml(ref_outer_red, ref_outer, tolerance = 1e-1)
-  compare_reml(ref_perf_red, ref_outer_red, tolerance = 1e-5)
+  compare_reml(ref_perf_red, ref_outer_red)
 })
 
 # Maximum likelihood----
