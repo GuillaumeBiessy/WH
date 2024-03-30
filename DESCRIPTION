@@ -3,7 +3,7 @@ Type: Package
 Title: Enhanced Implementation of Whittaker-Henderson Smoothing
 Version: 1.1.0.9000
 Authors@R: person("Guillaume", "Biessy", email = "guillaume.biessy78@gmail.com",
-  role = c("aut", "cre"), comment = c(ORCID = "0000-0003-3756-7345"))
+  role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-3756-7345"))
 Description: An enhanced implementation of Whittaker-Henderson smoothing for the gradation 
     of one-dimensional and two-dimensional actuarial tables used to quantify Life Insurance risks.
     'WH' is based on the methods described in Biessy (2023) <doi:10.48550/arXiv.2306.06932>.
@@ -21,8 +21,10 @@ Imports:
 Suggests: 
     knitr,
     rmarkdown,
+    spelling,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 VignetteBuilder: knitr
+Language: en-US
