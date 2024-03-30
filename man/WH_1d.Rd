@@ -39,7 +39,7 @@ maximum likelihood. Other options include \code{"AIC"}, \code{"BIC"} and \code{"
 \item{method}{Method to be used to find the optimal smoothing parameter.
 Default to \code{"fixed_lambda"} if \code{lambda} is supplied, meaning no
 optimization is performed. Otherwise, default to the most reliable
-\code{"outer"} methodbased on the \code{optimize} function from package \code{stats}.}
+\code{"outer"} method based on the \code{optimize} function from package \code{stats}.}
 
 \item{q}{Order of penalization. Polynoms of degrees \code{q - 1} are considered
 completely smooth and are therefore unpenalized. Should be left to the

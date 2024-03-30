@@ -197,7 +197,7 @@ WH_2d_df <- WH_2d_fit |> output_to_df()
 
 ### How to obtain credibility intervals?
 
-From the explicit solution of WH smoothinh, $\mathbb{E}(\hat{\mathbf{y}}) = (W + P_{\lambda})^{-1}W\mathbb{E}(\mathbf{y}) \ne \mathbb{E}(\mathbf{y})$ when $\lambda \ne 0$. This implies that penalization introduces a smoothing bias, which prevents the construction of a confidence interval centered around $\mathbb{E}(\mathbf{y})$. Therefore, in this section, we turn to a Bayesian approach where smoothing can be interpreted more naturally.
+From the explicit solution of WH smoothing, $\mathbb{E}(\hat{\mathbf{y}}) = (W + P_{\lambda})^{-1}W\mathbb{E}(\mathbf{y}) \ne \mathbb{E}(\mathbf{y})$ when $\lambda \ne 0$. This implies that penalization introduces a smoothing bias, which prevents the construction of a confidence interval centered around $\mathbb{E}(\mathbf{y})$. Therefore, in this section, we turn to a Bayesian approach where smoothing can be interpreted more naturally.
 
 Let us suppose that $\mathbf{y} | \boldsymbol{\theta}\sim \mathcal{N}(\boldsymbol{\theta}, W^{-})$ and $\boldsymbol{\theta} \sim \mathcal{N}(0, P_{\lambda}^{-})$ where $P_{\lambda}^{-}$ denotes the pseudo-inverse of the matrix $P_{\lambda}$. The Bayes' formula allows us to express the posterior likelihood $f(\boldsymbol{\theta} | \mathbf{y})$ associated with these choices in the following form:
 
