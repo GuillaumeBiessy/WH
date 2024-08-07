@@ -7,3 +7,5 @@ This minor patch aims to fix an issue with a single failed test of the WH packag
 In this version, I have :
 
 * Increased the tolerance of the last failed test (and 2 similar tests) from 1e-5 to 1e-2
+
+Please accept my apologies for the inconvenience.
