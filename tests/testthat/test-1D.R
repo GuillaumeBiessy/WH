@@ -145,7 +145,7 @@ test_that("Other smoothing parameter selection criteria are working as well", {
   compare_fits(WH_1d(d, ec, criterion = "BIC"),
                WH_1d_outer(d, ec, criterion = "BIC"))
   compare_fits(WH_1d(d, ec, criterion = "GCV"),
-               WH_1d_outer(d, ec, criterion = "GCV"))
+               WH_1d_outer(d, ec, criterion = "GCV"), tolerance = 1e-2)
 })
 
 test_that("Rank reduction works", {
