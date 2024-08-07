@@ -1,7 +1,7 @@
 Package: WH
 Type: Package
 Title: Enhanced Implementation of Whittaker-Henderson Smoothing
-Version: 1.1.1.9000
+Version: 1.1.2
 Authors@R: person("Guillaume", "Biessy", email = "guillaume.biessy78@gmail.com",
   role = c("aut", "cre", "cph"), comment = c(ORCID = "0000-0003-3756-7345"))
 Description: An enhanced implementation of Whittaker-Henderson smoothing for the gradation 
