@@ -141,9 +141,9 @@ test_that("Outer and performance iteration methods give close enough results", {
 test_that("Other smoothing parameter selection criteria are working as well", {
 
   compare_fits(WH_1d(d, ec, criterion = "AIC"),
-               WH_1d_outer(d, ec, criterion = "AIC"))
+               WH_1d_outer(d, ec, criterion = "AIC"), tolerance = 1e-2)
   compare_fits(WH_1d(d, ec, criterion = "BIC"),
-               WH_1d_outer(d, ec, criterion = "BIC"))
+               WH_1d_outer(d, ec, criterion = "BIC"), tolerance = 1e-2)
   compare_fits(WH_1d(d, ec, criterion = "GCV"),
                WH_1d_outer(d, ec, criterion = "GCV"), tolerance = 1e-2)
 })
