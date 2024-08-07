@@ -91,6 +91,9 @@ Initial data contains 74 data points:
   Observation positions:  19  to  92 
 Smoothing parameter selected: 13454 
 Associated degrees of freedom: 7.5 
+```
+
+``` r
 WH_2d_fit
 An object fitted using the WH_2D function
 Initial data contains 90 data points:
@@ -173,7 +176,8 @@ See the package vignette or the upcoming paper available
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent"
+entry-spacing="0">
 
 <div id="ref-carballo2021prediction" class="csl-entry">
 
