@@ -1,4 +1,6 @@
-# WH (development version)
+# WH 1.1.2
+
+* Greatly increased tolerance from 1e-6 to 1e-2 to remove a lone failing test which only occurs when using MKL BLAS
 
 # WH 1.1.1
 
