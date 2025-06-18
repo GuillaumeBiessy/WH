@@ -34,8 +34,7 @@ Whittaker-Henderson (WH) smoothing is a gradation method aimed at correcting the
 
 The `WH` package may easily be installed from CRAN by running the code `install.packages("WH")` in the $\mathsf{R}$ Console.
 
-
-It features two main functions `WH_1d` and `WH_2d` corresponding to the one-dimensional and two-dimensional cases respectively. Two arguments are mandatory for those functions:
+It features a unique main function `WH`. Two arguments are mandatory for this function:
 
 * The vector (or matrix in the two-dimension case) `d` corresponding to the number of observed events of interest by age (or by age and duration in the two-dimension case). `d` should have named elements (or rows and columns) for the model results to be extrapolated.
 
@@ -51,24 +50,15 @@ The package also embed two fictive agregated datasets to illustrate how to use i
 
 ```{r fit-1d}
 # One-dimensional case
-d <- portfolio_mort$d
-ec <- portfolio_mort$ec
-
-WH_1d_fit <- WH_1d(d, ec)
+WH_1d_fit <- WH(portfolio_mort$d, portfolio_mort$ec)
 ```
 
 ```{r fit-2d}
 # Two-dimensional case
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
-
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
-
-WH_2d_fit <- WH_2d(d, ec)
+WH_2d_fit <- WH(portfolio_LTC$d, portfolio_LTC$ec)
 ```
 
-Functions `WH_1d` and `WH_2d` output objects of class `"WH_1d"` and `"WH_2d"` to which additional functions (including generic S3 methods) may be applied:
+Function `WH` outputs objects of class `"WH_1d"` and `"WH_2d"` to which additional functions (including generic S3 methods) may be applied:
 
 * The `print` function provides a glimpse of the fitted results
 
@@ -92,10 +82,10 @@ plot(WH_2d_fit, "std_y_hat")
 
 ```{r predict}
 WH_1d_fit |> predict(newdata = 18:99) |> plot()
-WH_2d_fit |> predict(newdata = list(age = 50:99,
-                                    duration = 0:19)) |> plot()
+WH_2d_fit |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
 ```
 
+* The `vcov` may be used to retrieve the variance-covariance matrix of the model if necessary.
 
 * Finally the `output_to_df` function converts an `"WH_1d"` or `"WH_2d"` object into a `data.frame`. Information about the fit is discarded in the process. This function may be useful to produce better visualizations from the data, for example using the ggplot2 package.
 

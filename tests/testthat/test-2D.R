@@ -1,234 +1,152 @@
 data("portfolio_LTC")
-if(!interactive()) pdf(NULL)
+if (!interactive()) {
+  pdf(NULL)
+}
 
 # Data----
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
-
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
-
-y <- log(d / ec) # observation vector
+d  <- portfolio_LTC$d
+ec <- portfolio_LTC$ec
+y <- log(d / ec)
 y[d == 0] <- - 20
+p <- dim(d)
+
+newdata <- list(age = 60:109, duration = 0:19)
+
+# Unit tests----
+
+q <- c(2, 2)
+lambda <- c(1e1, 1e2)
 wt <- d
+tXWz <- c(wt * y)
 
-compare_fits <- function(f1, f2, tolerance = 1e-6) {
+D_eig <- list(diff(diag(p[[1]]), differences = q[[1]]), diff(diag(p[[2]]), differences = q[[2]]))
+P <- lapply(D_eig, crossprod)
+P_kro <- list(diag(p[[2]]) %x% P[[1]], P[[2]] %x% diag(p[[1]]))
+sum_P_kro <- Reduce(`+`, P_kro)
+lambda_P_kro <- mapply(`*`, lambda, P_kro, SIMPLIFY = FALSE)
+A <- Reduce(`+`, lambda_P_kro)
+diag(A) <- diag(A) + c(wt)
 
-  expect_equal(f1$y_hat, f2$y_hat, tolerance = tolerance)
-  expect_equal(f1$std_y_hat, f2$std_y_hat, tolerance = 100 * tolerance)
-  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = 10 * tolerance)
-}
+R <- chol(A)
+K <- solve(R)
+V <- chol2inv(R)
 
-compare_reml <- function(f1, f2, tolerance = 1e-5) {
+P_compact <- mapply(banded_to_compact, P, q, SIMPLIFY = FALSE)
+R_compact <- banded_to_compact(R, q[[2]] * p[[1]])
+A_compact <- banded_to_compact(A, q[[2]] * p[[1]])
 
-  expect_equal(f1$diagnosis$REML, f2$diagnosis$REML, tolerance = tolerance)
-}
 
-# Regression----
+test_that("create P", {
 
-test_that("Various way of invoking the regression framework are working", {
+  # Compact version
+  expect_equal(
+    banded_to_compact(sum_P_kro, q[[2]] * p[[1]]),
+    combine_P_compact(P_compact),
+    tolerance = .Machine$double.eps^.5
+  )
 
-  ref_fixed_lambda <- WH_2d_fixed_lambda(y = y, wt = wt, lambda = c(1e2, 1e2), reg = TRUE)
-
-  # expect_equal(WH_2d_fixed_lambda(y = y, wt = wt, lambda = c(1e2, 1e2), reg = TRUE),
-  #              WH_2d_fixed_lambda(y = y, wt = wt, lambda = c(1e2, 1e2), reg = TRUE))
-
-  compare_fits(WH_2d(y = y, wt = wt, lambda = c(1e2, 1e2)), ref_fixed_lambda)
-  compare_fits(WH_2d(d, ec, framework = "reg", lambda = c(1e2, 1e2)), ref_fixed_lambda)
-  compare_fits(WH_2d(d, y = y, lambda = c(1e2, 1e2)), ref_fixed_lambda)
+  # Full version
+  expect_equal(
+    sum_P_kro,
+    combine_P_compact(P_compact) |> compact_to_sym(),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Performance iteration method calls the right function and is the default method", {
+test_that("P_y", {
 
-  ref_perf <- WH_2d_perf(y = y, wt = wt, reg = TRUE)
-
-  # expect_equal(WH_2d_perf(y = y, wt = wt, reg = TRUE),
-  #              WH_2d_perf(y = y, wt = wt, reg = TRUE))
-
-  compare_fits(WH_2d(y = y, wt = wt, method = "perf"), ref_perf)
-  compare_fits(WH_2d(y = y, wt = wt), ref_perf)
+  expect_equal(
+    c(sum_P_kro %*% c(d)),
+    get_prod_P_y_compact_cpp(d, P_compact),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Outer iteration method calls the right function", {
+test_that("P_K", {
 
-  ref_outer <- WH_2d_outer(y = y, wt = wt, reg = TRUE)
-
-  # expect_equal(WH_2d_outer(y = y, wt = wt, reg = TRUE),
-  #              WH_2d_outer(y = y, wt = wt, reg = TRUE))
-
-  compare_fits(WH_2d(y = y, wt = wt, method = "outer"), ref_outer)
+  expect_equal(
+    sum_P_kro %*% K,
+    get_prod_P_K_compact_cpp(K, P_compact),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("REML is default criterion", {
+test_that("cholesky", {
 
-  ref_outer <- WH_2d_perf(y = y, wt = wt, reg = TRUE)
-
-  compare_fits(WH_2d(y = y, wt = wt, criterion = "REML"), ref_outer)
+  expect_equal(
+    R,
+    cholesky_compact_lapack(A_compact) |> compact_to_tri(),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Outer and performance iteration methods give close results", {
+test_that("backsolve", {
 
-  ref_perf <- WH_2d_perf(y = y, wt = wt, reg = TRUE)
-  ref_outer <- WH_2d_outer(y = y, wt = wt, reg = TRUE)
-
-  compare_reml(ref_perf, ref_outer)
+  expect_equal(
+    backsolve(R, backsolve(R, tXWz, transpose = TRUE)),
+    backsolve_compact_cpp(R_compact, backsolve_compact_cpp(R_compact, tXWz, transpose = TRUE)),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Other smoothing parameter selection criteria are working as well", {
+test_that("inverse cholesky", {
 
-  compare_fits(WH_2d(y = y, wt = wt, criterion = "AIC"),
-               WH_2d_perf(y = y, wt = wt, criterion = "AIC", reg = TRUE))
-  compare_fits(WH_2d(y = y, wt = wt, criterion = "BIC"),
-               WH_2d_perf(y = y, wt = wt, criterion = "BIC", reg = TRUE))
-  compare_fits(WH_2d(y = y, wt = wt, criterion = "GCV"),
-               WH_2d_perf(y = y, wt = wt, criterion = "GCV", reg = TRUE))
+  expect_equal(
+    K,
+    invert_cholesky_compact_lapack(R_compact),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Rank reduction works", {
+test_that("chol2inv", {
 
-  ref_perf <- WH_2d_perf(y = y, wt = wt, reg = TRUE)
-  ref_outer <- WH_2d_outer(y = y, wt = wt, reg = TRUE)
-  ref_perf_red <- WH_2d_perf(y = y, wt = wt, p = c(10, 5), reg = TRUE)
-  ref_outer_red <- WH_2d_outer(y = y, wt = wt, p = c(10, 5), reg = TRUE)
-
-  compare_fits(WH_2d(y = y, wt = wt, method = "perf", p = c(10, 5)), ref_perf_red)
-  compare_fits(WH_2d(y = y, wt = wt, method = "outer", p = c(10, 5)), ref_outer_red)
-  compare_reml(ref_perf_red, ref_perf, tolerance = 1e-1)
-  compare_reml(ref_outer_red, ref_outer, tolerance = 1e-1)
-  compare_reml(ref_perf_red, ref_outer_red)
+  expect_equal(
+    V,
+    invert_cholesky_compact_lapack(R_compact) |> tcrossprod(),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-# Maximum likelihood----
+test_that("diag_V", {
 
-test_that("Fixed lambda method works", {
-
-  # expect_equal(WH_2d(d, ec, lambda = c(1e2, 1e2)),
-  #              WH_2d(d, ec, lambda = c(1e2, 1e2)))
-
-  compare_fits(WH_2d(d, ec, lambda = c(1e2, 1e2)),
-               WH_2d_fixed_lambda(d, ec, lambda = c(1e2, 1e2)))
+  expect_equal(
+    diag(V),
+    diag_V_compact_cpp(R_compact),
+    tolerance = .Machine$double.eps^.5
+  )
 })
 
-test_that("Performance iteration method is the default method and calls perf", {
+test_that("Regression models run and predict correctly", {
 
-  ref_ml_perf <- WH_2d_perf(d, ec)
-
-  # expect_equal(WH_2d_perf(d, ec),
-  #              WH_2d_perf(d, ec))
-
-  compare_fits(WH_2d(d, ec, method = "perf"), ref_ml_perf)
-  compare_fits(WH_2d(d, ec), ref_ml_perf)
+  for (q in 1:3) {
+    expect_silent(WH_fixed_lambda(y = y, wt = wt, lambda = 1e2, q = q, verbose = 0))
+    expect_silent(object <- WH_outer(y = y, wt = wt, q = q, verbose = 0))
+    expect_silent(object_extra <- predict(object, newdata = newdata))
+    expect_equal(
+      sqrt(diag(vcov(object))),
+      c(object$std_y_hat),
+      tolerance = .Machine$double.eps^.5)
+    expect_equal(
+      sqrt(diag(vcov(object_extra))),
+      c(object_extra$std_y_pred),
+      tolerance = .Machine$double.eps^.5)
+  }
 })
 
-test_that("Outer iteration method calls outer", {
+test_that("Maximum Likelihood estimation runs and predicts correctly", {
 
-  ref_ml_outer <- WH_2d_outer(d, ec)
-
-  # expect_equal(WH_2d_outer(d, ec),
-  #              WH_2d_outer(d, ec))
-
-  compare_fits(WH_2d(d, ec, method = "outer"), ref_ml_outer)
-})
-
-test_that("REML is default criterion", {
-
-  ref_ml_outer <- WH_2d_perf(d, ec)
-
-  compare_fits(WH_2d_perf(d, ec, criterion = "REML"), ref_ml_outer)
-})
-
-test_that("Outer and performance iteration methods give close results", {
-
-  ref_ml_perf <- WH_2d_perf(d, ec)
-  ref_ml_outer <- WH_2d_outer(d, ec)
-
-  compare_reml(ref_ml_perf, ref_ml_outer, tolerance = 1e-1)
-})
-
-test_that("Other smoothing parameter selection criteria are working as well", {
-
-  compare_fits(WH_2d(d, ec, criterion = "AIC"),
-               WH_2d_perf(d, ec, criterion = "AIC"))
-  compare_fits(WH_2d(d, ec, criterion = "BIC"),
-               WH_2d_perf(d, ec, criterion = "BIC"))
-  compare_fits(WH_2d(d, ec, criterion = "GCV"),
-               WH_2d_perf(d, ec, criterion = "GCV"))
-})
-
-test_that("Rank reduction works", {
-
-  ref_ml_perf <- WH_2d_perf(d, ec)
-  ref_ml_outer <- WH_2d_outer(d, ec)
-  ref_ml_perf_red <- WH_2d_perf(d, ec, p = c(10, 5))
-  ref_ml_outer_red <- WH_2d_outer(d, ec, p = c(10, 5))
-
-  compare_fits(WH_2d(d, ec, method = "perf", p = c(10, 5)), ref_ml_perf_red)
-  compare_fits(WH_2d(d, ec, method = "outer", p = c(10, 5)), ref_ml_outer_red)
-  compare_reml(ref_ml_perf_red, ref_ml_perf, tolerance = 1e-1)
-  compare_reml(ref_ml_outer_red, ref_ml_outer, tolerance = 1e-1)
-  compare_reml(ref_ml_perf_red, ref_ml_outer_red, tolerance = 1e-1)
-})
-
-# Plots----
-
-test_that("Plot functions work", {
-
-  expect_no_error({
-    # Regression
-    ref_perf <- WH_2d_perf(y = y, wt = wt, reg = TRUE)
-    ref_outer <- WH_2d_outer(y = y, wt = wt, reg = TRUE)
-
-    ref_perf |> plot()
-    ref_outer |> plot()
-
-    ref_perf |> plot("std_y_hat")
-    ref_outer |> plot("std_y_hat")
-
-    ref_perf |> plot("res")
-    ref_outer |> plot("res")
-
-    ref_perf |> plot("edf")
-    ref_outer |> plot("edf")
-
-    # Maximum likelihood
-    ref_ml_perf <- WH_2d_perf(d, ec)
-    ref_ml_outer <- WH_2d_outer(d, ec)
-
-    ref_ml_perf |> plot()
-    ref_ml_outer |> plot()
-
-    ref_ml_perf |> plot("std_y_hat")
-    ref_ml_outer |> plot("std_y_hat")
-
-    ref_ml_perf |> plot("res")
-    ref_ml_outer |> plot("res")
-
-    ref_ml_perf |> plot("edf")
-    ref_ml_outer |> plot("edf")
-  })
-})
-
-# Extrapolation----
-
-test_that("Extrapolation and extrapolation plots work", {
-
-  newdata <- list(age = 50:99, duration = 0:19)
-
-  perf_extra_reg <- WH_2d_perf(y = y, wt = wt, reg = TRUE) |> predict(newdata)
-  outer_extra_reg <- WH_2d_outer(y = y, wt = wt, reg = TRUE) |> predict(newdata)
-
-  compare_fits(perf_extra_reg, outer_extra_reg, tolerance = 1e-5)
-
-  perf_extra_ml <- WH_2d_perf(d, ec) |> predict(newdata)
-  outer_extra_ml <- WH_2d_outer(d, ec) |> predict(newdata)
-
-  compare_fits(perf_extra_ml, outer_extra_ml, tolerance = 1e-1)
-
-  expect_no_error({
-    perf_extra_reg |> plot()
-    outer_extra_reg |> plot()
-
-    perf_extra_ml |> plot()
-    outer_extra_ml |> plot()
-  })
+  for (q in 1:3) {
+    expect_silent(WH_fixed_lambda(d, ec, lambda = 1e2, q = q, verbose = 0))
+    expect_silent(object <- WH_outer(d, ec, q = q, verbose = 0))
+    expect_silent(object_extra <- predict(object, newdata = newdata))
+    expect_equal(
+      sqrt(diag(vcov(object))),
+      c(object$std_y_hat),
+      tolerance = .Machine$double.eps^.5)
+    expect_equal(
+      sqrt(diag(vcov(object_extra))),
+      c(object_extra$std_y_pred),
+      tolerance = .Machine$double.eps^.5
+    )
+  }
 })

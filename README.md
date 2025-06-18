@@ -1,4 +1,3 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # Revisiting Whittaker-Henderson Smoothing
@@ -23,26 +22,25 @@ disability, long-term care, lapse, mortgage default, and unemployment.
 ## How to use the package?
 
 The `WH` package may easily be installed from CRAN by running the code
-`install.packages("WH")` in the $\mathsf{R}$ Console.
+`install.packages("WH")` in the R Console.
 
-It features two main functions `WH_1d` and `WH_2d` corresponding to the
-one-dimensional and two-dimensional cases respectively. Two arguments
-are mandatory for those functions:
+It features a unique main function `WH`. Two arguments are mandatory for
+this function:
 
-- The vector (or matrix in the two-dimension case) `d` corresponding to
-  the number of observed events of interest by age (or by age and
-  duration in the two-dimension case). `d` should have named elements
-  (or rows and columns) for the model results to be extrapolated.
+-   The vector (or matrix in the two-dimension case) `d` corresponding
+    to the number of observed events of interest by age (or by age and
+    duration in the two-dimension case). `d` should have named elements
+    (or rows and columns) for the model results to be extrapolated.
 
-- The vector (or matrix in the two-dimension case) `ec` corresponding to
-  the portfolio central exposure by age (or by age and duration in the
-  two-dimension case) whose dimensions should match those of `d`. The
-  contribution of each individual to the portfolio central exposure
-  corresponds to the time the individual was actually observed with
-  corresponding age (and duration in the two-dimension case). It always
-  ranges from 0 to 1 and is affected by individuals leaving the
-  portfolio, no matter the cause, as well as censoring and truncating
-  phenomena.
+-   The vector (or matrix in the two-dimension case) `ec` corresponding
+    to the portfolio central exposure by age (or by age and duration in
+    the two-dimension case) whose dimensions should match those of `d`.
+    The contribution of each individual to the portfolio central
+    exposure corresponds to the time the individual was actually
+    observed with corresponding age (and duration in the two-dimension
+    case). It always ranges from 0 to 1 and is affected by individuals
+    leaving the portfolio, no matter the cause, as well as censoring and
+    truncating phenomena.
 
 Additional arguments may be supplied, whose description is given in the
 documentation of the functions.
@@ -50,124 +48,103 @@ documentation of the functions.
 The package also embed two fictive agregated datasets to illustrate how
 to use it:
 
-- `portfolio_mortality` contains the agregated number of deaths and
-  associated central exposure by age for an annuity portfolio.
+-   `portfolio_mortality` contains the agregated number of deaths and
+    associated central exposure by age for an annuity portfolio.
 
-- `portfolio_LTC` contains the agregated number of deaths and associated
-  central exposure by age and duration (in years) since the onset of LTC
-  for the annuitant database of a long-term care portfolio.
+-   `portfolio_LTC` contains the agregated number of deaths and
+    associated central exposure by age and duration (in years) since the
+    onset of LTC for the annuitant database of a long-term care
+    portfolio.
 
-``` r
-# One-dimensional case
-d <- portfolio_mort$d
-ec <- portfolio_mort$ec
+<!-- -->
 
-WH_1d_fit <- WH_1d(d, ec)
-Using outer iteration / Brent method
-```
+    # One-dimensional case
+    WH_1d_fit <- WH(portfolio_mort$d, portfolio_mort$ec)
+    Outer procedure completed in 14 iterations, smoothing parameters: 9327, final LAML: 32.1
 
-``` r
-# Two-dimensional case
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
+    # Two-dimensional case
+    WH_2d_fit <- WH(portfolio_LTC$d, portfolio_LTC$ec)
+    Outer procedure completed in 63 iterations, smoothing parameters: 1211.41,    1.09, final LAML: 276
 
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
+Function `WH` outputs objects of class `"WH_1d"` and `"WH_2d"` to which
+additional functions (including generic S3 methods) may be applied:
 
-WH_2d_fit <- WH_2d(d, ec)
-Using performance iteration / Nelder-Mead method
-```
+-   The `print` function provides a glimpse of the fitted results
 
-Functions `WH_1d` and `WH_2d` output objects of class `"WH_1d"` and
-`"WH_2d"` to which additional functions (including generic S3 methods)
-may be applied:
+<!-- -->
 
-- The `print` function provides a glimpse of the fitted results
+    WH_1d_fit
+    An object fitted using the WH function
+    Initial data contains 45 data points:
+      Observation positions:  50  to  94 
+    Smoothing parameter selected: 9327 
+    Associated degrees of freedom: 6.8 
+    WH_2d_fit
+    An object fitted using the WH function
+    Initial data contains 450 data points:
+      First dimension:  70  to  99 
+      Second dimension:  0  to  14 
+    Smoothing parameters selected: 1211.4    1.1 
+    Associated degrees of freedom: 47 
 
-``` r
-WH_1d_fit
-An object fitted using the WH_1D function
-Initial data contains 74 data points:
-  Observation positions:  19  to  92 
-Smoothing parameter selected: 13454 
-Associated degrees of freedom: 7.5 
-```
+-   The `plot` function generates rough plots of the model fit, the
+    associated standard deviation, the model residuals or the associated
+    degrees of freedom. See the `plot.WH_1d` and `plot.WH_2d` functions
+    help for more details.
 
-``` r
-WH_2d_fit
-An object fitted using the WH_2D function
-Initial data contains 90 data points:
-  First dimension:  75  to  89 
-  Second dimension:  0  to  5 
-Smoothing parameters selected: 301   2 
-Associated degrees of freedom: 13 
-```
+<!-- -->
 
-- The `plot` function generates rough plots of the model fit, the
-  associated standard deviation, the model residuals or the associated
-  degrees of freedom. See the `plot.WH_1d` and `plot.WH_2d` functions
-  help for more details.
-
-``` r
-plot(WH_1d_fit)
-```
+    plot(WH_1d_fit)
 
 <img src="man/figures/README-plot-1.png" width="100%" style="display: block; margin: auto;" />
 
-``` r
-plot(WH_1d_fit, "res")
-```
+    plot(WH_1d_fit, "res")
 
 <img src="man/figures/README-plot-2.png" width="100%" style="display: block; margin: auto;" />
 
-``` r
-plot(WH_1d_fit, "edf")
-```
+    plot(WH_1d_fit, "edf")
 
 <img src="man/figures/README-plot-3.png" width="100%" style="display: block; margin: auto;" />
 
-``` r
 
-plot(WH_2d_fit)
-```
+    plot(WH_2d_fit)
 
 <img src="man/figures/README-plot-4.png" width="100%" style="display: block; margin: auto;" />
 
-``` r
-plot(WH_2d_fit, "std_y_hat")
-```
+    plot(WH_2d_fit, "std_y_hat")
 
 <img src="man/figures/README-plot-5.png" width="100%" style="display: block; margin: auto;" />
 
-- The `predict` function generates an extrapolation of the model. It
-  requires a `newdata` argument, a named list with one or two elements
-  corresponding to the positions of the new observations. In the
-  two-dimension case constraints are used so that the predicted values
-  matches the fitted values for the initial observations (see Carballo,
-  Durban, and Lee 2021 to understand why this is required).
+-   The `predict` function generates an extrapolation of the model. It
+    requires a `newdata` argument, a named list with one or two elements
+    corresponding to the positions of the new observations. In the
+    two-dimension case constraints are used so that the predicted values
+    matches the fitted values for the initial observations (see
+    Carballo, Durban, and Lee 2021 to understand why this is required).
 
-``` r
-WH_1d_fit |> predict(newdata = 18:99) |> plot()
-```
+<!-- -->
+
+    WH_1d_fit |> predict(newdata = 18:99) |> plot()
 
 <img src="man/figures/README-predict-1.png" width="100%" style="display: block; margin: auto;" />
 
-``` r
-WH_2d_fit |> predict(newdata = list(age = 50:99,
-                                    duration = 0:19)) |> plot()
-```
+    WH_2d_fit |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
 
 <img src="man/figures/README-predict-2.png" width="100%" style="display: block; margin: auto;" />
 
-- Finally the `output_to_df` function converts an `"WH_1d"` or `"WH_2d"`
-  object into a `data.frame`. Information about the fit is discarded in
-  the process. This function may be useful to produce better
-  visualizations from the data, for example using the ggplot2 package.
+-   The `vcov` may be used to retrieve the variance-covariance matrix of
+    the model if necessary.
 
-``` r
-WH_1d_df <- WH_1d_fit |> output_to_df()
-WH_2d_df <- WH_2d_fit |> output_to_df()
-```
+-   Finally the `output_to_df` function converts an `"WH_1d"` or
+    `"WH_2d"` object into a `data.frame`. Information about the fit is
+    discarded in the process. This function may be useful to produce
+    better visualizations from the data, for example using the ggplot2
+    package.
+
+<!-- -->
+
+    WH_1d_df <- WH_1d_fit |> output_to_df()
+    WH_2d_df <- WH_2d_fit |> output_to_df()
 
 ## Further WH smoothing theory
 
@@ -176,29 +153,12 @@ See the package vignette or the upcoming paper available
 
 ## References
 
-<div id="refs" class="references csl-bib-body hanging-indent"
-entry-spacing="0">
-
-<div id="ref-carballo2021prediction" class="csl-entry">
-
 Carballo, Alba, Maria Durban, and Dae-Jin Lee. 2021. “Out-of-Sample
 Prediction in Multidimensional p-Spline Models.” *Mathematics* 9 (15):
 1761.
 
-</div>
-
-<div id="ref-henderson1924new" class="csl-entry">
-
 Henderson, Robert. 1924. “A New Method of Graduation.” *Transactions of
 the Actuarial Society of America* 25: 29–40.
 
-</div>
-
-<div id="ref-whittaker1922new" class="csl-entry">
-
 Whittaker, Edmund T. 1922. “On a New Method of Graduation.” *Proceedings
 of the Edinburgh Mathematical Society* 41: 63–75.
-
-</div>
-
-</div>

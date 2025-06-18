@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{predict.WH_2d}
 \alias{predict.WH_2d}
-\title{Prediction for a Whittaker-Henderson Fit}
+\title{Predict new values using a fitted 2D WH model}
 \usage{
 \method{predict}{WH_2d}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
+\item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH]{WH()}} function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
 positions}
@@ -15,24 +15,16 @@ positions}
 \item{...}{Not used}
 }
 \value{
-An object of class \code{"WH_2d"} with additional components \code{y_pred} and
-\code{std_y_pred} corresponding to the model predictions and associated standard
-deviations.
+An object of class \code{"WH_2d"} with additional components for model
+prediction.
 }
 \description{
-Extrapolate the Whittaker-Henderson fit for new observations in a way that is
-consistent with the initial model fit.
+Extrapolate the model for new observations in a way that is consistent with
+the fitted values
 }
 \examples{
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
-
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
-
-fit <- WH_2d(d, ec)
-newdata <- list(age = 50:99, duration = 0:19)
-pred <- predict(fit, newdata)
-plot(pred)
+object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
+object_extra <- predict(object, newdata = list(age = 50:99, duration = 0:19))
+plot(object_extra)
 
 }

@@ -2,37 +2,30 @@
 % Please edit documentation in R/main.R
 \name{plot.WH_2d}
 \alias{plot.WH_2d}
-\title{Plot Method for a Whittaker-Henderson Fit}
+\title{Plot 2D WH fit}
 \usage{
 \method{plot}{WH_2d}(x, what = "y_hat", trans, ...)
 }
 \arguments{
-\item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
+\item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH]{WH()}} function}
 
-\item{what}{Should be one of \code{y_hat} (the default) for model fit, \code{std_y_hat}
-for the associated standard deviation, \code{res} for residuals and \code{edf} for
-the effective degrees of freedom.}
+\item{what}{What should be plotted (y_hat, std_y_hat, res, edf)}
 
-\item{trans}{An (optional) transformation to be applied to the data. By
-default the identity function}
+\item{trans}{An (optional) transformation to be applied to the data}
 
 \item{...}{Not used}
 }
 \value{
-A plot representing the desired element from the fit...
+A plot representing the given element of the fit...
 }
 \description{
-Plot Method for a Whittaker-Henderson Fit
+Plot 2D WH fit
 }
 \examples{
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
+d  <- portfolio_LTC$d
+ec <- portfolio_LTC$ec
 
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
-
-fit <- WH_2d(d, ec)
-plot(fit)
-plot(fit, "std_y_hat")
+WH(d, ec) |> plot()
+WH(d, ec) |> plot("std_y_hat")
 
 }

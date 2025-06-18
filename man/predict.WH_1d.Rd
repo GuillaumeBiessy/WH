@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{predict.WH_1d}
 \alias{predict.WH_1d}
-\title{Prediction for a Whittaker-Henderson Fit}
+\title{Predict new values using a fitted 1D WH model}
 \usage{
 \method{predict}{WH_1d}(object, newdata = NULL, ...)
 }
 \arguments{
-\item{object}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH_1d]{WH_1d()}} function}
+\item{object}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH]{WH()}} function}
 
 \item{newdata}{A vector containing the position of new observations.
 Observations from the fit will automatically be added to this, in the
@@ -16,20 +16,16 @@ adequate order}
 \item{...}{Not used}
 }
 \value{
-An object of class \code{"WH_1d"} with additional components \code{y_pred} and
-\code{std_y_pred} corresponding to the model predictions and associated standard
-deviations.
+An object of class \code{"WH_1d"} with additional components for model
+prediction.
 }
 \description{
-Extrapolate the Whittaker-Henderson fit for new observations.
+Extrapolate the model for new observations.
 }
 \examples{
-d <- portfolio_mort$d
-ec <- portfolio_mort$ec
 
-fit <- WH_1d(d, ec)
-newdata = 18:99
-pred <- predict(fit, newdata)
-plot(pred)
+object <- WH(portfolio_mort$d, portfolio_mort$ec)
+object_extra <- predict(object, newdata = 18:99)
+plot(object_extra)
 
 }

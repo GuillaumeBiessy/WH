@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{print.WH_2d}
 \alias{print.WH_2d}
-\title{Print Method for a Whittaker-Henderson Fit}
+\title{Display of 2D WH object}
 \usage{
 \method{print}{WH_2d}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH_2d]{WH_2d()}} function}
+\item{x}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH]{WH()}} function}
 
 \item{...}{Not used}
 }
@@ -15,15 +15,12 @@
 Invisibly returns \code{x}.
 }
 \description{
-Print Method for a Whittaker-Henderson Fit
+Display of 2D WH object
 }
 \examples{
-keep_age <- which(rowSums(portfolio_LTC$ec) > 5e2)
-keep_duration <- which(colSums(portfolio_LTC$ec) > 1e3)
+d  <- portfolio_LTC$d
+ec <- portfolio_LTC$ec
 
-d  <- portfolio_LTC$d[keep_age, keep_duration]
-ec <- portfolio_LTC$ec[keep_age, keep_duration]
-
-WH_2d(d, ec)
+WH(d, ec) |> summary()
 
 }

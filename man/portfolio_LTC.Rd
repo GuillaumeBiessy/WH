@@ -5,18 +5,20 @@
 \alias{portfolio_LTC}
 \title{Agregated Long-Term Care Dataset}
 \format{
-A dataset obtaining by agregating the information from a fictive
-long-term care annuitant database with 5,000 annuitants over a 10-year
-observation period. The dataset is supplied as a list with two components :
-\describe{\item{exit}{A matrix containing the number of observed deaths for
-each combination of age and duration in LTC where at least one death
-has been observed} \item{expo}{A matrix containing the associated central
-exposure in person-years for each combination of age and duration in LTC in d}}
+An synthetic aggregated dataset with death and exposure counts from a
+simulated long-term care portfolio with 100,000 contributors on a 20-year
+observation period (only deaths following long-term care claims are
+counted). The dataset is supplied as a
+list with two components : \describe{\item{d}{A matrix
+containing the portfolio number of observed deaths for each combination of
+age from 70 to 100 (excluded) and duration in LTC from 0 to 15 (excluded)} \item{ec}{A matrix
+containing the portfolio central exposure in person-years for each
+combination age from 70 to 100 (excluded) and duration in LTC from 0 to 15 (excluded)}}
 }
 \usage{
 portfolio_LTC
 }
 \description{
-Agregated dataset built from a synthetic long-term care portfolio
+Agregated dataset built from a simulated long-term care portfolio
 }
 \keyword{datasets}

@@ -1,5 +1,25 @@
 # WH (development version)
 
+This version introduces a complete overhaul of the package, with substantial improvements to both the core computational engine and the user-facing API.
+
+## Core computational changes
+
+* Exploitation of the banded structure of the penalization matrix:
+
+* Computations now scale linearly with the number of observations (in the largest dimension), instead of exhibiting cubic complexity.
+
+* This also leads to a significantly reduced memory footprint.
+
+* Parameter estimation is now based on the Cholesky factor, using backward-forward solves instead of forming the variance-covariance matrix explicitly.
+
+* By default, only the diagonal of the variance-covariance matrix is now computed (sufficient for credibility intervals). The full matrix can still be retrieved using the newly introduced `vcov()` method.
+
+## User interface and API changes
+
+The two main functions from earlier versions have been merged into a single unified function: `WH()`.
+
+Performance iteration and rank reduction are no longer available, as they no longer provide meaningful benefits with the new implementation. The full-rank version is now efficient enough to handle several thousand observation points without optimization tricks.
+
 # WH 1.1.2
 
 * Greatly increased tolerance from 1e-6 to 1e-2 to remove a lone failing test which only occurs when using MKL BLAS

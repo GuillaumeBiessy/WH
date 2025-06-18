@@ -4,7 +4,7 @@
 \alias{get_diagnosis}
 \title{Diagnosis for Model Fit}
 \usage{
-get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
+get_diagnosis(dev, pen, sum_edf, n_pos, p, q, s, lambda, R, l_sat = 0)
 }
 \arguments{
 \item{dev}{Deviance of the model}
@@ -15,12 +15,20 @@ get_diagnosis(dev, pen, sum_edf, n_pos, tr_log_P, tr_log_Psi)
 
 \item{n_pos}{Number of strictly positive weights}
 
-\item{tr_log_P}{Trace of logarithm of penalization matrix}
+\item{p}{Number of parameters}
 
-\item{tr_log_Psi}{Trace of logarithm of variance-covariance matrix}
+\item{q}{Orders of the penalization matrices}
+
+\item{s}{eigenvalues for the penalization matrix}
+
+\item{lambda}{smoothing parameters}
+
+\item{R}{triangular factor}
+
+\item{l_sat}{likelihood for the saturated model}
 }
 \value{
-A data.frame containing various diagnoses about the fit
+A data.frame containing various diagnosis about the fit
 }
 \description{
 Diagnosis for Model Fit

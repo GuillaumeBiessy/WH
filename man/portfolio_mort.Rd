@@ -5,17 +5,18 @@
 \alias{portfolio_mort}
 \title{Agregated Mortality Dataset}
 \format{
-A dataset containing the information from a simulated annuity
-portfolio with 100,000 contributors over a 10-year observation period. The
+An synthetic aggregated dataset with death and exposure counts from a
+simulated annuity portfolio with 100,000 contributors on a 20-year
+observation period. The
 dataset is supplied as a list with two components : \describe{\item{d}{A
-vector containing the number of observed deaths for ages where at
-least one death has been observed} \item{ec}{A vector containing the associated
-central exposure in person-years for each age in d}}
+vector containing the portfolio number of observed deaths for each age from
+50 to 95 (excluded)} \item{ec}{A vector containing the portfolio central exposure in
+person-years for each age from 50 to 95 (excluded)}}
 }
 \usage{
 portfolio_mort
 }
 \description{
-Agregated dataset built from a synthetic mortality portfolio
+Agregated dataset built from a simulated mortality portfolio
 }
 \keyword{datasets}

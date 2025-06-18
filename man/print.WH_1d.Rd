@@ -2,12 +2,12 @@
 % Please edit documentation in R/main.R
 \name{print.WH_1d}
 \alias{print.WH_1d}
-\title{Print Method for a Whittaker-Henderson Fit}
+\title{Display of 1D WH object}
 \usage{
 \method{print}{WH_1d}(x, ...)
 }
 \arguments{
-\item{x}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH_1d]{WH_1d()}} function}
+\item{x}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH]{WH()}} function}
 
 \item{...}{Not used}
 }
@@ -15,16 +15,12 @@
 Invisibly returns \code{x}.
 }
 \description{
-Print Method for a Whittaker-Henderson Fit
+Display of 1D WH object
 }
 \examples{
 d <- portfolio_mort$d
 ec <- portfolio_mort$ec
 
-y <- log(d / ec)
-y[d == 0] <- - 20
-wt <- d
-
-WH_1d(d, ec)
+WH(d, ec) |> summary()
 
 }

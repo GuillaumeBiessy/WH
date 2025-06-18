@@ -2,16 +2,16 @@
 % Please edit documentation in R/main.R
 \name{plot.WH_1d}
 \alias{plot.WH_1d}
-\title{Plot Method for a Whittaker-Henderson Fit}
+\title{Plot 1D WH fit}
 \usage{
 \method{plot}{WH_1d}(x, what = "fit", trans, ...)
 }
 \arguments{
-\item{x}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH_1d]{WH_1d()}} function}
+\item{x}{An object of class \code{"WH_1d"} returned by the \code{\link[=WH]{WH()}} function}
 
-\item{what}{What should be plotted. Should be one of \code{fit} (the model fit and
-standard deviation, the default), \code{res} for residuals and \code{edf} for the
-effective degrees of freedom.}
+\item{what}{What should be plotted. Should be one of \code{fit} (the
+default), \code{res} for residuals and \code{edf} for the effective degrees
+of freedom.}
 
 \item{trans}{An (optional) transformation to be applied to the data. By
 default the identity function}
@@ -19,18 +19,17 @@ default the identity function}
 \item{...}{Not used}
 }
 \value{
-A plot representing the desired element from the fit
+A plot representing the desired element of the fit
 }
 \description{
-Plot Method for a Whittaker-Henderson Fit
+Plot 1D WH fit
 }
 \examples{
 d <- portfolio_mort$d
 ec <- portfolio_mort$ec
 
-fit <- WH_1d(d, ec)
-plot(fit)
-plot(fit, "res")
-plot(fit, "edf")
+WH(d, ec) |> plot()
+WH(d, ec) |> plot("res")
+WH(d, ec) |> plot("edf")
 
 }
