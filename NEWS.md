@@ -1,24 +1,24 @@
 # WH (development version)
 
-This version introduces a complete overhaul of the package, with substantial improvements to both the core computational engine and the user-facing API.
+This version introduces a complete overhaul of the package, with substantial improvements to both the core computational engine and the user-facing interface.
 
-## Core computational changes
+## Computational changes
 
-* Exploitation of the banded structure of the penalization matrix:
-
-* Computations now scale linearly with the number of observations (in the largest dimension), instead of exhibiting cubic complexity.
-
-* This also leads to a significantly reduced memory footprint.
+* The banded structure of the penalization matrix is now fully exploited and many key steps have been modified to fully exploit this structure. As a result, computations now scale linearly with the number of observations (in the largest dimension), instead of exhibiting cubic complexity. This also leads to a significantly reduced memory footprint as all matrices are stored using a compact format.
 
 * Parameter estimation is now based on the Cholesky factor, using backward-forward solves instead of forming the variance-covariance matrix explicitly.
 
-* By default, only the diagonal of the variance-covariance matrix is now computed (sufficient for credibility intervals). The full matrix can still be retrieved using the newly introduced `vcov()` method.
+* By default, only the diagonal of the variance-covariance matrix is now computed (sufficient for credibility intervals). The full matrix can still be retrieved using the newly introduced `vcov()` method if necessary.
 
-## User interface and API changes
+## User Interface changes
 
-The two main functions from earlier versions have been merged into a single unified function: `WH()`.
+* The two main functions from earlier versions have been merged into a single unified function: `WH()`.
 
-Performance iteration and rank reduction are no longer available, as they no longer provide meaningful benefits with the new implementation. The full-rank version is now efficient enough to handle several thousand observation points without optimization tricks.
+* Performance iteration and rank reduction are no longer available, as they no longer provide meaningful benefits with the new implementation. The full-rank version is now efficient enough to handle several thousand observation points without optimization tricks.
+
+## Other changes
+
+* Some minor changes have been made to the example datasets to better align the characteristics of the mortality and long-term care datasets
 
 # WH 1.1.2
 

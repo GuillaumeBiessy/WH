@@ -25,7 +25,7 @@ Extrapolate the model for new observations.
 \examples{
 
 object <- WH(portfolio_mort$d, portfolio_mort$ec)
-object_extra <- predict(object, newdata = 18:99)
+object_extra <- predict(object, newdata = 40:99)
 plot(object_extra)
 
 }

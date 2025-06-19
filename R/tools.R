@@ -69,7 +69,6 @@ compute_res_reg <- function(y, y_hat, wt) {
 #' @returns A vector or matrix (depending on the input type, will be a matrix
 #'   if at least one of the input is) containing the deviance residuals
 #' @keywords internal
-#' @export
 compute_res_deviance <- function(D, D_hat) {
 
   D_diff <- D - D_hat

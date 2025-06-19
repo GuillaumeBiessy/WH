@@ -14,9 +14,9 @@
 #' @importFrom Rcpp evalCpp
 NULL
 
-#' Agregated Mortality Dataset
+#' Aggregated Mortality Dataset
 #'
-#' Agregated dataset built from a simulated mortality portfolio
+#' Aggregated dataset built from a simulated mortality portfolio
 #'
 #' @format An synthetic aggregated dataset with death and exposure counts from a
 #'   simulated annuity portfolio with 100,000 contributors on a 20-year
@@ -27,9 +27,9 @@ NULL
 #'   person-years for each age from 50 to 95 (excluded)}}
 "portfolio_mort"
 
-#' Agregated Long-Term Care Dataset
+#' Aggregated Long-Term Care Dataset
 #'
-#' Agregated dataset built from a simulated long-term care portfolio
+#' Aggregated dataset built from a simulated long-term care portfolio
 #'
 #' @format An synthetic aggregated dataset with death and exposure counts from a
 #'   simulated long-term care portfolio with 100,000 contributors on a 20-year
@@ -53,5 +53,5 @@ NULL
 # use_test("1D")
 # use_test("2D")
 
-# Patchnotes----
+# Patch Notes----
 # use_news_md()

@@ -124,11 +124,11 @@ additional functions (including generic S3 methods) may be applied:
 
 <!-- -->
 
-    WH_1d_fit |> predict(newdata = 18:99) |> plot()
+    WH_1d_fit |> predict(newdata = 40:99) |> plot()
 
 <img src="man/figures/README-predict-1.png" width="100%" style="display: block; margin: auto;" />
 
-    WH_2d_fit |> predict(newdata = list(age = 50:99, duration = 0:19)) |> plot()
+    WH_2d_fit |> predict(newdata = list(age = 60:109, duration = 0:19)) |> plot()
 
 <img src="man/figures/README-predict-2.png" width="100%" style="display: block; margin: auto;" />
 

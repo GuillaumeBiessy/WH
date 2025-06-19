@@ -63,7 +63,7 @@
 #' # Maximum likelihood
 #' WH(d, ec) # automatic smoothing parameter selection via REML
 #' WH(d, ec, lambda = 1e2) # fixed smoothing parameter
-#' WH(d, ec, criterion = "GCV") # alternative criteria for smoothing parameter selection
+#' WH(d, ec, criterion = "GCV") # alternative criterion for smoothing parameter selection
 #'
 #' # Regression
 #' WH(y = y, wt = wt) # regression framework is default when y is supplied
@@ -220,7 +220,7 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
 #' @examples
 #'
 #' object <- WH(portfolio_mort$d, portfolio_mort$ec)
-#' object_extra <- predict(object, newdata = 18:99)
+#' object_extra <- predict(object, newdata = 40:99)
 #' plot(object_extra)
 #'
 #' @export
@@ -273,7 +273,7 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #'
 #' @examples
 #' object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
-#' object_extra <- predict(object, newdata = list(age = 50:99, duration = 0:19))
+#' object_extra <- predict(object, newdata = list(age = 60:109, duration = 0:19))
 #' plot(object_extra)
 #'
 #' @export
@@ -340,7 +340,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #' object <- WH(portfolio_mort$d, portfolio_mort$ec)
 #' vcov(object)
 #'
-#' object_extra <- predict(object, newdata = 18:99)
+#' object_extra <- predict(object, newdata = 40:99)
 #' vcov(object_extra)
 #'
 #' @export
@@ -368,7 +368,7 @@ vcov.WH_1d <- function(object, pred = TRUE, ...) {
 #' object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
 #' vcov(object)
 #'
-#' object_extra <- predict(object, newdata = list(age = 50:99, duration = 0:19))
+#' object_extra <- predict(object, newdata = list(age = 60:109, duration = 0:19))
 #' vcov(object_extra)
 #'
 #' @export

@@ -26,7 +26,7 @@ required for quantities derived from the fitted values.
 object <- WH(portfolio_mort$d, portfolio_mort$ec)
 vcov(object)
 
-object_extra <- predict(object, newdata = 18:99)
+object_extra <- predict(object, newdata = 40:99)
 vcov(object_extra)
 
 }

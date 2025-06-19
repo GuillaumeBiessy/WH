@@ -24,7 +24,7 @@ the fitted values
 }
 \examples{
 object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
-object_extra <- predict(object, newdata = list(age = 50:99, duration = 0:19))
+object_extra <- predict(object, newdata = list(age = 60:109, duration = 0:19))
 plot(object_extra)
 
 }
