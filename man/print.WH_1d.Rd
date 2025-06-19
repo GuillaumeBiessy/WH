@@ -18,9 +18,6 @@ Invisibly returns \code{x}.
 Display of 1D WH object
 }
 \examples{
-d <- portfolio_mort$d
-ec <- portfolio_mort$ec
-
-WH(d, ec) |> summary()
+WH(portfolio_mort$d, portfolio_mort$ec)
 
 }

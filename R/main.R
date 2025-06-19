@@ -341,7 +341,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
 #' vcov(object)
 #'
 #' object_extra <- predict(object, newdata = 40:99)
-#' vcov(object_extra)
+#' V <- vcov(object_extra)
 #'
 #' @export
 vcov.WH_1d <- function(object, pred = TRUE, ...) {
@@ -366,10 +366,10 @@ vcov.WH_1d <- function(object, pred = TRUE, ...) {
 #' @examples
 #'
 #' object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
-#' vcov(object)
+#' V <- vcov(object)
 #'
 #' object_extra <- predict(object, newdata = list(age = 60:109, duration = 0:19))
-#' vcov(object_extra)
+#' V <- vcov(object_extra)
 #'
 #' @export
 vcov.WH_2d <- function(object, pred = TRUE, ...) {
@@ -489,10 +489,7 @@ output_to_df <- function(object, dim1 = "x", dim2 = "z") {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' d <- portfolio_mort$d
-#' ec <- portfolio_mort$ec
-#'
-#' WH(d, ec) |> summary()
+#' WH(portfolio_mort$d, portfolio_mort$ec)
 #'
 #' @export
 print.WH_1d <- function(x, ...) {
@@ -515,10 +512,7 @@ print.WH_1d <- function(x, ...) {
 #' @returns Invisibly returns `x`.
 #'
 #' @examples
-#' d  <- portfolio_LTC$d
-#' ec <- portfolio_LTC$ec
-#'
-#' WH(d, ec) |> summary()
+#' WH(portfolio_LTC$d, portfolio_LTC$ec)
 #'
 #' @export
 print.WH_2d <- function(x, ...) {

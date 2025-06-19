@@ -24,9 +24,9 @@ required for quantities derived from the fitted values.
 \examples{
 
 object <- WH(portfolio_LTC$d, portfolio_LTC$ec)
-vcov(object)
+V <- vcov(object)
 
 object_extra <- predict(object, newdata = list(age = 60:109, duration = 0:19))
-vcov(object_extra)
+V <- vcov(object_extra)
 
 }

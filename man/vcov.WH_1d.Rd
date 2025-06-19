@@ -27,6 +27,6 @@ object <- WH(portfolio_mort$d, portfolio_mort$ec)
 vcov(object)
 
 object_extra <- predict(object, newdata = 40:99)
-vcov(object_extra)
+V <- vcov(object_extra)
 
 }

@@ -4,17 +4,21 @@ This version introduces a complete overhaul of the package, with substantial imp
 
 ## Computational changes
 
-* The banded structure of the penalization matrix is now fully exploited and many key steps have been modified to fully exploit this structure. As a result, computations now scale linearly with the number of observations (in the largest dimension), instead of exhibiting cubic complexity. This also leads to a significantly reduced memory footprint as all matrices are stored using a compact format.
+The main change in this version is the exploitation of the banded structure of the penalization matrix, which allows for tremendous savings in both computation time and memory footprint.
 
-* Parameter estimation is now based on the Cholesky factor, using backward-forward solves instead of forming the variance-covariance matrix explicitly.
+* The package now uses Rcpp and calls directly Lapack functions for banded matrices when available. 
 
-* By default, only the diagonal of the variance-covariance matrix is now computed (sufficient for credibility intervals). The full matrix can still be retrieved using the newly introduced `vcov()` method if necessary.
+* Some additional functions have also been coded using Rcpp. The `backsolve` function for banded matrix was also recoded although it already exists in Lapack because the Lapack version overwrites the Cholesky factor so a copy has to be made beforehand.
+
+* Parameter estimation now rely on backward-forward solves from the Cholesky factor instead of forming the variance-covariance matrix explicitly.
+
+* By default, only the diagonal of the variance-covariance matrix is now computed (which is sufficient for credibility intervals). The full matrix can still be retrieved using the newly introduced `vcov()` method if necessary.
 
 ## User Interface changes
 
 * The two main functions from earlier versions have been merged into a single unified function: `WH()`.
 
-* Performance iteration and rank reduction are no longer available, as they no longer provide meaningful benefits with the new implementation. The full-rank version is now efficient enough to handle several thousand observation points without optimization tricks.
+* Performance iteration and rank reduction are no longer available, as they no longer provide meaningful benefits with the new implementation. Indeed, the full-rank version is now efficient enough to handle several thousand observation points without optimization tricks.
 
 ## Other changes
 

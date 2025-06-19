@@ -18,9 +18,6 @@ Invisibly returns \code{x}.
 Display of 2D WH object
 }
 \examples{
-d  <- portfolio_LTC$d
-ec <- portfolio_LTC$ec
-
-WH(d, ec) |> summary()
+WH(portfolio_LTC$d, portfolio_LTC$ec)
 
 }

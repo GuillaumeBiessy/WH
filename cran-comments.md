@@ -2,10 +2,12 @@
 
 0 errors | 0 warnings | 0 notes
 
-This minor patch aims to fix an issue with a single failed test of the WH package, which occurs in the additional test with MKL BLAS.
+This is a major overhaul of the package, which simplifies the UI and greatly improves computation time and memory usage by making use of the banded structure of the penalization matrix in Whittaker-Henderson smoothing.
 
 In this version, I have :
 
-* Increased the tolerance of the last failed test (and 2 similar tests) from 1e-5 to 1e-2
+* Rewritten most of the code
 
-Please accept my apologies for the inconvenience.
+* Rewritten all the tests.
+
+
