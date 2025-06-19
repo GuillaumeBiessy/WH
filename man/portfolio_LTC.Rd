@@ -3,7 +3,7 @@
 \docType{data}
 \name{portfolio_LTC}
 \alias{portfolio_LTC}
-\title{Agregated Long-Term Care Dataset}
+\title{Aggregated Long-Term Care Dataset}
 \format{
 An synthetic aggregated dataset with death and exposure counts from a
 simulated long-term care portfolio with 100,000 contributors on a 20-year
@@ -19,6 +19,6 @@ combination age from 70 to 100 (excluded) and duration in LTC from 0 to 15 (excl
 portfolio_LTC
 }
 \description{
-Agregated dataset built from a simulated long-term care portfolio
+Aggregated dataset built from a simulated long-term care portfolio
 }
 \keyword{datasets}

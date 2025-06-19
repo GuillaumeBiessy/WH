@@ -81,7 +81,7 @@ wt <- d
 # Maximum likelihood
 WH(d, ec) # automatic smoothing parameter selection via REML
 WH(d, ec, lambda = 1e2) # fixed smoothing parameter
-WH(d, ec, criterion = "GCV") # alternative criteria for smoothing parameter selection
+WH(d, ec, criterion = "GCV") # alternative criterion for smoothing parameter selection
 
 # Regression
 WH(y = y, wt = wt) # regression framework is default when y is supplied

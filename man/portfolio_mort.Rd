@@ -3,7 +3,7 @@
 \docType{data}
 \name{portfolio_mort}
 \alias{portfolio_mort}
-\title{Agregated Mortality Dataset}
+\title{Aggregated Mortality Dataset}
 \format{
 An synthetic aggregated dataset with death and exposure counts from a
 simulated annuity portfolio with 100,000 contributors on a 20-year
@@ -17,6 +17,6 @@ person-years for each age from 50 to 95 (excluded)}}
 portfolio_mort
 }
 \description{
-Agregated dataset built from a simulated mortality portfolio
+Aggregated dataset built from a simulated mortality portfolio
 }
 \keyword{datasets}
