@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WH — Documentation fonctionnelle &amp; mathématique</title>
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['$$','$$']], tags: 'none' },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+<style>
+:root{
+  --bg:#fbfbfd; --ink:#1d2330; --muted:#5b6472; --line:#e3e7ee;
+  --accent:#2f5fb0; --accent2:#7a3ea3; --code:#f3f5f9;
+  --ok:#1f8a4c; --warn:#c47f12; --gap:#b03a3a; --todo:#8a8f99;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.62 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+.wrap{display:grid;grid-template-columns:268px 1fr;max-width:1280px;margin:0 auto;}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+  padding:26px 18px 40px;border-right:1px solid var(--line);background:#fff;font-size:13.5px;}
+nav h2{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px}
+nav a{display:block;color:var(--ink);text-decoration:none;padding:3px 8px;border-radius:6px;margin:1px 0}
+nav a:hover{background:var(--code);color:var(--accent)}
+nav a.sub{padding-left:20px;color:var(--muted);font-size:12.8px}
+main{padding:34px 46px 120px;min-width:0}
+header.hero{border-bottom:2px solid var(--line);padding-bottom:18px;margin-bottom:8px}
+h1{font-size:30px;margin:0 0 4px;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:15px}
+h2.sec{font-size:24px;margin:48px 0 6px;padding-top:10px;border-top:1px solid var(--line)}
+h3{font-size:18.5px;margin:30px 0 6px;color:#222}
+h4{font-size:15.5px;margin:20px 0 4px;color:#333;text-transform:uppercase;letter-spacing:.03em}
+p{margin:8px 0}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:14px/1.4 "SFMono-Regular",Consolas,"Liberation Mono",monospace}
+pre{background:#1f2430;color:#e6e9ef;padding:14px 16px;border-radius:9px;overflow-x:auto;font:13.5px/1.55 "SFMono-Regular",Consolas,monospace}
+pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;width:100%;margin:14px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#eef2f8;font-weight:600}
+tr:nth-child(even) td{background:#f7f9fc}
+.badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;letter-spacing:.02em;vertical-align:middle}
+.b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-gap{background:var(--gap)} .b-todo{background:var(--todo)}
+.callout{border:1px solid var(--line);border-left:4px solid var(--accent);background:#fff;border-radius:8px;padding:12px 16px;margin:16px 0}
+.callout.gap{border-left-color:var(--gap)} .callout.todo{border-left-color:var(--todo)} .callout.ok{border-left-color:var(--ok)}
+.callout .t{font-weight:700;margin-bottom:3px}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:10px 0}
+.match{font-weight:700}
+.match.y{color:var(--ok)} .match.p{color:var(--warn)} .match.n{color:var(--gap)}
+.small{font-size:13px;color:var(--muted)}
+.kbd{font-family:monospace;font-size:13px;background:var(--code);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+.corr{border:1px solid var(--line);border-radius:10px;padding:4px 18px 14px;margin:18px 0;background:#fff}
+.corr h3{margin-top:14px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+.opt{border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:14px}
+.opt b{display:block;margin-bottom:3px}
+.opt.code b{color:var(--accent)} .opt.paper b{color:var(--accent2)}
+hr.soft{border:none;border-top:1px dashed var(--line);margin:22px 0}
+a.cite{color:var(--accent);text-decoration:none}
+@media(max-width:900px){.wrap{grid-template-columns:1fr}nav{display:none}main{padding:24px 18px 80px}.opts{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <strong>WH · documentation</strong>
+  <div class="small" style="margin:4px 0 6px">package v2.0.0 · doc v0 (2026-06-03)</div>
+  <h2>0 · Cadre</h2>
+  <a href="#apropos">À propos de ce document</a>
+  <a href="#statut">Statut &amp; reste-à-faire</a>
+  <h2>1 · Fonctionnel</h2>
+  <a href="#f-vue" class="sub">Vue d'ensemble</a>
+  <a href="#f-wh" class="sub">La fonction WH()</a>
+  <a href="#f-cadres" class="sub">Les deux cadres</a>
+  <a href="#f-methodes" class="sub">Méthodes S3</a>
+  <a href="#f-api" class="sub">Récap API</a>
+  <h2>2 · Mathématique</h2>
+  <a href="#m-critere" class="sub">Le critère WH</a>
+  <a href="#m-survie" class="sub">Cadre survie / ML</a>
+  <a href="#m-reg" class="sub">Cadre régression</a>
+  <a href="#m-bayes" class="sub">Bayes, variance, edf</a>
+  <a href="#m-select" class="sub">Sélection de λ</a>
+  <a href="#m-algos" class="sub">Algorithmes</a>
+  <a href="#m-effic" class="sub">Efficacité (bande)</a>
+  <a href="#m-extra" class="sub">Extrapolation</a>
+  <h2>3 · Correspondance</h2>
+  <a href="#corr-table">Table code ↔ papier</a>
+  <h2>4 · Wood</h2>
+  <a href="#wood">Comparaison aux papiers de Wood</a>
+  <h2>5 · Corrections</h2>
+  <a href="#corrections">Corrections / améliorations</a>
+</nav>
+<main>
+
+<header class="hero">
+  <h1>WH — Documentation fonctionnelle &amp; mathématique</h1>
+  <div class="sub">Package R <code>WH</code> v2.0.0 · <em>Enhanced Implementation of Whittaker-Henderson Smoothing</em> (G. Biessy)<br>
+  Document de travail unique — usage, mathématiques, et confrontation au papier « WH smoothing revisited » (ASTIN 2025) et aux travaux de S. Wood.</div>
+</header>
+
+<!-- ============ 0 ============ -->
+<h2 class="sec" id="apropos">0 · À propos de ce document</h2>
+<p>Ce document réunit en une seule page, à la demande, cinq choses&nbsp;:</p>
+<ol>
+<li><b>La documentation fonctionnelle</b> — comment on se sert du package (la partie « utilisateur »).</li>
+<li><b>La documentation mathématique</b> — ce que le code calcule réellement, formule par formule.</li>
+<li><b>La correspondance code ↔ papier</b> — une ligne par quantité du package, reliée à l'équation / section du papier. C'est la colonne vertébrale&nbsp;: les écarts y apparaissent gratuitement.</li>
+<li><b>La comparaison aux papiers de Wood</b> — quelle méthode du package s'enracine dans quel article (Fellner-Schall, REML/Newton, itérations, bande).</li>
+<li><b>Les corrections / améliorations proposées</b> — chaque écart est présenté comme un choix&nbsp;: <span style="color:var(--accent)">aligner le code sur le papier</span> ou <span style="color:var(--accent2)">errata / clarification côté papier</span>. À toi de trancher, item par item.</li>
+</ol>
+<p class="small">Principe de vérité&nbsp;: <b>le code fait foi pour le comportement</b>, <b>le papier fait foi pour l'intention</b>. Le papier <em>est</em> déjà la documentation mathématique de référence (DOI arXiv:2306.06932)&nbsp;; la valeur ajoutée ici est la mise en regard avec ce qui est réellement <em>implémenté et livré sur CRAN</em>.</p>
+
+<div class="legend">
+<span><span class="badge b-ok">MATCH</span> code = papier, vérifié</span>
+<span><span class="badge b-warn">NUANCE</span> conforme mais à documenter / choix non-trivial</span>
+<span><span class="badge b-gap">ÉCART</span> divergence ou manque à arbitrer</span>
+<span><span class="badge b-todo">À FAIRE</span> à compléter en session suivante</span>
+</div>
+
+<h3 id="statut">Statut de cette v0 &amp; reste-à-faire</h3>
+<table>
+<tr><th>Partie</th><th>État</th><th>Note</th></tr>
+<tr><td>1 · Fonctionnel</td><td><span class="badge b-ok">complet</span></td><td>Dérivé du code, de la vignette et du roxygen.</td></tr>
+<tr><td>2 · Mathématique — cœur</td><td><span class="badge b-ok">complet</span></td><td>Critère, cadres survie/régression, Bayes/variance/edf, critères de sélection, bande.</td></tr>
+<tr><td>2 · Mathématique — détails</td><td><span class="badge b-warn">partiel</span></td><td>Dérivations fines de l'extrapolation 2D contrainte et formulations complètes des 3 nestings&nbsp;: résumées, à étoffer.</td></tr>
+<tr><td>3 · Correspondance</td><td><span class="badge b-ok">amorcée, solide</span></td><td>Lignes vérifiées en session 1&nbsp;; quelques lignes marquées <span class="badge b-todo">À FAIRE</span>.</td></tr>
+<tr><td>4 · Wood</td><td><span class="badge b-todo">plan + amorce</span></td><td>Mapping méthode→article établi depuis les citations du papier&nbsp;; lecture des PDF + cartographie mgcv à faire.</td></tr>
+<tr><td>5 · Corrections</td><td><span class="badge b-warn">3 items amorcés</span></td><td>S'enrichira après l'overlay Wood et la lecture fine des appendices.</td></tr>
+</table>
+
+<!-- ============ 1 FONCTIONNEL ============ -->
+<h2 class="sec" id="f-vue">1 · Documentation fonctionnelle</h2>
+
+<h3>Vue d'ensemble</h3>
+<p><code>WH</code> applique le lissage de Whittaker-Henderson pour <b>graduer des tables actuarielles</b> à une dimension (taux par âge) ou deux dimensions (taux par âge × ancienneté), typiquement pour quantifier des risques d'assurance vie&nbsp;: mortalité, incapacité, dépendance (LTC), rachat, défaut, chômage.</p>
+<p>Par rapport au lissage WH «&nbsp;historique&nbsp;», le package apporte&nbsp;:</p>
+<ul>
+<li>une estimation par <b>maximum de vraisemblance</b> (cadre analyse de survie, Poisson) — fortement recommandée — en plus du cadre de régression gaussien approché&nbsp;;</li>
+<li>la <b>sélection automatique</b> du/des paramètre(s) de lissage \(\lambda\) (REML par défaut, sinon AIC/BIC/GCV)&nbsp;;</li>
+<li>l'<b>extrapolation</b> au-delà de la plage observée&nbsp;;</li>
+<li>une implémentation <b>efficace</b> (stockage bande compact + LAPACK) en C++.</li>
+</ul>
+<p>Le package expose <b>une seule fonction principale</b>, <code>WH()</code>, qui renvoie un objet <code>WH_1d</code> ou <code>WH_2d</code> ; des méthodes S3 (<code>print</code>, <code>plot</code>, <code>predict</code>, <code>vcov</code>) et un utilitaire <code>output_to_df()</code> s'appliquent ensuite. Deux jeux de données fictifs accompagnent le package&nbsp;: <code>portfolio_mort</code> (mortalité 1D, rente) et <code>portfolio_LTC</code> (mortalité d'incapables 2D, dépendance).</p>
+
+<h3 id="f-wh">La fonction <code>WH()</code></h3>
+<pre><code>WH(d, ec, lambda = NULL, q = 2, criterion = "REML",
+   reg, y, wt, verbose = 1, ...)</code></pre>
+<table>
+<tr><th>Argument</th><th>Rôle</th></tr>
+<tr><td><code>d</code></td><td>Vecteur (1D) ou matrice (2D) du <b>nombre d'événements observés</b>, à éléments nommés (les noms = positions, requis pour extrapoler).</td></tr>
+<tr><td><code>ec</code></td><td>Vecteur / matrice de l'<b>exposition centrale</b> (somme des durées d'exposition de la population). Même dimension que <code>d</code>.</td></tr>
+<tr><td><code>lambda</code></td><td>Paramètre(s) de lissage. <code>NULL</code> (défaut) → sélection automatique par optimisation&nbsp;; valeur fournie → lissage à \(\lambda\) fixé.</td></tr>
+<tr><td><code>q</code></td><td>Ordre de pénalisation. Les polynômes de degré \(q-1\) sont non pénalisés (lisses). Défaut <code>2</code>&nbsp;; \(q>3\) déconseillé (instabilité numérique).</td></tr>
+<tr><td><code>criterion</code></td><td>Critère de sélection de \(\lambda\)&nbsp;: <code>"REML"</code> (défaut, recommandé), <code>"AIC"</code>, <code>"BIC"</code>, <code>"GCV"</code>.</td></tr>
+<tr><td><code>reg</code></td><td><code>TRUE</code> → cadre de régression (gaussien approché). Défaut&nbsp;: <code>TRUE</code> si <code>y</code> est fourni, sinon <code>FALSE</code> (cadre ML).</td></tr>
+<tr><td><code>y</code>, <code>wt</code></td><td>(Régression seulement) vecteur d'observations et poids. Calculés automatiquement depuis <code>d</code>/<code>ec</code> si non fournis (<code>y = log(d/ec)</code>, <code>wt = d</code>). Utiles pour sortir du cadre survie.</td></tr>
+<tr><td><code>verbose</code></td><td>0–3, niveau de messages pendant l'ajustement.</td></tr>
+</table>
+<p><b>Sortie</b> (objet <code>WH_1d</code>/<code>WH_2d</code>, liste)&nbsp;: <code>y</code> (observations), <code>y_hat</code> (valeurs lissées du log-hazard), <code>std_y_hat</code> (écart-type), <code>res</code> (résidus de déviance), <code>edf</code> (degrés de liberté effectifs par point), <code>diagnosis</code> (data.frame&nbsp;: déviance, edf total, AIC, BIC, GCV, REML), plus les objets internes <code>wt</code>, <code>R</code> (facteur de Cholesky), <code>lambda</code>, <code>q</code>.</p>
+
+<h3 id="f-cadres">Les deux cadres d'estimation</h3>
+<table>
+<tr><th></th><th>Cadre survie / ML <span class="small">(recommandé, <code>reg=FALSE</code>)</span></th><th>Cadre régression <span class="small">(WH « historique », <code>reg=TRUE</code>)</span></th></tr>
+<tr><td>Entrées</td><td><code>d</code>, <code>ec</code></td><td><code>y</code>, <code>wt</code> (ou dérivés de <code>d</code>,<code>ec</code>)</td></tr>
+<tr><td>Modèle</td><td>\(d_i \sim \mathrm{Poisson}(e^c_i\,e^{\theta_i})\)</td><td>\(y_i \sim \mathcal N(\theta_i,\sigma^2/w_i)\), \(y=\log(d/e^c)\), \(w=d\)</td></tr>
+<tr><td>Résolution</td><td>PIRLS (itératif) + step-halving</td><td>forme close \(\hat\theta=(W+P_\lambda)^{-1}Wy\)</td></tr>
+<tr><td>Sélection \(\lambda\)</td><td>LAML (Laplace)</td><td>vraisemblance marginale exacte (REML)</td></tr>
+</table>
+<p class="small">Le cadre ML est recommandé parce qu'il évite l'approximation normale du log-taux brut, qui se dégrade sur faibles volumes / faibles nombres d'événements (§ <em>Impact of the normal approximation</em> du papier).</p>
+
+<h3 id="f-methodes">Méthodes &amp; utilitaires</h3>
+<table>
+<tr><th>Appel</th><th>Effet</th></tr>
+<tr><td><code>print(obj)</code></td><td>Résumé&nbsp;: nb de points, plage, \(\lambda\) sélectionné, degrés de liberté.</td></tr>
+<tr><td><code>plot(obj, what)</code></td><td>1D&nbsp;: <code>"fit"</code> (défaut, avec ±2σ), <code>"res"</code>, <code>"edf"</code>. 2D&nbsp;: <code>"y_hat"</code>, <code>"std_y_hat"</code>, <code>"res"</code>, <code>"edf"</code> (contours). Argument <code>trans</code> pour une transformation (ex.&nbsp;<code>exp</code>).</td></tr>
+<tr><td><code>predict(obj, newdata)</code></td><td>Extrapolation. 1D&nbsp;: vecteur de positions. 2D&nbsp;: liste de deux vecteurs. En 2D, les valeurs prédites sont <b>contraintes</b> de coïncider avec l'ajustement sur les points observés (Carballo&nbsp;al. 2021).</td></tr>
+<tr><td><code>vcov(obj, pred)</code></td><td>Matrice de variance-covariance des valeurs ajustées (et extrapolées si <code>pred=TRUE</code>). Utile pour des IC sur des quantités dérivées.</td></tr>
+<tr><td><code>output_to_df(obj)</code></td><td>Convertit en <code>data.frame</code> (pratique pour ggplot2). Les infos d'ajustement sont perdues.</td></tr>
+</table>
+<pre><code># 1D — mortalité
+fit &lt;- WH(portfolio_mort$d, portfolio_mort$ec)        # REML auto
+fit |&gt; plot()
+fit |&gt; predict(newdata = 40:99) |&gt; plot()
+
+# 2D — dépendance (âge × ancienneté)
+fit2 &lt;- WH(portfolio_LTC$d, portfolio_LTC$ec)
+fit2 |&gt; predict(newdata = list(age = 60:109, duration = 0:19)) |&gt; plot()
+
+# variantes
+WH(d, ec, lambda = 1e2)        # λ fixé
+WH(d, ec, criterion = "GCV")   # autre critère
+WH(y = y, wt = wt)             # cadre régression (y fourni)</code></pre>
+
+<h3 id="f-api">Récapitulatif de l'API publique</h3>
+<table>
+<tr><th>Exporté</th><th>Type</th><th>Une ligne</th></tr>
+<tr><td><code>WH()</code></td><td>fonction</td><td>Point d'entrée unique — lisse, sélectionne \(\lambda\).</td></tr>
+<tr><td><code>predict.WH_1d/2d</code></td><td>S3</td><td>Extrapolation cohérente.</td></tr>
+<tr><td><code>vcov.WH_1d/2d</code></td><td>S3</td><td>Variance-covariance.</td></tr>
+<tr><td><code>plot.WH_1d/2d</code></td><td>S3</td><td>Graphiques rapides.</td></tr>
+<tr><td><code>print.WH_1d/2d</code></td><td>S3</td><td>Affichage.</td></tr>
+<tr><td><code>output_to_df()</code></td><td>fonction</td><td>Vers data.frame.</td></tr>
+<tr><td><code>portfolio_mort</code>, <code>portfolio_LTC</code></td><td>données</td><td>Jeux d'illustration 1D / 2D.</td></tr>
+</table>
+
+<!-- ============ 2 MATH ============ -->
+<h2 class="sec" id="m-critere">2 · Documentation mathématique</h2>
+<p class="small">Notation&nbsp;: \(n\) points (1D) ou \(n=n_x n_z\) (2D), \(W=\mathrm{Diag}(\mathbf w)\) poids, \(D_{n,q}\) matrice de différence d'ordre \(q\) (dimensions \((n-q)\times n\)), \(\theta\) le log-taux à estimer.</p>
+
+<h3>Le critère de Whittaker-Henderson</h3>
+<p><b>1D.</b> L'estimateur minimise fidélité + lissage&nbsp;:</p>
+$$\hat{\mathbf y}=\underset{\theta}{\arg\min}\Big\{(\mathbf y-\theta)^TW(\mathbf y-\theta)+\theta^TP_\lambda\theta\Big\},\qquad P_\lambda=\lambda\,D_{n,q}^TD_{n,q}.$$
+<p>avec \((\Delta^q\theta)_i=\sum_{k=0}^q \binom{q}{k}(-1)^{q-k}\theta_{i+k}\), \(D_{n,q}=D_{n-1,q-1}D_{n,1}\). <b>2D</b> (Kronecker)&nbsp;:</p>
+$$P_\lambda=\lambda_x\,I_{n_z}\otimes D_{n_x,q_x}^TD_{n_x,q_x}+\lambda_z\,D_{n_z,q_z}^TD_{n_z,q_z}\otimes I_{n_x}.$$
+<p><b>Solution explicite</b> (si \(W+P_\lambda\) inversible)&nbsp;: \(\hat{\mathbf y}=(W+P_\lambda)^{-1}W\mathbf y\). Matrice chapeau \(H=(W+P_\lambda)^{-1}W\), degrés de liberté effectifs \(\mathrm{edf}=\mathrm{tr}(H)\).</p>
+<p class="small">Dans le code&nbsp;: <code>create_P_compact_cpp(n,q)</code> construit \(D^TD\) en stockage bande&nbsp;; <code>combine_lambda_P</code> applique \(\lambda\) et assemble le cas 2D&nbsp;; <code>fit_pen_reg</code> ajoute \(W\) à la diagonale, factorise \(R=\mathrm{chol}(W+P_\lambda)\) et résout par deux back-solves (coût \(O(p^2)\), pas d'inversion explicite).</p>
+
+<h3 id="m-survie">Cadre analyse de survie / maximum de vraisemblance</h3>
+<p>On pose l'offset \(o_i=\log e^c_i\) et le modèle de Poisson \(d_i\sim\mathrm{Poisson}(\mu_i)\), \(\mu_i=\exp(\theta_i+o_i)\). On maximise la log-vraisemblance pénalisée \(\ell(\theta)-\tfrac12\theta^TP_\lambda\theta\) par <b>PIRLS</b>&nbsp;:</p>
+<ul>
+<li>poids de travail \(W_k=\mathrm{Diag}(\mu)=\mathrm{Diag}(e^{\theta+o})\) <span class="small">(code <code>new_wt</code>)</span>&nbsp;;</li>
+<li>réponse de travail \(z=\theta+(d-\mu)/\mu=\theta+d/\mu-1\) <span class="small">(code <code>compute_z</code>)</span>&nbsp;;</li>
+<li>mise à jour&nbsp;: résoudre \((W_k+P_\lambda)\theta=W_k z\) <span class="small">(code&nbsp;: <code>tXWz = wt*z</code> puis <code>fit_pen_reg</code>)</span>&nbsp;;</li>
+<li><b>step-halving</b> sur la déviance pénalisée tant qu'elle ne décroît pas <span class="small">(code <code>get_valid_beta</code>)</span>.</li>
+</ul>
+<p>Résidus de déviance de Poisson \(r_i=\mathrm{sign}(d_i-\mu_i)\sqrt{2\max(d_i\log(d_i/\mu_i)-(d_i-\mu_i),0)}\), déviance \(\mathrm{dev}=\sum r_i^2\) <span class="small">(code <code>compute_res_deviance</code>)</span>. La matrice modèle est l'<b>identité</b> (\(X=I\))&nbsp;: chaque point a son propre paramètre, ce qui rend chaque pas PIRLS très léger.</p>
+
+<h3 id="m-reg">Cadre de régression (approximation normale, WH historique)</h3>
+<p>On prend \(y_i=\log(d_i/e^c_i)\) (log-taux brut) et \(w_i=d_i\)&nbsp;; modèle \(\mathbf y\mid\theta\sim\mathcal N(\theta,\sigma^2W^{-})\). La solution est en forme close, sans PIRLS&nbsp;: \(\hat\theta=(W+P_\lambda)^{-1}W\mathbf y\). Résidus \(r=\sqrt{w}\,(y-\hat\theta)\), \(\mathrm{dev}=\sum r_i^2\) (RSS pondérée).</p>
+
+<h3 id="m-bayes">Lecture bayésienne&nbsp;: variance, intervalles, edf</h3>
+<p>Le terme de pénalité équivaut à un a priori gaussien \(\theta\mid\lambda\sim\mathcal N(0,\sigma^2P_\lambda^{-})\). La covariance a posteriori des valeurs ajustées est \(V=(W+P_\lambda)^{-1}\) (à \(\sigma^2\) près), d'où&nbsp;:</p>
+<ul>
+<li>écart-type \(\texttt{std\_y\_hat}_i=\sqrt{V_{ii}}\) <span class="small">(<code>diag_V_compact_cpp(R)</code>)</span>&nbsp;;</li>
+<li><code>vcov()</code> renvoie \(V=R^{-1}R^{-T}\) <span class="small">(<code>invert_cholesky_compact_lapack</code> + <code>tcrossprod</code>)</span>&nbsp;;</li>
+<li>degrés de liberté par point \(\mathrm{edf}_i=w_i V_{ii}=H_{ii}\), total \(\sum_i\mathrm{edf}_i=\mathrm{tr}(H)\) <span class="small">(<code>edf = wt * diag_V</code>)</span>.</li>
+</ul>
+
+<h3 id="m-select">Sélection du paramètre de lissage</h3>
+<p>Quatre critères, tous calculés dans <code>get_diagnosis</code> / <code>WH_outer_aux</code> (\(n_*\) = nb de poids strictement positifs, <code>n_pos</code>)&nbsp;:</p>
+<table>
+<tr><th>Critère</th><th>Formule (code)</th><th>À</th></tr>
+<tr><td>AIC</td><td>\(\mathrm{dev}+2\,\mathrm{edf}\)</td><td>min</td></tr>
+<tr><td>BIC</td><td>\(\mathrm{dev}+\log(n_*)\,\mathrm{edf}\)</td><td>min</td></tr>
+<tr><td>GCV</td><td>\(n_*\,\mathrm{dev}/(n_*-\mathrm{edf})^2\)</td><td>min</td></tr>
+<tr><td>REML / LAML</td><td>\((\mathrm{dev}+\mathrm{pen})/2+K/2-\ell_{\mathrm{sat}}\)</td><td>min</td></tr>
+</table>
+<p>avec la constante <code>compute_K</code>&nbsp;:</p>
+$$K=\underbrace{2\textstyle\sum_i\log R_{ii}}_{\log|W+P_\lambda|}-\underbrace{\log|P_\lambda|_+}_{\text{pseudo-dét.}}-\;q\log(2\pi),$$
+$$\log|P_\lambda|_+=\begin{cases}(p-q)\log\lambda+\sum_{i>q}\log s_i & \text{(1D)}\\[2pt]\sum_{s>0}\log(\lambda_x s_x+\lambda_z s_z) & \text{(2D)}\end{cases}$$
+<p>où \(s\) = valeurs propres de \(D^TD\) (<code>eigenvalues_compact_lapack</code>, les \(q\) premières forcées à 0). Terme saturé \(\ell_{\mathrm{sat}}=-n_*/2\,\log(2\pi)\) en régression, \(0\) en ML (absorbé dans la déviance). <b>Minimiser ce score équivaut à maximiser la LAML</b> du papier
+\(\ell^m_{\mathrm{LAML}}=\ell(\hat\theta)-\tfrac12[\hat\theta^TP_\lambda\hat\theta+\log|W_\lambda+P_\lambda|-\log|P_\lambda|_+-q\log 2\pi]\). <span class="badge b-ok">MATCH</span></p>
+<p class="small">Le papier note que REML/vraisemblance marginale est plus robuste en échantillon fini que GCV/AIC (qui peuvent sur-ajuster&nbsp;: GCV a parfois deux minima locaux). D'où le défaut <code>"REML"</code>.</p>
+
+<h3 id="m-algos">Algorithmes d'optimisation de \(\lambda\)</h3>
+<p>Le package optimise toujours sur \(\log\lambda\). <b>Ce qui est livré</b> (<code>WH_outer</code>)&nbsp;: une <b>itération externe</b> (outer) avec un optimiseur <b>sans dérivée</b>&nbsp;:</p>
+<ul>
+<li>1D&nbsp;: <code>stats::optimize</code> (Brent) sur \(\log\lambda\in[-6,12]\log 10\)&nbsp;;</li>
+<li>2D&nbsp;: <code>stats::optim</code> (Nelder-Mead) ; \(\lambda\) initial via <code>find_starting_lambda</code> (uniroot calant \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\))&nbsp;;</li>
+<li>boucle interne&nbsp;: PIRLS avec démarrage à chaud (<code>eta_start</code> réutilisé d'une itération externe à l'autre)&nbsp;;</li>
+<li><code>auto_transpose</code>&nbsp;: en 2D, transpose pour minimiser la largeur de bande (gain de calcul).</li>
+</ul>
+<p>Le papier développe en outre — <b>non implémentés dans le package</b> — la méthode <b>Fellner-Schall généralisée</b> (mise à jour multiplicative, sans dérivée), l'algorithme de <b>Newton</b> (dérivées 1<sup>re</sup>/2<sup>de</sup> de la LAML), et deux schémas de nesting alternatifs (<b>performance iteration</b>, <b>alternate iteration</b>). Voir §5.</p>
+<div class="callout">
+<div class="t">Pourquoi le choix sans-dérivée tient la route</div>
+Le papier (§ <em>Performance comparison</em>) mesure, en outer iteration, une erreur relative sur la LAML &lt;10⁻⁷ pour Brent/Nelder-Mead (vs &lt;10⁻¹⁰ pour Newton). Comme la matrice modèle est l'identité, les pas PIRLS sont très bon marché&nbsp;: le surcoût en itérations du sans-dérivée est peu pénalisant en 1D (≈5&nbsp;ms) et acceptable en 2D (≈1,7&nbsp;s/itération Nelder-Mead). Newton reste le plus rapide+précis, donc « non optimal » mais « suffisant et simple ».
+</div>
+
+<h3 id="m-effic">Efficacité&nbsp;: l'optimisation «&nbsp;bande&nbsp;»</h3>
+<p>\(P_\lambda\) est une matrice <b>bande</b> (largeur \(q\) en 1D). Le package ne stocke jamais les matrices pleines&nbsp;: il utilise un <b>stockage compact</b> \((q+1)\times p\) et des kernels LAPACK bande&nbsp;:</p>
+<table>
+<tr><th>Kernel C++</th><th>Rôle</th></tr>
+<tr><td><code>create_P_compact_cpp</code></td><td>\(D_{n,q}^TD_{n,q}\) en compact bande.</td></tr>
+<tr><td><code>cholesky_compact_lapack</code></td><td>Cholesky bande \(R\) de \(W+P_\lambda\) (<em>dpbtrf</em>).</td></tr>
+<tr><td><code>backsolve_compact_cpp</code>, <code>backsolve_mat_compact_lapack</code></td><td>Résolutions triangulaires bande.</td></tr>
+<tr><td><code>diag_V_compact_cpp</code></td><td>Diagonale de \((W+P_\lambda)^{-1}\) (variances, edf) sans inverser tout.</td></tr>
+<tr><td><code>invert_cholesky_compact_lapack</code></td><td>\(R^{-1}\) pour <code>vcov</code>.</td></tr>
+<tr><td><code>eigenvalues_compact_lapack</code></td><td>Valeurs propres de \(D^TD\) (pour \(\log|P_\lambda|_+\)).</td></tr>
+<tr><td><code>get_prod_P_y/K_compact_cpp</code>, <code>submatrix_compact_cpp</code></td><td>Produits et sous-matrices bande pour l'extrapolation 2D.</td></tr>
+</table>
+<p class="small">C'est l'approche « <em>Banded optimization for WH smoothing</em> » du papier (§sec-reduction). La <b>réduction de rang / paramétrisation naturelle / GLAM</b> (§sec-vp, §sec-rr) — autre voie d'accélération du papier — <b>n'est pas</b> dans le code livré (les valeurs propres ne servent qu'au log-déterminant, pas à réduire la base). Voir §5.</p>
+
+<h3 id="m-extra">Extrapolation</h3>
+<p><b>1D (non contraint, <code>predict.WH_1d</code>)</b>&nbsp;: on étend la grille, on place un poids nul sur les nouveaux points, et on re-résout le système pénalisé sur la grille élargie&nbsp;; l'écart-type prédit vient de la diagonale de l'inverse étendu. La pénalité seule «&nbsp;prolonge&nbsp;» la tendance (polynôme de degré \(q-1\) aux bords).</p>
+<p><b>2D (contraint, <code>predict.WH_2d</code>)</b>&nbsp;: les valeurs prédites sont <b>contraintes</b> de coïncider avec l'ajustement sur le bloc observé. Le code partitionne la pénalité étendue, factorise le bloc «&nbsp;nouveaux points&nbsp;» (<code>R_22</code>, complément de Schur) et propage covariances via <code>get_y_new_compact</code> / <code>get_diag_V_pred_compact</code>. Justification&nbsp;: Carballo&nbsp;al.&nbsp;(2021) — sans contrainte, l'extrapolation 2D serait incohérente avec l'ajustement. <span class="badge b-warn">détail à étoffer</span></p>
+
+<!-- ============ 3 CORRESPONDANCE ============ -->
+<h2 class="sec" id="corr-table">3 · Correspondance code ↔ papier</h2>
+<p>Une ligne par quantité du package. Colonne <b>Match</b>&nbsp;: <span class="match y">=</span> vérifié conforme, <span class="match p">~</span> conforme à nuancer, <span class="match n">≠</span> écart, <span class="badge b-todo">À FAIRE</span> non encore vérifié.</p>
+<table>
+<tr><th>Code (fichier·fonction)</th><th>Calcul</th><th>Papier (§/eq)</th><th>Réf. Wood</th><th>Match</th><th>Note</th></tr>
+<tr><td><code>main.R · WH</code></td><td>Dispatch 1D/2D, ML/reg, λ fixé/auto</td><td>§brief, §structure</td><td>—</td><td class="match y">=</td><td>Façade.</td></tr>
+<tr><td><code>create_P_compact_cpp</code></td><td>\(D_{n,q}^TD_{n,q}\) bande</td><td>§brief (\(P_\lambda\))</td><td>—</td><td class="match y">=</td><td>Différences finies ordre \(q\).</td></tr>
+<tr><td><code>fit_pen_reg</code></td><td>\(\hat\theta=(W+P_\lambda)^{-1}Wz\) via Cholesky</td><td>§explicit</td><td>Wood2011</td><td class="match y">=</td><td>2 back-solves, pas d'inversion.</td></tr>
+<tr><td><code>fit_WH_fixed_lambda_ml</code> + <code>compute_z</code> + <code>get_valid_beta</code></td><td>PIRLS Poisson + step-halving</td><td>§generalisation, §algos-appendix</td><td>Wood2011, Wood2017(livre)</td><td class="match y">=</td><td>\(z=\theta+d/\mu-1\), \(W=\mathrm{Diag}(\mu)\).</td></tr>
+<tr><td><code>compute_res_deviance</code></td><td>Résidus de déviance Poisson</td><td>§generalisation</td><td>—</td><td class="match y">=</td><td>Forme standard.</td></tr>
+<tr><td><code>compute_K</code> / <code>compute_REML</code></td><td>\(K=\log|W+P_\lambda|-\log|P_\lambda|_+-q\log2\pi\)&nbsp;; score \((\mathrm{dev+pen})/2+K/2-\ell_{\mathrm{sat}}\)</td><td>§select-generalized (LAML), App. §likelihood-computations</td><td>Wood2011</td><td class="match y">=</td><td>min score ⟺ max LAML. <b>Pilote vérifié.</b></td></tr>
+<tr><td><code>get_diagnosis</code> (GCV)</td><td>\(n_*\mathrm{dev}/(n_*-\mathrm{edf})^2\)</td><td>§criteria (Wahba1980)</td><td>—</td><td class="match y">=</td><td>GCV standard.</td></tr>
+<tr><td><code>get_diagnosis</code> (AIC/BIC)</td><td>\(\mathrm{dev}+2\,\mathrm{edf}\) / \(+\log n_*\,\mathrm{edf}\)</td><td>§criteria</td><td>—</td><td class="match y">=</td><td>—</td></tr>
+<tr><td><code>edf = wt * diag_V</code></td><td>\(\mathrm{edf}_i=H_{ii}\), \(\mathrm{tr}(H)\)</td><td>§impact (trace de \(H\))</td><td>—</td><td class="match y">=</td><td>—</td></tr>
+<tr><td><code>WH_outer</code> (Brent/Nelder-Mead)</td><td>Outer iteration, sans dérivée</td><td>§algos (derivative-free), §comp-outer-perf</td><td>Brent1973, Nelder1965</td><td class="match p">~</td><td>Conforme mais = 1 combinaison sur 8 du papier. Voir §5-A.</td></tr>
+<tr><td><code>find_starting_lambda</code></td><td>\(\lambda_0\) tq \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\)</td><td>—&nbsp;?</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Heuristique d'init&nbsp;: retrouver sa justification dans le papier (ou la signaler comme non documentée).</td></tr>
+<tr><td>kernels <code>*_compact_*</code></td><td>Stockage + algèbre bande</td><td>§reduction (banded optimization)</td><td>Wood2017blacksmoke, Wood2020opti</td><td class="match y">=</td><td>Réduction de rang/GLAM <b>absente</b>. Voir §5-B.</td></tr>
+<tr><td><code>predict.WH_1d</code></td><td>Extrapolation non contrainte</td><td>§extra (unconstrained 1D)</td><td>—</td><td class="match p">~</td><td>À relire ligne à ligne vs §extra.</td></tr>
+<tr><td><code>predict.WH_2d</code></td><td>Extrapolation contrainte (Schur)</td><td>§extra (constrained 2D), App. §extrapolation-computation</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Vérifier la contrainte de Carballo2021 et le calcul de covariance.</td></tr>
+<tr><td><code>auto_transpose</code></td><td>Transpose pour bande minimale (2D)</td><td>§reduction&nbsp;?</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Confirmer présence/justification dans le papier.</td></tr>
+</table>
+
+<!-- ============ 4 WOOD ============ -->
+<h2 class="sec" id="wood">4 · Comparaison aux papiers de Wood</h2>
+<div class="callout todo">
+<div class="t"><span class="badge b-todo">À FAIRE</span> — plan établi, lecture des PDF à venir</div>
+Méthode (advisor)&nbsp;: lire d'abord la <b>cartographie mgcv</b> (<code>C:\Packages R\mgcv_clone\CLAUDE.md</code> + <code>cartographie/passe3/index.html</code>), qui sert d'index aux PDF, <b>puis</b> tirer chaque article à la demande, indexé par claim — pas les 8 PDF à froid.
+</div>
+<p>Mapping <b>méthode du package/papier → article de Wood</b>, déduit des citations du papier (à confirmer sur PDF)&nbsp;:</p>
+<table>
+<tr><th>Sujet</th><th>Article Wood</th><th>Ce qu'on doit vérifier</th></tr>
+<tr><td>REML / vraisemblance marginale + Newton (dérivées de la LAML)</td><td><code>Wood2011</code></td><td>Que la LAML du papier et le score REML du code sont le cas particulier «&nbsp;\(X=I\)&nbsp;» de Wood2011. Formes des dérivées si on implémente Newton.</td></tr>
+<tr><td>Fellner-Schall généralisé</td><td><code>Wood2017fellnerschall</code></td><td>La formule de mise à jour \(\lambda_j^{\text{next}}\) (eq-fs du papier) et sa justification&nbsp;; condition de convergence.</td></tr>
+<tr><td>Performance iteration</td><td>Gu1992 ; <code>Wood2017</code> (livre, p.149)</td><td>Pourquoi \(z_k\) n'a pas besoin d'être normal&nbsp;; nesting inversé.</td></tr>
+<tr><td>Alternate iteration</td><td><code>Wood2017blacksmoke</code></td><td>Schéma d'alternance \(\theta\)/\(\lambda\) sans optimisation complète.</td></tr>
+<tr><td>Optimisation bande / grands volumes</td><td><code>Wood2017blacksmoke</code>, <code>Wood2020opti</code></td><td>Le stockage bande du package vs la discrétisation/QR par blocs de Wood&nbsp;; ce qui est repris, ce qui diffère (WH a \(X=I\)).</td></tr>
+<tr><td>Réduction de rang / bases de lissage</td><td><code>Wood2004</code>, <code>Wood2016</code>, <code>Wood2020</code></td><td>La paramétrisation naturelle / GLAM du papier (non implémentée) vs les bases réduites de mgcv.</td></tr>
+</table>
+<p class="small">Livrable de cette partie&nbsp;: pour chaque ligne, une phrase «&nbsp;le package fait X, Wood fait Y, l'écart est Z&nbsp;» + le report dans §5 si ça ouvre une amélioration.</p>
+
+<!-- ============ 5 CORRECTIONS ============ -->
+<h2 class="sec" id="corrections">5 · Corrections / améliorations proposées</h2>
+<p>Chaque item&nbsp;: le constat, ce que dit le code, ce que dit le papier, puis <b>deux options à arbitrer</b> — <span style="color:var(--accent)">côté code</span> ou <span style="color:var(--accent2)">côté papier</span> — et ma recommandation. <em>Tu tranches item par item.</em></p>
+
+<div class="corr">
+<h3>A · Le package n'expose qu'un optimiseur sur huit <span class="badge b-warn">NUANCE</span></h3>
+<p><b>Constat.</b> Le papier développe 8 combinaisons (3 nestings × algos) et les compare&nbsp;; le code ne livre que <em>outer iteration + sans-dérivée</em> (Brent/Nelder-Mead). Fellner-Schall, Newton, performance et alternate iteration ne sont pas implémentés.</p>
+<p><b>Code dit.</b> <code>WH_outer</code> appelle <code>optimize</code>/<code>optim</code>. <b>Papier dit.</b> Newton est le plus rapide+précis&nbsp;; le sans-dérivée reste &lt;10⁻⁷ d'erreur LAML et «&nbsp;suffisant&nbsp;».</p>
+<div class="opts">
+<div class="opt code"><b>Option code</b>Ajouter au moins Fellner-Schall (peu coûteux, sans dérivée, robuste) comme alternative via un argument <code>method=</code>&nbsp;; éventuellement Newton.</div>
+<div class="opt paper"><b>Option papier</b>Rien à corriger&nbsp;: documenter explicitement (vignette + cette page) <em>pourquoi</em> le sans-dérivée a été retenu pour le package (simplicité, suffisance démontrée).</div>
+</div>
+<p class="small"><b>Reco&nbsp;:</b> a minima documenter (option papier/doc) ; l'ajout de Fellner-Schall est un «&nbsp;nice-to-have&nbsp;» à faible risque si tu veux que le package reflète le papier. Pas un bug.</p>
+</div>
+
+<div class="corr">
+<h3>B · Réduction de rang / GLAM&nbsp;: dans le papier, pas dans le code <span class="badge b-warn">NUANCE</span></h3>
+<p><b>Constat.</b> Le papier consacre une section (§sec-vp, §sec-rr) à la paramétrisation naturelle et à la réduction de rang (accélération majeure en 2D via GLAM). Le code livré utilise uniquement l'optimisation <em>bande</em> ; les valeurs propres calculées ne servent qu'au log-déterminant.</p>
+<div class="opts">
+<div class="opt code"><b>Option code</b>Implémenter la base réduite pour les gros problèmes 2D (gain de complexité annoncé dans le papier). Chantier non trivial.</div>
+<div class="opt paper"><b>Option papier</b>Aucune correction&nbsp;: clarifier dans la doc que le package implémente la variante «&nbsp;bande&nbsp;» (exacte, suffisante aux tailles actuarielles usuelles) et pas la réduction de rang.</div>
+</div>
+<p class="small"><b>Reco&nbsp;:</b> documenter l'écart pour cette v0 ; n'implémenter la réduction de rang que si des cas 2D volumineux le justifient.</p>
+</div>
+
+<div class="corr">
+<h3>C · Heuristiques non documentées <span class="badge b-todo">à instruire</span></h3>
+<p><b>Constat.</b> Deux choix d'implémentation n'ont pas (encore) de référence claire dans le papier&nbsp;: l'initialisation de \(\lambda\) en 2D (<code>find_starting_lambda</code>, cible un ratio edf/n ≈ 0,2) et l'<code>auto_transpose</code>. Soit ils figurent dans le papier (à localiser), soit ils méritent une note.</p>
+<div class="opts">
+<div class="opt code"><b>Option code</b>Si non justifiés&nbsp;: ajouter un commentaire/renvoi dans le code, voire exposer <code>lambda_start_ratio</code> dans la doc utilisateur.</div>
+<div class="opt paper"><b>Option papier</b>Si pertinents&nbsp;: les mentionner brièvement (note d'implémentation) pour que code et papier soient alignés.</div>
+</div>
+<p class="small"><b>Reco&nbsp;:</b> à trancher après localisation dans le papier (session suivante).</p>
+</div>
+
+<hr class="soft">
+<p class="small">Fin de la v0. Prochaine session&nbsp;: lire la cartographie mgcv + les PDF Wood (partie 4), relire ligne à ligne <code>predict.WH_2d</code> et l'appendice extrapolation, localiser les heuristiques (item C), puis enrichir la table de correspondance et la liste de corrections.</p>
+
+</main>
+</div>
+</body>
+</html>
