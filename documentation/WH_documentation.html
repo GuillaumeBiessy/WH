@@ -68,7 +68,7 @@ a.cite{color:var(--accent);text-decoration:none}
 <div class="wrap">
 <nav>
   <strong>WH · documentation</strong>
-  <div class="small" style="margin:4px 0 6px">package v2.0.0 · doc v0 (2026-06-03)</div>
+  <div class="small" style="margin:4px 0 6px">package v2.0.0 · doc v1 (2026-06-03)</div>
   <h2>0 · Cadre</h2>
   <a href="#apropos">À propos de ce document</a>
   <a href="#statut">Statut &amp; reste-à-faire</a>
@@ -126,10 +126,10 @@ a.cite{color:var(--accent);text-decoration:none}
 <tr><th>Partie</th><th>État</th><th>Note</th></tr>
 <tr><td>1 · Fonctionnel</td><td><span class="badge b-ok">complet</span></td><td>Dérivé du code, de la vignette et du roxygen.</td></tr>
 <tr><td>2 · Mathématique — cœur</td><td><span class="badge b-ok">complet</span></td><td>Critère, cadres survie/régression, Bayes/variance/edf, critères de sélection, bande.</td></tr>
-<tr><td>2 · Mathématique — détails</td><td><span class="badge b-warn">partiel</span></td><td>Dérivations fines de l'extrapolation 2D contrainte et formulations complètes des 3 nestings&nbsp;: résumées, à étoffer.</td></tr>
-<tr><td>3 · Correspondance</td><td><span class="badge b-ok">amorcée, solide</span></td><td>Lignes vérifiées en session 1&nbsp;; quelques lignes marquées <span class="badge b-todo">À FAIRE</span>.</td></tr>
-<tr><td>4 · Wood</td><td><span class="badge b-todo">plan + amorce</span></td><td>Mapping méthode→article établi depuis les citations du papier&nbsp;; lecture des PDF + cartographie mgcv à faire.</td></tr>
-<tr><td>5 · Corrections</td><td><span class="badge b-warn">3 items amorcés</span></td><td>S'enrichira après l'overlay Wood et la lecture fine des appendices.</td></tr>
+<tr><td>2 · Mathématique — détails</td><td><span class="badge b-ok">complet</span></td><td>Extrapolation 1D non contrainte et 2D contrainte&nbsp;: formules exactes du papier vérifiées ligne à ligne contre le code (session 2).</td></tr>
+<tr><td>3 · Correspondance</td><td><span class="badge b-ok">complète</span></td><td>Toutes les lignes vérifiées&nbsp;; les <span class="badge b-todo">À FAIRE</span> de la v0 (predict 1D/2D, heuristiques) sont levés.</td></tr>
+<tr><td>4 · Wood</td><td><span class="badge b-ok">renseigné</span></td><td>Cartographie mgcv + 4 articles de Wood lus&nbsp;; chaque ligne dit «&nbsp;le package fait X, Wood fait Y, l'écart est Z&nbsp;».</td></tr>
+<tr><td>5 · Corrections</td><td><span class="badge b-warn">3 items, arbitrage ouvert</span></td><td>Aucune divergence dure code↔papier&nbsp;; les écarts sont de <em>périmètre</em> (méthodes non livrées) et de <em>documentation</em> (1 heuristique non décrite). À toi de trancher.</td></tr>
 </table>
 
 <!-- ============ 1 FONCTIONNEL ============ -->
@@ -260,9 +260,9 @@ $$\log|P_\lambda|_+=\begin{cases}(p-q)\log\lambda+\sum_{i>q}\log s_i & \text{(1D
 <p>Le package optimise toujours sur \(\log\lambda\). <b>Ce qui est livré</b> (<code>WH_outer</code>)&nbsp;: une <b>itération externe</b> (outer) avec un optimiseur <b>sans dérivée</b>&nbsp;:</p>
 <ul>
 <li>1D&nbsp;: <code>stats::optimize</code> (Brent) sur \(\log\lambda\in[-6,12]\log 10\)&nbsp;;</li>
-<li>2D&nbsp;: <code>stats::optim</code> (Nelder-Mead) ; \(\lambda\) initial via <code>find_starting_lambda</code> (uniroot calant \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\))&nbsp;;</li>
+<li>2D&nbsp;: <code>stats::optim</code> (Nelder-Mead) ; \(\lambda\) initial via <code>find_starting_lambda</code> (uniroot calant \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\), une edf/point cible ≈ 0,2). <span class="small">Le papier (Algorithme 2) ne fixe qu'«&nbsp;une valeur initiale arbitraire&nbsp;»&nbsp;: ce ratio 0,2 est un choix d'implémentation non décrit — voir §5-C.</span></li>
 <li>boucle interne&nbsp;: PIRLS avec démarrage à chaud (<code>eta_start</code> réutilisé d'une itération externe à l'autre)&nbsp;;</li>
-<li><code>auto_transpose</code>&nbsp;: en 2D, transpose pour minimiser la largeur de bande (gain de calcul).</li>
+<li><code>auto_transpose</code>&nbsp;: en 2D, transpose si \((q_x+1)/n_x<(q_z+1)/n_z\) pour minimiser la largeur de bande effective \(q_z\,n_x\). <span class="small">C'est exactement la règle de permutation du papier (§sec-reduction)&nbsp;; la condition du code y est algébriquement identique.</span></li>
 </ul>
 <p>Le papier développe en outre — <b>non implémentés dans le package</b> — la méthode <b>Fellner-Schall généralisée</b> (mise à jour multiplicative, sans dérivée), l'algorithme de <b>Newton</b> (dérivées 1<sup>re</sup>/2<sup>de</sup> de la LAML), et deux schémas de nesting alternatifs (<b>performance iteration</b>, <b>alternate iteration</b>). Voir §5.</p>
 <div class="callout">
@@ -285,8 +285,10 @@ Le papier (§ <em>Performance comparison</em>) mesure, en outer iteration, une e
 <p class="small">C'est l'approche « <em>Banded optimization for WH smoothing</em> » du papier (§sec-reduction). La <b>réduction de rang / paramétrisation naturelle / GLAM</b> (§sec-vp, §sec-rr) — autre voie d'accélération du papier — <b>n'est pas</b> dans le code livré (les valeurs propres ne servent qu'au log-déterminant, pas à réduire la base). Voir §5.</p>
 
 <h3 id="m-extra">Extrapolation</h3>
-<p><b>1D (non contraint, <code>predict.WH_1d</code>)</b>&nbsp;: on étend la grille, on place un poids nul sur les nouveaux points, et on re-résout le système pénalisé sur la grille élargie&nbsp;; l'écart-type prédit vient de la diagonale de l'inverse étendu. La pénalité seule «&nbsp;prolonge&nbsp;» la tendance (polynôme de degré \(q-1\) aux bords).</p>
-<p><b>2D (contraint, <code>predict.WH_2d</code>)</b>&nbsp;: les valeurs prédites sont <b>contraintes</b> de coïncider avec l'ajustement sur le bloc observé. Le code partitionne la pénalité étendue, factorise le bloc «&nbsp;nouveaux points&nbsp;» (<code>R_22</code>, complément de Schur) et propage covariances via <code>get_y_new_compact</code> / <code>get_diag_V_pred_compact</code>. Justification&nbsp;: Carballo&nbsp;al.&nbsp;(2021) — sans contrainte, l'extrapolation 2D serait incohérente avec l'ajustement. <span class="badge b-warn">détail à étoffer</span></p>
+<p>Principe commun (§sec-extra du papier)&nbsp;: on plonge la grille observée dans une grille élargie via une matrice de sélection \(C\) (\(C\mathbf y_+\) extrait les positions observées, \(CC^T=I\)), on pose un poids nul sur les nouveaux points (\(W_+=C^TWC\)), et on minimise le critère étendu \((\mathbf y_+-\theta_+)^TW_+(\mathbf y_+-\theta_+)+\theta_+^TP_+\theta_+\) à \(\lambda\) <b>fixé</b> (hérité de l'ajustement).</p>
+<p><b>1D — non contraint (<code>predict.WH_1d</code>).</b> Solution directe \(\hat{\mathbf y}_+=(W_++P_+)^{-1}W_+\mathbf y_+\). Le code étend la grille (<code>create_P_compact_cpp(n_tot,q)</code>), <b>place 0</b> dans <code>wt</code> et <code>tXWz</code> aux nouveaux points, re-résout par <code>fit_pen_reg</code>, et lit l'écart-type sur \(\sqrt{\textbf{diag}(W_++P_+)^{-1}}\) (<code>diag_V_compact_cpp(fit$R)</code>). Le papier démontre qu'en 1D le bloc \(D_2\) est triangulaire inversible, donc \(V_+^{11}=V\)&nbsp;: <b>l'ajustement initial reste inchangé</b> et l'extrapolation prolonge la tendance par un polynôme de degré \(q-1\) (Carballo&nbsp;al.&nbsp;2021). <span class="badge b-ok">MATCH</span></p>
+<p><b>2D — contraint (<code>predict.WH_2d</code>).</b> En 2D la simplification précédente tombe&nbsp;: une extrapolation non contrainte <em>modifierait</em> les valeurs ajustées (la pénalité, plus seule à peser, re-lisse tout). On impose donc \(C\hat\theta_+^\ast=\hat{\mathbf y}\) via un multiplicateur de Lagrange (Carballo&nbsp;al.&nbsp;2021). La solution en forme close est \(\hat{\mathbf y}^\ast_+=Q^T\big[\,I\,;\,-(P_+^{22})^{-1}P_+^{21}\,\big]^T\hat{\mathbf y}\), c.-à-d. valeurs observées conservées, nouvelles valeurs \(\hat{\mathbf y}_{\text{new}}=-(P_+^{22})^{-1}P_+^{21}\hat{\mathbf y}\).</p>
+<p class="small">Dans le code&nbsp;: <code>R_22</code> est la factorisée de Cholesky du <b>bloc de pénalité sur les nouveaux points</b> \(P_+^{22}\) (et non un complément de Schur)&nbsp;: <code>submatrix_compact_cpp(P_pred, ind_fit)</code> <em>retire</em> les indices observés (<code>ind_fit</code>) et garde les nouveaux. <code>get_y_new_compact</code> calcule \(P_+^{21}\hat{\mathbf y}\) puis \(-(P_+^{22})^{-1}\!\cdot\) via deux back-solves sur <code>R_22</code> — exactement la formule. La variance \(V_+^\ast\) sur le bloc nouveau est \((P_+^{22})^{-1}P_+^{21}\,V\,P_+^{12}(P_+^{22})^{-1}+(P_+^{22})^{-1}\)&nbsp;: <code>get_diag_V_pred_compact</code> accumule \(\sum_j(BR^{-1}e_j)^2\) (terme de <b>propagation</b>, où \(B=(P_+^{22})^{-1}P_+^{21}\)) et <code>+ diag_V_compact_cpp(R_22)</code> ajoute le terme d'<b>innovation</b> \((P_+^{22})^{-1}\). Détail révélateur&nbsp;: la boucle de variance est alimentée par <code>object$R</code> — la Cholesky de l'<em>ajustement d'origine</em>, donc le \(V\) original et non \(V_+^{11}\). Utiliser \(V\) plutôt que \(V_+^{11}\) est précisément la <b>signature de la solution contrainte</b>. <span class="badge b-ok">MATCH</span></p>
 
 <!-- ============ 3 CORRESPONDANCE ============ -->
 <h2 class="sec" id="corr-table">3 · Correspondance code ↔ papier</h2>
@@ -302,31 +304,55 @@ Le papier (§ <em>Performance comparison</em>) mesure, en outer iteration, une e
 <tr><td><code>get_diagnosis</code> (GCV)</td><td>\(n_*\mathrm{dev}/(n_*-\mathrm{edf})^2\)</td><td>§criteria (Wahba1980)</td><td>—</td><td class="match y">=</td><td>GCV standard.</td></tr>
 <tr><td><code>get_diagnosis</code> (AIC/BIC)</td><td>\(\mathrm{dev}+2\,\mathrm{edf}\) / \(+\log n_*\,\mathrm{edf}\)</td><td>§criteria</td><td>—</td><td class="match y">=</td><td>—</td></tr>
 <tr><td><code>edf = wt * diag_V</code></td><td>\(\mathrm{edf}_i=H_{ii}\), \(\mathrm{tr}(H)\)</td><td>§impact (trace de \(H\))</td><td>—</td><td class="match y">=</td><td>—</td></tr>
-<tr><td><code>WH_outer</code> (Brent/Nelder-Mead)</td><td>Outer iteration, sans dérivée</td><td>§algos (derivative-free), §comp-outer-perf</td><td>Brent1973, Nelder1965</td><td class="match p">~</td><td>Conforme mais = 1 combinaison sur 8 du papier. Voir §5-A.</td></tr>
-<tr><td><code>find_starting_lambda</code></td><td>\(\lambda_0\) tq \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\)</td><td>—&nbsp;?</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Heuristique d'init&nbsp;: retrouver sa justification dans le papier (ou la signaler comme non documentée).</td></tr>
-<tr><td>kernels <code>*_compact_*</code></td><td>Stockage + algèbre bande</td><td>§reduction (banded optimization)</td><td>Wood2017blacksmoke, Wood2020opti</td><td class="match y">=</td><td>Réduction de rang/GLAM <b>absente</b>. Voir §5-B.</td></tr>
-<tr><td><code>predict.WH_1d</code></td><td>Extrapolation non contrainte</td><td>§extra (unconstrained 1D)</td><td>—</td><td class="match p">~</td><td>À relire ligne à ligne vs §extra.</td></tr>
-<tr><td><code>predict.WH_2d</code></td><td>Extrapolation contrainte (Schur)</td><td>§extra (constrained 2D), App. §extrapolation-computation</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Vérifier la contrainte de Carballo2021 et le calcul de covariance.</td></tr>
-<tr><td><code>auto_transpose</code></td><td>Transpose pour bande minimale (2D)</td><td>§reduction&nbsp;?</td><td>—</td><td class="badge b-todo">À FAIRE</td><td>Confirmer présence/justification dans le papier.</td></tr>
+<tr><td><code>WH_outer</code> (Brent/Nelder-Mead)</td><td>Outer iteration, sans dérivée</td><td>§algos (derivative-free), §comp-outer-perf, App. Algo 2</td><td>Brent1973, Nelder1965</td><td class="match p">~</td><td>Conforme mais = 1 combinaison sur 8 du papier. Voir §5-A.</td></tr>
+<tr><td><code>find_starting_lambda</code></td><td>\(\lambda_0\) tq \(\overline{w/(w+\lambda\,\mathrm{diag}P)}=0.2\) (2D seul.)</td><td>App. Algo 2 («&nbsp;valeur arbitraire&nbsp;»)</td><td>—</td><td class="match p">~</td><td>Correct mais <b>non décrit</b> dans le papier (qui ne fixe qu'«&nbsp;une valeur initiale arbitraire&nbsp;»). Voir §5-C.</td></tr>
+<tr><td>kernels <code>*_compact_*</code></td><td>Stockage + algèbre bande (Cholesky <em>dpbtrf</em>)</td><td>§reduction (banded optimization)</td><td>—&nbsp;<span class="small">(Golub&amp;VanLoan2013)</span></td><td class="match y">=</td><td>Algèbre bande <b>classique</b>, pas une technique de Wood. Réduction de rang/GLAM (§sec-vp/rr, d'après Currie2006&nbsp;/&nbsp;Demmler1975) <b>absente</b>. Voir §5-B.</td></tr>
+<tr><td><code>predict.WH_1d</code></td><td>Extrapolation non contrainte \((W_++P_+)^{-1}W_+\mathbf y_+\)</td><td>§extra (unconstrained 1D)</td><td>—</td><td class="match y">=</td><td><b>Vérifié&nbsp;:</b> poids 0 aux nouveaux points, \(V_+^{11}=V\) (Carballo2021), fit inchangé.</td></tr>
+<tr><td><code>predict.WH_2d</code></td><td>Extrapolation contrainte \(\hat{\mathbf y}_{\text{new}}=-(P_+^{22})^{-1}P_+^{21}\hat{\mathbf y}\)</td><td>§extra (constrained 2D), App. §extrapolation-computation</td><td>—</td><td class="match y">=</td><td><b>Vérifié ligne à ligne&nbsp;:</b> <code>R_22</code>=Cholesky de \(P_+^{22}\) (nouveaux points), variance = propagation + innovation \((P_+^{22})^{-1}\). Carballo2021.</td></tr>
+<tr><td><code>auto_transpose</code></td><td>Transpose si \((q_x{+}1)/n_x<(q_z{+}1)/n_z\)</td><td>§reduction (règle de permutation)</td><td>—</td><td class="match y">=</td><td><b>Dans le papier</b>&nbsp;: condition du code algébriquement identique à la règle de permutation de §sec-reduction.</td></tr>
 </table>
 
 <!-- ============ 4 WOOD ============ -->
 <h2 class="sec" id="wood">4 · Comparaison aux papiers de Wood</h2>
-<div class="callout todo">
-<div class="t"><span class="badge b-todo">À FAIRE</span> — plan établi, lecture des PDF à venir</div>
-Méthode (advisor)&nbsp;: lire d'abord la <b>cartographie mgcv</b> (<code>C:\Packages R\mgcv_clone\CLAUDE.md</code> + <code>cartographie/passe3/index.html</code>), qui sert d'index aux PDF, <b>puis</b> tirer chaque article à la demande, indexé par claim — pas les 8 PDF à froid.
+<div class="callout ok">
+<div class="t">Le fil conducteur&nbsp;: WH est le cas particulier \(X=I\) du cadre de Wood</div>
+Les méthodes de sélection de \(\lambda\) du papier (et donc du package) sont des spécialisations, au <b>modèle à matrice identité</b>, du cadre GLM pénalisé / REML développé par S.&nbsp;Wood pour <code>mgcv</code>. Conséquence centrale&nbsp;: chez Wood la matrice modèle \(X\) (bases de splines à rang réduit) est l'objet coûteux — tout le moteur <code>gdi</code>/<code>bam</code> sert à former et factoriser \(X^TWX\). En WH, <b>\(X=I\)</b>&nbsp;: il y a un paramètre par point, \(\hat{\boldsymbol\beta}=\hat{\boldsymbol\theta}\), les pas PIRLS sont triviaux, et <b>aucun produit \(X^TWX\) n'existe</b>. Une bonne part de la machinerie «&nbsp;gros volumes&nbsp;» de Wood est donc <em>sans objet</em> ici&nbsp;; le levier d'efficacité de WH est ailleurs (la <b>bande</b> de \(P_\lambda\)).
 </div>
-<p>Mapping <b>méthode du package/papier → article de Wood</b>, déduit des citations du papier (à confirmer sur PDF)&nbsp;:</p>
+<p>Pour chaque sujet&nbsp;: <b>ce que fait le package (X)</b>, <b>ce que fait Wood&nbsp;/&nbsp;mgcv (Y)</b>, <b>l'écart (Z)</b>. Articles lus&nbsp;: <em>cartographie fonctionnelle de mgcv</em> + les 4 PDF ci-dessous.</p>
 <table>
-<tr><th>Sujet</th><th>Article Wood</th><th>Ce qu'on doit vérifier</th></tr>
-<tr><td>REML / vraisemblance marginale + Newton (dérivées de la LAML)</td><td><code>Wood2011</code></td><td>Que la LAML du papier et le score REML du code sont le cas particulier «&nbsp;\(X=I\)&nbsp;» de Wood2011. Formes des dérivées si on implémente Newton.</td></tr>
-<tr><td>Fellner-Schall généralisé</td><td><code>Wood2017fellnerschall</code></td><td>La formule de mise à jour \(\lambda_j^{\text{next}}\) (eq-fs du papier) et sa justification&nbsp;; condition de convergence.</td></tr>
-<tr><td>Performance iteration</td><td>Gu1992 ; <code>Wood2017</code> (livre, p.149)</td><td>Pourquoi \(z_k\) n'a pas besoin d'être normal&nbsp;; nesting inversé.</td></tr>
-<tr><td>Alternate iteration</td><td><code>Wood2017blacksmoke</code></td><td>Schéma d'alternance \(\theta\)/\(\lambda\) sans optimisation complète.</td></tr>
-<tr><td>Optimisation bande / grands volumes</td><td><code>Wood2017blacksmoke</code>, <code>Wood2020opti</code></td><td>Le stockage bande du package vs la discrétisation/QR par blocs de Wood&nbsp;; ce qui est repris, ce qui diffère (WH a \(X=I\)).</td></tr>
-<tr><td>Réduction de rang / bases de lissage</td><td><code>Wood2004</code>, <code>Wood2016</code>, <code>Wood2020</code></td><td>La paramétrisation naturelle / GLAM du papier (non implémentée) vs les bases réduites de mgcv.</td></tr>
+<tr><th style="width:17%">Sujet</th><th style="width:28%">Le package fait X</th><th style="width:33%">Wood / mgcv fait Y</th><th>Écart Z</th></tr>
+<tr>
+<td><b>Sélection REML/LAML</b><br><span class="small"><code>Wood2011</code> — JRSS-B, «&nbsp;Fast stable REML and ML estimation of semiparametric GLMs&nbsp;»</span></td>
+<td>Calcule la LAML (<code>compute_K</code>/<code>compute_REML</code>) et l'optimise <b>sans dérivées</b> (Brent/Nelder-Mead). Le score REML est exactement la LAML de Wood2011 prise en \(X=I\).</td>
+<td>Même approximation de Laplace de la REML/ML, pour \(X\) <b>général</b>, optimisée par <b>Newton</b> sur \(\ln\lambda\) avec dérivées 1<sup>re</sup>/2<sup>de</sup> obtenues par <b>différentiation implicite</b> (\(d\hat\beta/d\lambda\), \(d\,\mathrm{tr}(A)/d\lambda\)…, moteur <code>gdi</code>). Exige Newton-Raphson (pas Fisher scoring) pour l'ajustement.</td>
+<td>WH <b>ne calcule pas</b> les dérivées de la LAML → pas de Newton. Pas un bug&nbsp;: la maths est la même (cas \(X=I\)), seul l'optimiseur diffère. Voir §5-A.</td>
+</tr>
+<tr>
+<td><b>Fellner-Schall</b><br><span class="small"><code>Wood2017fellnerschall</code> — Biometrics, «&nbsp;A Generalized Fellner-Schall Method&nbsp;»</span></td>
+<td><b>Non implémenté.</b> Le papier WH <em>présente</em> la formule de mise à jour multiplicative (eq-fs) mais le code livré ne l'expose pas.</td>
+<td>Généralise Fellner(1986)/Schall(1991) aux pénalités linéaires en plusieurs \(\lambda\) (tensoriels, adaptatifs)&nbsp;; <b>prouve</b> que chaque pas augmente la REML&nbsp;; ne requiert que les dérivées 1<sup>re</sup>/2<sup>de</sup> déjà nécessaires à l'estimation de \(\beta\).</td>
+<td>Alternative <b>sans dérivée explicite, robuste, peu coûteuse</b>, absente du package. Candidate naturelle d'ajout. Voir §5-A.</td>
+</tr>
+<tr>
+<td><b>Stratégies de nesting</b><br><span class="small">performance&nbsp;: Gu1992 · alternate&nbsp;: <code>Wood2017blacksmoke</code></span></td>
+<td>Livre <b>uniquement l'outer iteration</b> (PIRLS complet pour chaque \(\lambda\) candidat). Performance et alternate iteration décrites au papier, <b>pas</b> au code.</td>
+<td><code>Wood2017blacksmoke</code> (JASA, «&nbsp;GAMs for Gigadata&nbsp;») emploie l'<b>alternate / single iteration</b>&nbsp;: \(\theta\) et \(\lambda\) mis à jour en alternance, sans optimiser pleinement à chaque pas — clé pour les très grands volumes.</td>
+<td>Nesting alternatif absent. Le papier WH note qu'ils manquent de garantie de convergence formelle&nbsp;; l'outer (livré) est comparable en précision et contrôlable.</td>
+</tr>
+<tr>
+<td><b>Efficacité gros volumes</b><br><span class="small"><code>Wood2017blacksmoke</code> · <code>Wood2020opti</code> — Stat.&nbsp;Comput., «&nbsp;Faster model matrix crossproducts&nbsp;»</span></td>
+<td>Efficacité = <b>stockage compact + Cholesky bande</b> de \(W+P_\lambda\) (<em>dpbtrf</em>), algèbre bande classique (Golub&nbsp;&amp;&nbsp;Van&nbsp;Loan).</td>
+<td>L'efficacité gros volumes de mgcv vient de la <b>discrétisation des covariables</b> et du calcul accéléré de \(X^TWX\) (<code>discrete.c</code>, row-Kronecker, QR par blocs, Cholesky de \(X^TWX\)).</td>
+<td><b>Largement sans objet pour WH&nbsp;:</b> \(X=I\) ⟹ pas de \(X^TWX\) à former ni à accélérer. Le levier de WH est la bande de \(P_\lambda\), <b>pas</b> la discrétisation — mécanismes distincts, pas un retard.</td>
+</tr>
+<tr>
+<td><b>Réduction de rang / bases</b><br><span class="small">papier&nbsp;: Currie2006 (GLAM), Demmler-Reinsch · mgcv&nbsp;: <code>Wood2004</code></span></td>
+<td><b>Non implémentée.</b> Le papier décrit la paramétrisation naturelle (Demmler-Reinsch) + réduction de rang via GLAM (Currie2006) pour accélérer le 2D&nbsp;; le code reste en <b>base pleine</b> (les valeurs propres ne servent qu'au log-déterminant).</td>
+<td>mgcv repose <em>de base</em> sur des <b>bases de lissage à rang réduit</b> (thin-plate regression splines, <code>Wood2004</code>) — la troncature de rang est la primitive de tous les smooths.</td>
+<td>WH reste exact (base pleine) + bande. La réduction de rang (gain majeur annoncé en 2D volumineux) reste un chantier non livré. Voir §5-B.</td>
+</tr>
 </table>
-<p class="small">Livrable de cette partie&nbsp;: pour chaque ligne, une phrase «&nbsp;le package fait X, Wood fait Y, l'écart est Z&nbsp;» + le report dans §5 si ça ouvre une amélioration.</p>
+<p class="small">Bilan&nbsp;: aucun de ces écarts n'est une <em>erreur</em>. Ce sont (i) des méthodes du papier non encore embarquées (Fellner-Schall, Newton, nesting alternatif, réduction de rang) et (ii) une frontière de périmètre nette — le gros-volume «&nbsp;à la Wood&nbsp;» suppose \(X\neq I\), hors du terrain de WH. Report dans §5 pour arbitrage.</p>
 
 <!-- ============ 5 CORRECTIONS ============ -->
 <h2 class="sec" id="corrections">5 · Corrections / améliorations proposées</h2>
@@ -335,17 +361,17 @@ Méthode (advisor)&nbsp;: lire d'abord la <b>cartographie mgcv</b> (<code>C:\Pac
 <div class="corr">
 <h3>A · Le package n'expose qu'un optimiseur sur huit <span class="badge b-warn">NUANCE</span></h3>
 <p><b>Constat.</b> Le papier développe 8 combinaisons (3 nestings × algos) et les compare&nbsp;; le code ne livre que <em>outer iteration + sans-dérivée</em> (Brent/Nelder-Mead). Fellner-Schall, Newton, performance et alternate iteration ne sont pas implémentés.</p>
-<p><b>Code dit.</b> <code>WH_outer</code> appelle <code>optimize</code>/<code>optim</code>. <b>Papier dit.</b> Newton est le plus rapide+précis&nbsp;; le sans-dérivée reste &lt;10⁻⁷ d'erreur LAML et «&nbsp;suffisant&nbsp;».</p>
+<p><b>Code dit.</b> <code>WH_outer</code> appelle <code>optimize</code>/<code>optim</code>. <b>Papier dit.</b> Newton (dérivées de la LAML, <code>Wood2011</code>) est le plus rapide+précis&nbsp;; Fellner-Schall (<code>Wood2017fellnerschall</code>) suit&nbsp;; le sans-dérivée reste &lt;10⁻⁷ d'erreur LAML et «&nbsp;suffisant&nbsp;» (les pas PIRLS sont triviaux car \(X=I\)).</p>
 <div class="opts">
-<div class="opt code"><b>Option code</b>Ajouter au moins Fellner-Schall (peu coûteux, sans dérivée, robuste) comme alternative via un argument <code>method=</code>&nbsp;; éventuellement Newton.</div>
-<div class="opt paper"><b>Option papier</b>Rien à corriger&nbsp;: documenter explicitement (vignette + cette page) <em>pourquoi</em> le sans-dérivée a été retenu pour le package (simplicité, suffisance démontrée).</div>
+<div class="opt code"><b>Option code</b>Ajouter au moins Fellner-Schall (peu coûteux, sans dérivée explicite, robuste — ne requiert que les quantités déjà calculées pour \(\hat\theta\)) comme alternative via un argument <code>method=</code>&nbsp;; éventuellement Newton.</div>
+<div class="opt paper"><b>Option papier</b>Rien à corriger&nbsp;: documenter explicitement (vignette + cette page) <em>pourquoi</em> le sans-dérivée a été retenu pour le package (simplicité, suffisance démontrée &lt;10⁻⁷).</div>
 </div>
 <p class="small"><b>Reco&nbsp;:</b> a minima documenter (option papier/doc) ; l'ajout de Fellner-Schall est un «&nbsp;nice-to-have&nbsp;» à faible risque si tu veux que le package reflète le papier. Pas un bug.</p>
 </div>
 
 <div class="corr">
 <h3>B · Réduction de rang / GLAM&nbsp;: dans le papier, pas dans le code <span class="badge b-warn">NUANCE</span></h3>
-<p><b>Constat.</b> Le papier consacre une section (§sec-vp, §sec-rr) à la paramétrisation naturelle et à la réduction de rang (accélération majeure en 2D via GLAM). Le code livré utilise uniquement l'optimisation <em>bande</em> ; les valeurs propres calculées ne servent qu'au log-déterminant.</p>
+<p><b>Constat.</b> Le papier consacre une section (§sec-vp, §sec-rr) à la paramétrisation naturelle (Demmler-Reinsch) et à la réduction de rang (accélération majeure en 2D via GLAM, <code>Currie2006</code> — c'est une technique de Currie, pas de Wood). Le code livré utilise uniquement l'optimisation <em>bande</em> (algèbre bande classique) ; les valeurs propres calculées ne servent qu'au log-déterminant.</p>
 <div class="opts">
 <div class="opt code"><b>Option code</b>Implémenter la base réduite pour les gros problèmes 2D (gain de complexité annoncé dans le papier). Chantier non trivial.</div>
 <div class="opt paper"><b>Option papier</b>Aucune correction&nbsp;: clarifier dans la doc que le package implémente la variante «&nbsp;bande&nbsp;» (exacte, suffisante aux tailles actuarielles usuelles) et pas la réduction de rang.</div>
@@ -354,17 +380,21 @@ Méthode (advisor)&nbsp;: lire d'abord la <b>cartographie mgcv</b> (<code>C:\Pac
 </div>
 
 <div class="corr">
-<h3>C · Heuristiques non documentées <span class="badge b-todo">à instruire</span></h3>
-<p><b>Constat.</b> Deux choix d'implémentation n'ont pas (encore) de référence claire dans le papier&nbsp;: l'initialisation de \(\lambda\) en 2D (<code>find_starting_lambda</code>, cible un ratio edf/n ≈ 0,2) et l'<code>auto_transpose</code>. Soit ils figurent dans le papier (à localiser), soit ils méritent une note.</p>
+<h3>C · Une heuristique d'initialisation non décrite dans le papier <span class="badge b-warn">NUANCE</span></h3>
+<p><b>Constat (mis à jour session 2).</b> Des deux «&nbsp;heuristiques&nbsp;» suspectées en v0, une seule l'est réellement&nbsp;:</p>
+<ul>
+<li><code>auto_transpose</code> — <b>fausse alerte&nbsp;: c'est dans le papier.</b> La condition du code (transposer si \((q_x{+}1)/n_x<(q_z{+}1)/n_z\)) est <em>algébriquement identique</em> à la règle de permutation de §sec-reduction («&nbsp;dimensions \(x\) et \(z\) permutées pour une efficacité maximale&nbsp;»). Rien à corriger.</li>
+<li><code>find_starting_lambda</code> — <b>réellement non décrite.</b> En 2D, \(\lambda_0\) est calé pour que la moyenne de \(w/(w+\lambda\,\mathrm{diag}P)\) (une edf/point approchée) vaille \(0{,}2\). Le papier (Appendice, Algorithme&nbsp;2) ne prescrit qu'«&nbsp;une valeur initiale arbitraire&nbsp;». Le choix \(0{,}2\) est sain (point de départ modérément lissé) mais <em>silencieux</em>. À noter&nbsp;: l'argument <code>lambda_start_ratio</code> existe déjà dans <code>WH_outer</code> et est atteignable via <code>...</code> dans <code>WH()</code>, mais n'est <b>pas documenté</b> (absent du roxygen).</li>
+</ul>
 <div class="opts">
-<div class="opt code"><b>Option code</b>Si non justifiés&nbsp;: ajouter un commentaire/renvoi dans le code, voire exposer <code>lambda_start_ratio</code> dans la doc utilisateur.</div>
-<div class="opt paper"><b>Option papier</b>Si pertinents&nbsp;: les mentionner brièvement (note d'implémentation) pour que code et papier soient alignés.</div>
+<div class="opt code"><b>Option code</b>Documenter <code>lambda_start_ratio</code> dans le roxygen de <code>WH()</code> (l'exposer officiellement, avec sa sémantique edf/point) et ajouter un commentaire de renvoi dans <code>find_starting_lambda</code>.</div>
+<div class="opt paper"><b>Option papier</b>Ajouter une courte note d'implémentation au papier&nbsp;: «&nbsp;en pratique \(\lambda_0\) est choisi pour une edf/point initiale ≈ 0,2&nbsp;», pour que «&nbsp;valeur arbitraire&nbsp;» soit incarnée.</div>
 </div>
-<p class="small"><b>Reco&nbsp;:</b> à trancher après localisation dans le papier (session suivante).</p>
+<p class="small"><b>Reco&nbsp;:</b> côté code — c'est un détail interne, un mot dans le roxygen de <code>lambda_start_ratio</code> suffit&nbsp;; inutile d'alourdir le papier. Aucune incidence sur les résultats (point de départ seulement).</p>
 </div>
 
 <hr class="soft">
-<p class="small">Fin de la v0. Prochaine session&nbsp;: lire la cartographie mgcv + les PDF Wood (partie 4), relire ligne à ligne <code>predict.WH_2d</code> et l'appendice extrapolation, localiser les heuristiques (item C), puis enrichir la table de correspondance et la liste de corrections.</p>
+<p class="small">Fin de la v1. Confrontation code↔papier↔Wood <b>terminée</b>&nbsp;: cœur maths, critères de sélection, extrapolation 1D/2D et heuristiques tous vérifiés&nbsp;; comparaison aux 4 articles de Wood renseignée. <b>Aucune divergence dure</b> code↔papier n'a été trouvée — les trois items du §5 sont des arbitrages de <em>périmètre</em> (méthodes non livrées&nbsp;: A, B) et de <em>documentation</em> (heuristique non décrite&nbsp;: C), à trancher option par option. Le seul reste-à-faire est ta décision sur chacun.</p>
 
 </main>
 </div>
