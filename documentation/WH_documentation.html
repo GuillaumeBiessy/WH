@@ -44,7 +44,7 @@ th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-ali
 th{background:#eef2f8;font-weight:600}
 tr:nth-child(even) td{background:#f7f9fc}
 .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;letter-spacing:.02em;vertical-align:middle}
-.b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-gap{background:var(--gap)} .b-todo{background:var(--todo)}
+.b-ok{background:var(--ok)} .b-warn{background:var(--warn)} .b-gap{background:var(--gap)} .b-todo{background:var(--todo)} .b-choice{background:var(--accent)}
 .callout{border:1px solid var(--line);border-left:4px solid var(--accent);background:#fff;border-radius:8px;padding:12px 16px;margin:16px 0}
 .callout.gap{border-left-color:var(--gap)} .callout.todo{border-left-color:var(--todo)} .callout.ok{border-left-color:var(--ok)}
 .callout .t{font-weight:700;margin-bottom:3px}
@@ -68,7 +68,7 @@ a.cite{color:var(--accent);text-decoration:none}
 <div class="wrap">
 <nav>
   <strong>WH · documentation</strong>
-  <div class="small" style="margin:4px 0 6px">package v2.0.0 · doc v1 (2026-06-03)</div>
+  <div class="small" style="margin:4px 0 6px">package v2.0.0 · doc v1.1 (2026-06-04)</div>
   <h2>0 · Cadre</h2>
   <a href="#apropos">À propos de ce document</a>
   <a href="#statut">Statut &amp; reste-à-faire</a>
@@ -110,7 +110,7 @@ a.cite{color:var(--accent);text-decoration:none}
 <li><b>La documentation mathématique</b> — ce que le code calcule réellement, formule par formule.</li>
 <li><b>La correspondance code ↔ papier</b> — une ligne par quantité du package, reliée à l'équation / section du papier. C'est la colonne vertébrale&nbsp;: les écarts y apparaissent gratuitement.</li>
 <li><b>La comparaison aux papiers de Wood</b> — quelle méthode du package s'enracine dans quel article (Fellner-Schall, REML/Newton, itérations, bande).</li>
-<li><b>Les corrections / améliorations proposées</b> — chaque écart est présenté comme un choix&nbsp;: <span style="color:var(--accent)">aligner le code sur le papier</span> ou <span style="color:var(--accent2)">errata / clarification côté papier</span>. À toi de trancher, item par item.</li>
+<li><b>Les corrections / améliorations</b> — confrontation close, <b>aucune divergence dure</b>. Les écarts de méthode ne sont pas des manques mais un <b>choix de partition assumé</b> entre deux packages&nbsp;: <code>WH</code> (CRAN&nbsp;: léger, robuste) et <code>WHfull</code> (complet&nbsp;: toutes les méthodes du papier). Détail en §5.</li>
 </ol>
 <p class="small">Principe de vérité&nbsp;: <b>le code fait foi pour le comportement</b>, <b>le papier fait foi pour l'intention</b>. Le papier <em>est</em> déjà la documentation mathématique de référence (DOI arXiv:2306.06932)&nbsp;; la valeur ajoutée ici est la mise en regard avec ce qui est réellement <em>implémenté et livré sur CRAN</em>.</p>
 
@@ -119,9 +119,10 @@ a.cite{color:var(--accent);text-decoration:none}
 <span><span class="badge b-warn">NUANCE</span> conforme mais à documenter / choix non-trivial</span>
 <span><span class="badge b-gap">ÉCART</span> divergence ou manque à arbitrer</span>
 <span><span class="badge b-todo">À FAIRE</span> à compléter en session suivante</span>
+<span><span class="badge b-choice">CHOIX ASSUMÉ</span> choix de périmètre tranché (partition WH / WHfull)</span>
 </div>
 
-<h3 id="statut">Statut de cette v0 &amp; reste-à-faire</h3>
+<h3 id="statut">Statut de cette v1.1 &amp; reste-à-faire</h3>
 <table>
 <tr><th>Partie</th><th>État</th><th>Note</th></tr>
 <tr><td>1 · Fonctionnel</td><td><span class="badge b-ok">complet</span></td><td>Dérivé du code, de la vignette et du roxygen.</td></tr>
@@ -129,7 +130,7 @@ a.cite{color:var(--accent);text-decoration:none}
 <tr><td>2 · Mathématique — détails</td><td><span class="badge b-ok">complet</span></td><td>Extrapolation 1D non contrainte et 2D contrainte&nbsp;: formules exactes du papier vérifiées ligne à ligne contre le code (session 2).</td></tr>
 <tr><td>3 · Correspondance</td><td><span class="badge b-ok">complète</span></td><td>Toutes les lignes vérifiées&nbsp;; les <span class="badge b-todo">À FAIRE</span> de la v0 (predict 1D/2D, heuristiques) sont levés.</td></tr>
 <tr><td>4 · Wood</td><td><span class="badge b-ok">renseigné</span></td><td>Cartographie mgcv + 4 articles de Wood lus&nbsp;; chaque ligne dit «&nbsp;le package fait X, Wood fait Y, l'écart est Z&nbsp;».</td></tr>
-<tr><td>5 · Corrections</td><td><span class="badge b-warn">3 items, arbitrage ouvert</span></td><td>Aucune divergence dure code↔papier&nbsp;; les écarts sont de <em>périmètre</em> (méthodes non livrées) et de <em>documentation</em> (1 heuristique non décrite). À toi de trancher.</td></tr>
+<tr><td>5 · Corrections</td><td><span class="badge b-ok">tranché</span></td><td>Aucune divergence dure code↔papier. Les écarts de méthode (A, B) sont un <b>choix de partition assumé</b> — <code>WH</code> (CRAN léger) / <code>WHfull</code> (complet)&nbsp;; l'heuristique non décrite (C) est documentée ici, son ajout au roxygen réservé à un futur cycle dev.</td></tr>
 </table>
 
 <!-- ============ 1 FONCTIONNEL ============ -->
@@ -331,13 +332,13 @@ Les méthodes de sélection de \(\lambda\) du papier (et donc du package) sont d
 <td><b>Fellner-Schall</b><br><span class="small"><code>Wood2017fellnerschall</code> — Biometrics, «&nbsp;A Generalized Fellner-Schall Method&nbsp;»</span></td>
 <td><b>Non implémenté.</b> Le papier WH <em>présente</em> la formule de mise à jour multiplicative (eq-fs) mais le code livré ne l'expose pas.</td>
 <td>Généralise Fellner(1986)/Schall(1991) aux pénalités linéaires en plusieurs \(\lambda\) (tensoriels, adaptatifs)&nbsp;; <b>prouve</b> que chaque pas augmente la REML&nbsp;; ne requiert que les dérivées 1<sup>re</sup>/2<sup>de</sup> déjà nécessaires à l'estimation de \(\beta\).</td>
-<td>Alternative <b>sans dérivée explicite, robuste, peu coûteuse</b>, absente du package. Candidate naturelle d'ajout. Voir §5-A.</td>
+<td>Alternative <b>sans dérivée explicite, robuste, peu coûteuse</b>, absente de <code>WH</code> — <b>fournie par le package frère <code>WHfull</code></b>. Voir §5-A.</td>
 </tr>
 <tr>
 <td><b>Stratégies de nesting</b><br><span class="small">performance&nbsp;: Gu1992 · alternate&nbsp;: <code>Wood2017blacksmoke</code></span></td>
 <td>Livre <b>uniquement l'outer iteration</b> (PIRLS complet pour chaque \(\lambda\) candidat). Performance et alternate iteration décrites au papier, <b>pas</b> au code.</td>
 <td><code>Wood2017blacksmoke</code> (JASA, «&nbsp;GAMs for Gigadata&nbsp;») emploie l'<b>alternate / single iteration</b>&nbsp;: \(\theta\) et \(\lambda\) mis à jour en alternance, sans optimiser pleinement à chaque pas — clé pour les très grands volumes.</td>
-<td>Nesting alternatif absent. Le papier WH note qu'ils manquent de garantie de convergence formelle&nbsp;; l'outer (livré) est comparable en précision et contrôlable.</td>
+<td>Nesting alternatif absent de <code>WH</code> (présent dans <code>WHfull</code>). Le papier WH note qu'ils manquent de garantie de convergence formelle&nbsp;; l'outer (livré dans <code>WH</code>) est comparable en précision et contrôlable.</td>
 </tr>
 <tr>
 <td><b>Efficacité gros volumes</b><br><span class="small"><code>Wood2017blacksmoke</code> · <code>Wood2020opti</code> — Stat.&nbsp;Comput., «&nbsp;Faster model matrix crossproducts&nbsp;»</span></td>
@@ -349,52 +350,55 @@ Les méthodes de sélection de \(\lambda\) du papier (et donc du package) sont d
 <td><b>Réduction de rang / bases</b><br><span class="small">papier&nbsp;: Currie2006 (GLAM), Demmler-Reinsch · mgcv&nbsp;: <code>Wood2004</code></span></td>
 <td><b>Non implémentée.</b> Le papier décrit la paramétrisation naturelle (Demmler-Reinsch) + réduction de rang via GLAM (Currie2006) pour accélérer le 2D&nbsp;; le code reste en <b>base pleine</b> (les valeurs propres ne servent qu'au log-déterminant).</td>
 <td>mgcv repose <em>de base</em> sur des <b>bases de lissage à rang réduit</b> (thin-plate regression splines, <code>Wood2004</code>) — la troncature de rang est la primitive de tous les smooths.</td>
-<td>WH reste exact (base pleine) + bande. La réduction de rang (gain majeur annoncé en 2D volumineux) reste un chantier non livré. Voir §5-B.</td>
+<td><code>WH</code> reste exact (base pleine) + bande. La réduction de rang (gain majeur en 2D volumineux) <b>vit dans le package frère <code>WHfull</code></b>. Voir §5-B.</td>
 </tr>
 </table>
-<p class="small">Bilan&nbsp;: aucun de ces écarts n'est une <em>erreur</em>. Ce sont (i) des méthodes du papier non encore embarquées (Fellner-Schall, Newton, nesting alternatif, réduction de rang) et (ii) une frontière de périmètre nette — le gros-volume «&nbsp;à la Wood&nbsp;» suppose \(X\neq I\), hors du terrain de WH. Report dans §5 pour arbitrage.</p>
+<p class="small">Bilan&nbsp;: aucun de ces écarts n'est une <em>erreur</em>. Ce sont (i) des méthodes du papier qui vivent dans le <b>package frère <code>WHfull</code></b> (Fellner-Schall, Newton, nesting alternatif, réduction de rang), pas dans le <code>WH</code> léger de CRAN&nbsp;; et (ii) une frontière de périmètre nette — le gros-volume «&nbsp;à la Wood&nbsp;» suppose \(X\neq I\), hors du terrain de WH. Détail et partition en §5.</p>
 
 <!-- ============ 5 CORRECTIONS ============ -->
 <h2 class="sec" id="corrections">5 · Corrections / améliorations proposées</h2>
-<p>Chaque item&nbsp;: le constat, ce que dit le code, ce que dit le papier, puis <b>deux options à arbitrer</b> — <span style="color:var(--accent)">côté code</span> ou <span style="color:var(--accent2)">côté papier</span> — et ma recommandation. <em>Tu tranches item par item.</em></p>
+<p>La confrontation code↔papier↔Wood est close et n'a révélé <b>aucune divergence dure</b>. Ce qui reste tient en trois points, désormais <b>tranchés</b>&nbsp;: deux relèvent d'un <b>choix de partition assumé</b> entre deux packages (A, B), le troisième d'une heuristique d'implémentation documentée ci-dessous (C).</p>
+
+<div class="callout ok">
+<div class="t">Deux packages, une partition assumée&nbsp;: <code>WH</code> ↔ <code>WHfull</code></div>
+Le package <code>WH</code> publié sur CRAN est volontairement le <b>sous-ensemble léger</b> du papier&nbsp;: sélection de \(\lambda\) par <b>itération externe</b> (<code>outer</code>) avec un optimiseur <b>sans dérivée</b> (Brent&nbsp;/&nbsp;Nelder-Mead), et <b>algèbre bande</b> seule. C'est exact, robuste, et <b>suffisant pour l'usage actuariel courant</b>. Les méthodes plus riches du papier — <b>Fellner-Schall</b>, <b>Newton</b>, nestings <b>performance&nbsp;/&nbsp;alternate</b>, <b>réduction de rang&nbsp;/&nbsp;GLAM</b> — vivent dans un <b>package frère, <code>WHfull</code></b> <span class="small">(version complète de WH&nbsp;; <code>github.com/GuillaumeBiessy/WHfull</code>, documentation propre)</span>. Les items A et B ci-dessous ne sont donc <b>pas des manques</b> de <code>WH</code> mais cette frontière de périmètre, assumée et délibérée.
+</div>
 
 <div class="corr">
-<h3>A · Le package n'expose qu'un optimiseur sur huit <span class="badge b-warn">NUANCE</span></h3>
-<p><b>Constat.</b> Le papier développe 8 combinaisons (3 nestings × algos) et les compare&nbsp;; le code ne livre que <em>outer iteration + sans-dérivée</em> (Brent/Nelder-Mead). Fellner-Schall, Newton, performance et alternate iteration ne sont pas implémentés.</p>
+<h3>A · Un seul optimiseur (sans-dérivée) dans <code>WH</code> — par choix <span class="badge b-choice">CHOIX ASSUMÉ</span></h3>
+<p><b>Constat.</b> Le papier développe 8 combinaisons (3 nestings × algorithmes) et les compare&nbsp;; <code>WH</code> ne livre que <em>outer iteration + sans-dérivée</em> (Brent/Nelder-Mead). Fellner-Schall, Newton, performance et alternate iteration n'y sont pas.</p>
 <p><b>Code dit.</b> <code>WH_outer</code> appelle <code>optimize</code>/<code>optim</code>. <b>Papier dit.</b> Newton (dérivées de la LAML, <code>Wood2011</code>) est le plus rapide+précis&nbsp;; Fellner-Schall (<code>Wood2017fellnerschall</code>) suit&nbsp;; le sans-dérivée reste &lt;10⁻⁷ d'erreur LAML et «&nbsp;suffisant&nbsp;» (les pas PIRLS sont triviaux car \(X=I\)).</p>
-<div class="opts">
-<div class="opt code"><b>Option code</b>Ajouter au moins Fellner-Schall (peu coûteux, sans dérivée explicite, robuste — ne requiert que les quantités déjà calculées pour \(\hat\theta\)) comme alternative via un argument <code>method=</code>&nbsp;; éventuellement Newton.</div>
-<div class="opt paper"><b>Option papier</b>Rien à corriger&nbsp;: documenter explicitement (vignette + cette page) <em>pourquoi</em> le sans-dérivée a été retenu pour le package (simplicité, suffisance démontrée &lt;10⁻⁷).</div>
+<div class="callout ok">
+<div class="t">Décision</div>
+Ce n'est pas un manque. <code>WH</code> (CRAN) reste délibérément l'optimiseur unique, sans-dérivée — <b>simple, robuste, et démontré suffisant</b> (&lt;10⁻⁷ d'erreur LAML). Les autres optimiseurs et nestings (Fellner-Schall, Newton, performance&nbsp;/&nbsp;alternate) sont fournis par le <b>package frère <code>WHfull</code></b> (cf. encart ci-dessus). <b>Aucune action sur <code>WH</code>.</b>
 </div>
-<p class="small"><b>Reco&nbsp;:</b> a minima documenter (option papier/doc) ; l'ajout de Fellner-Schall est un «&nbsp;nice-to-have&nbsp;» à faible risque si tu veux que le package reflète le papier. Pas un bug.</p>
-</div>
-
-<div class="corr">
-<h3>B · Réduction de rang / GLAM&nbsp;: dans le papier, pas dans le code <span class="badge b-warn">NUANCE</span></h3>
-<p><b>Constat.</b> Le papier consacre une section (§sec-vp, §sec-rr) à la paramétrisation naturelle (Demmler-Reinsch) et à la réduction de rang (accélération majeure en 2D via GLAM, <code>Currie2006</code> — c'est une technique de Currie, pas de Wood). Le code livré utilise uniquement l'optimisation <em>bande</em> (algèbre bande classique) ; les valeurs propres calculées ne servent qu'au log-déterminant.</p>
-<div class="opts">
-<div class="opt code"><b>Option code</b>Implémenter la base réduite pour les gros problèmes 2D (gain de complexité annoncé dans le papier). Chantier non trivial.</div>
-<div class="opt paper"><b>Option papier</b>Aucune correction&nbsp;: clarifier dans la doc que le package implémente la variante «&nbsp;bande&nbsp;» (exacte, suffisante aux tailles actuarielles usuelles) et pas la réduction de rang.</div>
-</div>
-<p class="small"><b>Reco&nbsp;:</b> documenter l'écart pour cette v0 ; n'implémenter la réduction de rang que si des cas 2D volumineux le justifient.</p>
 </div>
 
 <div class="corr">
-<h3>C · Une heuristique d'initialisation non décrite dans le papier <span class="badge b-warn">NUANCE</span></h3>
-<p><b>Constat (mis à jour session 2).</b> Des deux «&nbsp;heuristiques&nbsp;» suspectées en v0, une seule l'est réellement&nbsp;:</p>
+<h3>B · Réduction de rang / GLAM&nbsp;: absente de <code>WH</code>, portée par <code>WHfull</code> <span class="badge b-choice">CHOIX ASSUMÉ</span></h3>
+<p><b>Constat.</b> Le papier consacre une section (§sec-vp, §sec-rr) à la paramétrisation naturelle (Demmler-Reinsch) et à la réduction de rang (accélération majeure en 2D via GLAM, <code>Currie2006</code> — technique de Currie, pas de Wood). <code>WH</code> utilise uniquement l'optimisation <em>bande</em> (algèbre bande classique, exacte)&nbsp;; les valeurs propres calculées ne servent qu'au log-déterminant.</p>
+<div class="callout ok">
+<div class="t">Décision</div>
+La variante «&nbsp;bande&nbsp;» de <code>WH</code> est <b>exacte et suffisante aux tailles actuarielles usuelles</b>&nbsp;: on la conserve telle quelle sur CRAN. La réduction de rang&nbsp;/&nbsp;GLAM (gain en 2D volumineux) est portée par le <b>package frère <code>WHfull</code></b>. <b>Aucune action sur <code>WH</code>.</b>
+</div>
+</div>
+
+<div class="corr">
+<h3>C · Une heuristique d'initialisation non décrite&nbsp;: <code>lambda_start_ratio</code> <span class="badge b-warn">DOC</span></h3>
+<p><b>Constat.</b> Des deux «&nbsp;heuristiques&nbsp;» suspectées en v0, une seule l'est réellement&nbsp;:</p>
 <ul>
-<li><code>auto_transpose</code> — <b>fausse alerte&nbsp;: c'est dans le papier.</b> La condition du code (transposer si \((q_x{+}1)/n_x<(q_z{+}1)/n_z\)) est <em>algébriquement identique</em> à la règle de permutation de §sec-reduction («&nbsp;dimensions \(x\) et \(z\) permutées pour une efficacité maximale&nbsp;»). Rien à corriger.</li>
-<li><code>find_starting_lambda</code> — <b>réellement non décrite.</b> En 2D, \(\lambda_0\) est calé pour que la moyenne de \(w/(w+\lambda\,\mathrm{diag}P)\) (une edf/point approchée) vaille \(0{,}2\). Le papier (Appendice, Algorithme&nbsp;2) ne prescrit qu'«&nbsp;une valeur initiale arbitraire&nbsp;». Le choix \(0{,}2\) est sain (point de départ modérément lissé) mais <em>silencieux</em>. À noter&nbsp;: l'argument <code>lambda_start_ratio</code> existe déjà dans <code>WH_outer</code> et est atteignable via <code>...</code> dans <code>WH()</code>, mais n'est <b>pas documenté</b> (absent du roxygen).</li>
+<li><code>auto_transpose</code> — <b>fausse alerte&nbsp;: c'est dans le papier.</b> La condition du code (transposer si \((q_x{+}1)/n_x<(q_z{+}1)/n_z\)) est <em>algébriquement identique</em> à la règle de permutation de §sec-reduction («&nbsp;dimensions \(x\) et \(z\) permutées pour une efficacité maximale&nbsp;»). Rien à faire.</li>
+<li><code>find_starting_lambda</code> (<code>R/tools.R</code>) — <b>réellement non décrite</b> dans le papier (Appendice, Algorithme&nbsp;2&nbsp;: «&nbsp;une valeur initiale arbitraire&nbsp;»).</li>
 </ul>
-<div class="opts">
-<div class="opt code"><b>Option code</b>Documenter <code>lambda_start_ratio</code> dans le roxygen de <code>WH()</code> (l'exposer officiellement, avec sa sémantique edf/point) et ajouter un commentaire de renvoi dans <code>find_starting_lambda</code>.</div>
-<div class="opt paper"><b>Option papier</b>Ajouter une courte note d'implémentation au papier&nbsp;: «&nbsp;en pratique \(\lambda_0\) est choisi pour une edf/point initiale ≈ 0,2&nbsp;», pour que «&nbsp;valeur arbitraire&nbsp;» soit incarnée.</div>
+<p><b>Sémantique de l'argument — documentée ici.</b> En 2D, <code>find_starting_lambda</code> (<code>R/tools.R</code>) cale le \(\lambda\) initial par <code>uniroot</code> de sorte que la moyenne de \(w/(w+\lambda\,\mathrm{diag}P)\) — une edf/point approchée — vaille <code>lambda_start_ratio</code> (défaut&nbsp;<b>0,2</b>, soit un point de départ modérément lissé). <code>lambda_start_ratio</code> est un argument formel de <code>WH_outer</code>&nbsp;; il est atteignable depuis <code>WH(...)</code> via <code>...</code>, mais <b>absent du roxygen</b> de <code>WH()</code>. Le choix 0,2 est sain et <b>sans incidence sur le résultat final</b> (point de départ de l'optimisation seulement).</p>
+<div class="callout">
+<div class="t">Statut</div>
+La sémantique est désormais <b>consignée ici, dans ce document de travail</b>. Son <b>ajout au roxygen / au <code>man/</code> de <code>WH()</code></b> (exposition officielle de <code>lambda_start_ratio</code>) modifierait le source livrable&nbsp;: il est <b>réservé à un futur cycle dev délibéré</b> (bump de version + resoumission CRAN) et <b>n'est pas fait ici</b>, pour ne pas toucher la version CRAN courante.
 </div>
-<p class="small"><b>Reco&nbsp;:</b> côté code — c'est un détail interne, un mot dans le roxygen de <code>lambda_start_ratio</code> suffit&nbsp;; inutile d'alourdir le papier. Aucune incidence sur les résultats (point de départ seulement).</p>
 </div>
 
 <hr class="soft">
-<p class="small">Fin de la v1. Confrontation code↔papier↔Wood <b>terminée</b>&nbsp;: cœur maths, critères de sélection, extrapolation 1D/2D et heuristiques tous vérifiés&nbsp;; comparaison aux 4 articles de Wood renseignée. <b>Aucune divergence dure</b> code↔papier n'a été trouvée — les trois items du §5 sont des arbitrages de <em>périmètre</em> (méthodes non livrées&nbsp;: A, B) et de <em>documentation</em> (heuristique non décrite&nbsp;: C), à trancher option par option. Le seul reste-à-faire est ta décision sur chacun.</p>
+<p class="small">Fin de la v1.1. Confrontation code↔papier↔Wood <b>terminée</b> et <b>tranchée</b>&nbsp;: cœur maths, critères de sélection, extrapolation 1D/2D et heuristiques tous vérifiés&nbsp;; comparaison aux 4 articles de Wood renseignée&nbsp;; <b>aucune divergence dure</b>. Les écarts de méthode (A, B) sont un <b>choix de partition assumé</b> — <code>WH</code> (CRAN&nbsp;: léger, robuste, suffisant pour l'usage actuariel courant) et le package frère <code>WHfull</code> (complet&nbsp;: Fellner-Schall, Newton, nestings perf/alternate, réduction de rang/GLAM). L'heuristique <code>lambda_start_ratio</code> (C) est documentée ci-dessus&nbsp;; son ajout au roxygen est réservé à un futur cycle dev (la version CRAN n'est pas modifiée). <b>Chantier doc clos&nbsp;; <code>WH</code> figé sur sa version CRAN.</b></p>
 
 </main>
 </div>
