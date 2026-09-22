@@ -34,8 +34,9 @@ Le dépôt n'a **aucun script de gate** : `dev/run_tests_staged.R` n'existe pas,
 pas un oubli — WH est figé sur sa version CRAN, sa suite ne sert qu'à un cycle de développement
 délibéré. Deux conséquences mécaniques :
 
-- `land-to-master.sh` **refuse** tout atterrissage de code sans `--test-cmd` explicite (ou un
-  `--no-test` assumé) : un futur cycle dev commence donc par se donner son gate ;
+- `land-to-master.sh` **refuse** tout atterrissage sans `--test-cmd` explicite, le repli
+  `--no-test` étant lui-même refusé ici (§ Intégration) : un futur cycle dev commence donc par
+  se donner son gate ;
 - aucune commande de suite n'est figée ici. L'écrire reviendrait à choisir ce gate sans l'avoir
   exercé. La suite est une suite `testthat` ordinaire, sur le paquet compilé et chargé, à lancer
   sous le verrou machine du skill `gate-lock-r` — et ⛔ jamais par `Rscript -e`, qui échoue sous
@@ -53,8 +54,16 @@ branche par défaut que GitHub déclare est **`master`**. Ici, donc, atterrir et
   `git fetch origin master && git merge --ff-only origin/master` ; travail déjà committé :
   `git merge origin/master`. ⛔ Pas de `git reset --hard`. Constat obligatoire :
   `git rev-list --count HEAD..origin/master` = 0.
-- **Atterrissage** : `land.sh <worktree> --classe <classe>` du skill `gate-lock-r`, **sans
-  `--base`** — la chaîne dérive la base elle-même, et un `--base` tapé à la main est proscrit.
+- **Atterrissage — la chaîne `land.sh` ne passe pas ici, et c'est mécanique** (mesuré le
+  2026-09-22) : `land-to-master.sh` exige une commande de tests **avant même** de regarder si le
+  diff est documentaire, et le repli `--no-test` est refusé vers une branche protégée, ce
+  qu'est `master` faute de base déclarée. Sans script de gate dans le dépôt, tout atterrissage
+  par la chaîne échoue en précondition. Donc :
+  - **diff 100 % documentaire** (`.md`, `.html`, `.gitignore`) → `git merge origin/master` puis
+    `git push origin HEAD:master`. Le garde du verrou machine exempte ces diffs par construction,
+    et aucune suite de tests ne les lit : c'est la voie normale, pas un contournement.
+  - **tout le reste** → se donner d'abord un gate, le passer en `--test-cmd` à `land.sh`, et
+    ⛔ jamais un `--base` tapé à la main.
 - ⚠️ **Tout ce que `R CMD build` empaquette est livrable** : `R/`, `src/`, `man/`, `tests/`,
   `data/`, `vignettes/`, `NAMESPACE`, `DESCRIPTION`, `NEWS.md`, `README.md`. Y toucher ouvre un
   cycle CRAN — montée de version et resoumission — et exige la **validation express de
@@ -62,9 +71,6 @@ branche par défaut que GitHub déclare est **`master`**. Ici, donc, atterrir et
   `README.md` sont des `.md` : la voie doc-only du lander les pousserait sur `master` **sans
   gate**, faisant diverger en silence la branche publiée du tarball soumis. Seuls les fichiers
   listés au `.Rbuildignore` sont hors livrable et relèvent du doc-only.
-- ⛔ La voie allégée `--no-test` n'existe **que** vers une base d'intégration déclarée : ici, elle
-  est refusée mécaniquement, la cible étant la branche par défaut. Tout diff qui n'est pas 100 %
-  documentaire exige donc un gate vert — donc, d'abord, de se donner une commande de tests.
 - Ce `CLAUDE.md` n'est **pas** inscrit au `.Rbuildignore` : `R CMD check` le signale donc comme
   fichier non standard à la racine du paquet — une note, pas une erreur. L'y inscrire touche un
   fichier non documentaire et relève du même cycle dev, seul en mesure de payer son gate.
