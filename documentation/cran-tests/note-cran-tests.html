@@ -285,7 +285,7 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 </tr>
 </tbody>
 </table></div>
-<p>Tous les environnements Linux lient WH à la LAPACK du système et au BLAS de référence de R (<code>-llapack -lRblas</code> dans les journaux d’installation de WH 2.0.0) ; Windows et macOS utilisent la LAPACK et le BLAS internes de R.</p>
+<p>Les deux environnements Debian (gcc et clang) lient WH à la LAPACK du système et au BLAS de référence de R (<code>-llapack -lRblas</code> dans les journaux d’installation de WH 2.0.0) ; fedora-gcc utilise la LAPACK du système (3.12.0), fedora-clang la LAPACK interne de R (<code>--without-lapack</code>), comme le contrôle M1mac ; Windows utilise la LAPACK et le BLAS internes de R. La configuration des environnements macOS réguliers n’a pas été lue.</p>
 <h3 id="les-contrôles-additionnels-qui-peuvent-faire-échouer-wh">Les contrôles additionnels qui peuvent faire échouer WH</h3>
 <p>WH est du R et du C++ (Rcpp) qui appelle LAPACK en mode bande (<code>dpbtrf</code>, <code>dtbtrs</code>, <code>dsbev</code>), sans OpenMP, sans <code>\donttest</code>, et dont les tests comparent des résultats numériques à une tolérance. Les types retenus :</p>
 <div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:15.05%"><col style="--w:55.70%"><col style="--w:29.25%"></colgroup>
