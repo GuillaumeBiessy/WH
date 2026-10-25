@@ -404,7 +404,7 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 <li><strong>Les noyaux de MKL en série se comportent de même sous Windows et sous Linux</strong> (chantier MKL d’ebmcd, <code>dev/mkl/note-mkl.md</code>) : le défaut propre à Linux, la couche de fils Intel, ne touche pas la configuration en série du CRAN.</li>
 </ul>
 <div class="callout definition"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="plein" d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/><path class="signe" d="M12 7v14"/></svg>Définition</div><div class="cb"><p><strong>Substitut.</strong> La configuration de cette machine ou de R-hub qui rejoue le mieux un contrôle du CRAN : même bibliothèque à la même version, mêmes options, et le chemin d’instructions du processeur du CRAN quand la bibliothèque en dépend. Sa <strong>fidélité</strong> dit ce qu’il ne reproduit pas.</p></div></div>
-<div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:15.05%"><col style="--w:50.38%"><col style="--w:6.53%"><col style="--w:28.04%"></colgroup>
+<div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:15.05%"><col style="--w:49.13%"><col style="--w:6.53%"><col style="--w:29.29%"></colgroup>
 
 <thead>
 <tr>
@@ -477,9 +477,9 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 </tr>
 <tr>
 <td>M1mac, macOS arm64</td>
-<td>plate-forme <code>macos-arm64</code> : Mac M1 de GitHub, R-release</td>
+<td>plate-forme <code>macos-arm64</code> : Mac M1 de GitHub, R-devel</td>
 <td>R-hub</td>
-<td>R-release au lieu de R-devel, macOS de GitHub</td>
+<td>macOS et réglages de GitHub, pas ceux de B. Ripley</td>
 </tr>
 <tr>
 <td>LTO</td>
@@ -562,7 +562,88 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 </tbody>
 </table></div>
 <p>La NOTE est partout la même : <code>CLAUDE.md</code>, fichier non standard à la racine. Il est apparu dans le dépôt après la soumission et n’est pas dans l’archive du CRAN ; son inscription au <code>.Rbuildignore</code> est un point déjà ouvert de la doctrine du dépôt. Dans chaque contrôle, WH importe <code>Rlapack.dll</code> et rien d’autre.</p>
-<p><strong>WH 2.0.0 passe toutes les configurations de BLAS du CRAN, y compris celle de 2023-2024 qui faisait échouer WH 1.0.6.</strong> Les contrôles Linux et Mac (sanitizers, valgrind, noLD, macos-arm64…) ne sont pas encore lancés : ils passent par R-hub, et attendent ton accord (« Ce qui reste à décider »).</p>
+<p><strong>WH 2.0.0 passe toutes les configurations de BLAS du CRAN, y compris celle de 2023-2024 qui faisait échouer WH 1.0.6.</strong></p>
+<h3 id="sur-r-hub">Sur R-hub</h3>
+<p>Lancé le 25/10/2026 avec ton accord, sur <code>master</code> (exécution 40191631313 du flux <code>rhub.yaml</code>, onglet Actions du dépôt WH). R-hub fait échouer une tâche si un fichier <code>.Rout</code> du contrôle (exemples, tests) contient « runtime error: » ou « SUMMARY: UndefinedBehaviorSanitizer » ; la ligne de compilation de <code>compact.cpp</code> porte bien les options du sanitizer ou de LTO.</p>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Plate-forme R-hub</th>
+<th>Compilation de WH</th>
+<th>Statut</th>
+<th>Tests</th>
+<th>Sanitizer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gcc-asan</code></td>
+<td><code>-fsanitize=address,undefined,bounds-strict</code>, <code>-flto=10</code></td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+<td>aucun signalement</td>
+</tr>
+<tr>
+<td><code>clang-asan</code></td>
+<td><code>-fsanitize=address,undefined</code>, libc++</td>
+<td>OK</td>
+<td>76 / 76</td>
+<td>aucun signalement</td>
+</tr>
+<tr>
+<td><code>clang-ubsan</code></td>
+<td><code>-fsanitize=undefined</code>, libc++</td>
+<td>OK</td>
+<td>76 / 76</td>
+<td>aucun signalement</td>
+</tr>
+<tr>
+<td><code>nold</code></td>
+<td>R-devel sans <code>long double</code></td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>macos-arm64</code></td>
+<td>Mac M1 de GitHub, R-devel</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>lto</code></td>
+<td><code>-flto</code>, aucun avertissement <code>-Wlto-type-mismatch</code></td>
+<td>2 NOTE</td>
+<td>76 / 76</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>clang23</code></td>
+<td>clang 23</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>gcc16</code></td>
+<td>gcc 16</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>valgrind</code></td>
+<td>R-devel sous valgrind</td>
+<td>en cours au 25/10, 13 h 38 (lancé à 12 h 06)</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p>La NOTE commune est celle du <code>CLAUDE.md</code>. La seconde NOTE de <code>lto</code> dit que les tests ont pris 3,3 fois plus de temps de calcul que de temps écoulé : du calcul parallèle, que WH ne fait pas. Le conteneur charge un OpenBLAS à plusieurs fils (<code>openblas-pthread</code> 0.3.32 ; FlexiBLAS OpenMP pour <code>gcc-asan</code>, d’après le <code>sessionInfo()</code> des journaux), là où les environnements réguliers du CRAN utilisent le BLAS de référence. C’est un effet du conteneur, et une raison de plus pour rejouer les contrôles de BLAS sous Windows plutôt que sur R-hub.</p>
+<p><strong>WH 2.0.0 passe aussi les sanitizers, noLD, le Mac ARM, LTO et les compilateurs les plus récents.</strong></p>
 <h2 id="la-recette"><span class="num">5</span>La recette</h2>
 <p>Les scripts sont dans <code>documentation/cran-tests/</code> (hors de l’archive du paquet, <code>^documentation$</code> étant au <code>.Rbuildignore</code>). Une session les lance sous le verrou machine (skill <code>gate-lock-r</code>), depuis Git Bash :</p>
 <pre><code>bash documentation/cran-tests/run_windows.sh &lt;dépôt&gt; &lt;dossier de sortie&gt; [&lt;référence git&gt;] [&lt;calibration | none&gt;]</code></pre>
@@ -641,12 +722,12 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 <ul>
 <li>l’archive se construit depuis la référence git soumise, jamais depuis l’arbre de travail ;</li>
 <li>aucun verdict sans les deux calibrations vertes ; un paquet compilé qui importe autre chose que <code>Rblas.dll</code> et <code>Rlapack.dll</code> invalide son contrôle ;</li>
-<li>les durées ne se jugent pas (la machine est partagée) ;</li>
+<li>les durées ne se jugent pas (la machine est partagée), ni sur R-hub le rapport temps de calcul / temps écoulé, que gonfle l’OpenBLAS à plusieurs fils de ses conteneurs ;</li>
+<li>un succès R-hub se lit dans le journal de chaque tâche (API <code>actions/jobs/&lt;id&gt;/logs</code>, servi dès la fin de la tâche, sans attendre toute l’exécution) : statut du contrôle, ligne de testthat, options de compilation ;</li>
 <li>les sources du CRAN se relisent à chaque usage (README des BLAS : versions de MKL et d’OpenBLAS) : un changement de version demande un téléchargement, donc ton accord ;</li>
 <li>un paquet sans flux R-hub reçoit <code>.github/workflows/rhub.yaml</code> (hors archive, <code>^\.github$</code> au <code>.Rbuildignore</code>) ; pour un dépôt privé, R-hub consomme le quota gratuit de GitHub Actions du compte.</li>
 </ul>
 <h2 id="ce-qui-reste-à-décider"><span class="num">7</span>Ce qui reste à décider</h2>
-<p>::: question titre=“Lancer R-hub sur WH” Les contrôles Linux et Mac retenus — <code>gcc-asan</code>, <code>clang-asan</code>, <code>clang-ubsan</code>, <code>valgrind</code>, <code>nold</code>, <code>macos-arm64</code>, <code>lto</code>, <code>clang23</code>, <code>gcc16</code> — se lancent d’une commande sur le flux déjà présent dans WH (<code>rhub.yaml</code>). Coût : gratuit (dépôt public), rien d’installé ici, une demi-heure à une heure d’attente sur GitHub <span class="pastille hyp">estimation</span>. Contrepartie : les journaux sont publics dans l’onglet Actions du dépôt. C’est ce qui complète la matrice de WH. :::</p>
 <p>::: question titre=“Valider la conception du skill « CRAN-tests »” Périmètre, deux étages, scripts et règles de la section précédente. Une fois validée, le skill se crée par <code>helper-skill-creator</code>, et reprend les scripts de <code>documentation/cran-tests/</code>. :::</p>
 <p>Deux points ne demandent pas de décision maintenant :</p>
 <ul>
