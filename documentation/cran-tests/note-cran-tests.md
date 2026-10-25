@@ -36,8 +36,10 @@ celle des types de contrôles additionnels (`check_issue_kinds.html`) et les REA
 | r-oldrel-macos-arm64 | macOS 13.4 | Apple Clang 1400 | Apple M1 |
 | r-release / r-oldrel-macos-x86_64 | macOS 13.3.1 | Apple Clang 1403 | Core i5 6 cœurs |
 
-Tous les environnements Linux lient WH à la LAPACK du système et au BLAS de référence de R (`-llapack -lRblas` dans
-les journaux d'installation de WH 2.0.0) ; Windows et macOS utilisent la LAPACK et le BLAS internes de R.
+Les deux environnements Debian (gcc et clang) lient WH à la LAPACK du système et au BLAS de référence de R
+(`-llapack -lRblas` dans les journaux d'installation de WH 2.0.0) ; fedora-gcc utilise la LAPACK du système (3.12.0),
+fedora-clang la LAPACK interne de R (`--without-lapack`), comme le contrôle M1mac ; Windows utilise la LAPACK et le
+BLAS internes de R. La configuration des environnements macOS réguliers n'a pas été lue.
 
 ### Les contrôles additionnels qui peuvent faire échouer WH
 
