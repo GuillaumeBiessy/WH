@@ -108,7 +108,7 @@ en dépend. Sa **fidélité** dit ce qu'il ne reproduit pas.
 | clang-ASAN, clang-UBSAN | conteneurs `clang-asan`, `clang-ubsan` : Ubuntu 26.04, clang et libc++ | R-hub | Ubuntu au lieu de Fedora ; `alignment` et `float-divide-by-zero` exclus |
 | valgrind | conteneur `valgrind` : Fedora 44, R-devel construit pour valgrind | R-hub | niveau d'instrumentation de R [non vérifié]{.pastille .hyp} |
 | noLD | conteneur `nold` : Ubuntu 26.04, R-devel `--disable-long-double` | R-hub | Ubuntu au lieu de Fedora |
-| M1mac, macOS arm64 | plate-forme `macos-arm64` : Mac M1 de GitHub, R-release | R-hub | R-release au lieu de R-devel, macOS de GitHub |
+| M1mac, macOS arm64 | plate-forme `macos-arm64` : Mac M1 de GitHub, R-devel | R-hub | macOS et réglages de GitHub, pas ceux de B. Ripley |
 | LTO | conteneur `lto` | R-hub | — |
 | clang23, gcc 16, Linux | conteneurs `clang23`, `gcc16`, `ubuntu-clang`, `ubuntu-gcc12` | R-hub | Ubuntu au lieu de Debian testing |
 | rchk | conteneur `rchk` | R-hub | — |
@@ -149,8 +149,34 @@ soumission et n'est pas dans l'archive du CRAN ; son inscription au `.Rbuildigno
 doctrine du dépôt. Dans chaque contrôle, WH importe `Rlapack.dll` et rien d'autre.
 
 **WH 2.0.0 passe toutes les configurations de BLAS du CRAN, y compris celle de 2023-2024 qui faisait échouer
-WH 1.0.6.** Les contrôles Linux et Mac (sanitizers, valgrind, noLD, macos-arm64…) ne sont pas encore lancés : ils
-passent par R-hub, et attendent ton accord (« Ce qui reste à décider »).
+WH 1.0.6.**
+
+### Sur R-hub
+
+Lancé le 25/10/2026 avec ton accord, sur `master` (exécution 40191631313 du flux `rhub.yaml`, onglet Actions du
+dépôt WH). R-hub fait échouer une tâche si un fichier `.Rout` du contrôle (exemples, tests) contient
+« runtime error: » ou « SUMMARY: UndefinedBehaviorSanitizer » ; la ligne de compilation de `compact.cpp` porte bien
+les options du sanitizer ou de LTO.
+
+| Plate-forme R-hub | Compilation de WH | Statut | Tests | Sanitizer |
+|---|---|---|---|---|
+| `gcc-asan` | `-fsanitize=address,undefined,bounds-strict`, `-flto=10` | 1 NOTE | 76 / 76 | aucun signalement |
+| `clang-asan` | `-fsanitize=address,undefined`, libc++ | OK | 76 / 76 | aucun signalement |
+| `clang-ubsan` | `-fsanitize=undefined`, libc++ | OK | 76 / 76 | aucun signalement |
+| `nold` | R-devel sans `long double` | 1 NOTE | 76 / 76 | — |
+| `macos-arm64` | Mac M1 de GitHub, R-devel | 1 NOTE | 76 / 76 | — |
+| `lto` | `-flto`, aucun avertissement `-Wlto-type-mismatch` | 2 NOTE | 76 / 76 | — |
+| `clang23` | clang 23 | 1 NOTE | 76 / 76 | — |
+| `gcc16` | gcc 16 | 1 NOTE | 76 / 76 | — |
+| `valgrind` | R-devel sous valgrind | en cours au 25/10, 13 h 38 (lancé à 12 h 06) | — | — |
+
+La NOTE commune est celle du `CLAUDE.md`. La seconde NOTE de `lto` dit que les tests ont pris 3,3 fois plus de temps
+de calcul que de temps écoulé : du calcul parallèle, que WH ne fait pas. Le conteneur charge un OpenBLAS à plusieurs
+fils (`openblas-pthread` 0.3.32 ; FlexiBLAS OpenMP pour `gcc-asan`, d'après le `sessionInfo()` des journaux), là où les
+environnements réguliers du CRAN utilisent le BLAS de référence. C'est un effet du conteneur, et une raison de plus
+pour rejouer les contrôles de BLAS sous Windows plutôt que sur R-hub.
+
+**WH 2.0.0 passe aussi les sanitizers, noLD, le Mac ARM, LTO et les compilateurs les plus récents.**
 
 ## La recette
 
@@ -225,20 +251,16 @@ refaire).
 - l'archive se construit depuis la référence git soumise, jamais depuis l'arbre de travail ;
 - aucun verdict sans les deux calibrations vertes ; un paquet compilé qui importe autre chose que `Rblas.dll` et
   `Rlapack.dll` invalide son contrôle ;
-- les durées ne se jugent pas (la machine est partagée) ;
+- les durées ne se jugent pas (la machine est partagée), ni sur R-hub le rapport temps de calcul / temps écoulé, que
+  gonfle l'OpenBLAS à plusieurs fils de ses conteneurs ;
+- un succès R-hub se lit dans le journal de chaque tâche (API `actions/jobs/<id>/logs`, servi dès la fin de la tâche,
+  sans attendre toute l'exécution) : statut du contrôle, ligne de testthat, options de compilation ;
 - les sources du CRAN se relisent à chaque usage (README des BLAS : versions de MKL et d'OpenBLAS) : un changement de
   version demande un téléchargement, donc ton accord ;
 - un paquet sans flux R-hub reçoit `.github/workflows/rhub.yaml` (hors archive, `^\.github$` au `.Rbuildignore`) ;
   pour un dépôt privé, R-hub consomme le quota gratuit de GitHub Actions du compte.
 
 ## Ce qui reste à décider
-
-::: question titre="Lancer R-hub sur WH"
-Les contrôles Linux et Mac retenus — `gcc-asan`, `clang-asan`, `clang-ubsan`, `valgrind`, `nold`, `macos-arm64`,
-`lto`, `clang23`, `gcc16` — se lancent d'une commande sur le flux déjà présent dans WH (`rhub.yaml`). Coût : gratuit
-(dépôt public), rien d'installé ici, une demi-heure à une heure d'attente sur GitHub [estimation]{.pastille .hyp}.
-Contrepartie : les journaux sont publics dans l'onglet Actions du dépôt. C'est ce qui complète la matrice de WH.
-:::
 
 ::: question titre="Valider la conception du skill « CRAN-tests »"
 Périmètre, deux étages, scripts et règles de la section précédente. Une fois validée, le skill se crée par
