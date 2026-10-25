@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rejouer les contrôles du CRAN avant une soumission</title><style>@font-face{font-family:"LP Titre";font-weight:700;
+  src:local("Tw Cen MT Condensed Extra Bold"),local("TwCenMT-CondensedExtraBold")}
+:root{
+  --c-principal:#00225D; --c-accent:#008851; --c-second:#007194; --c-negatif:#940071;
+  --c-question:#245FDD; --c-avertissement:#ED7F10; --c-avertissement-texte:#A65A0B;
+  --c-vif:#00E3A6; --c-code:#940071; --texte-discret:#8C8E91;
+  --plein:#00225D; --sur-plein:#FFFFFF; --fond-page:#FFFFFF; --texte:#00225D; --texte-fort:#000000;
+  --texte-second:#5F6368; --trait:#D0D0D0; --fond-libelle:#F2F2F2; --fond-carte:#F4F6F9;
+  --fond-accent:#E8F4EE; --fond-avertissement:#FDF1E6; --fond-second:#E6F1F4;
+  --fond-negatif:#F6EAF3; --fond-question:#E9EFFC; --fond-principal:#EEF0F5;
+  --fond-schema:#FFFFFF;
+  --police-titre:"LP Titre","Tw Cen MT Condensed","Arial Narrow",sans-serif;
+  --police-corps:Calibri,Carlito,"Segoe UI",Arial,sans-serif;
+  --police-mono:Consolas,"Cascadia Mono","Courier New",monospace;
+  --puce-1:"➤"; --puce-2:"★"; --puce-3:"❖";
+  --c-puce-1:#008851; --c-puce-2:#007194; --c-puce-3:#940071;
+  --police-puces:"Segoe UI Symbol","Arial Unicode MS","DejaVu Sans",sans-serif;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--fond-page);color:var(--texte);font-family:var(--police-corps);font-size:18px;
+  line-height:1.6}
+.wrap{max-width:1320px;margin:0 auto;padding:48px 32px 88px}
+header.cover{border-left:5px solid var(--c-accent);padding:6px 0 6px 24px;margin-bottom:36px}
+header.cover .titre-ligne{display:flex;justify-content:space-between;align-items:center;gap:32px;
+  margin:0 0 10px}
+header.cover .kicker{font-family:var(--police-titre);font-weight:700;font-size:19px;
+  letter-spacing:.02em;color:var(--c-second);margin-bottom:4px}
+h1{font-family:var(--police-titre);font-weight:700;color:var(--c-principal);font-size:42px;
+  line-height:1.08;margin:0 0 10px;letter-spacing:.2px;text-wrap:balance}
+header.cover h1{margin:0}
+header.cover .lede{color:var(--texte);font-size:19.5px;line-height:1.5;max-width:860px;margin:0}
+header.cover .meta{color:var(--texte-discret);font-size:13.5px;margin-top:12px}
+.logo{flex:0 0 auto}
+.logo img{width:100%;height:auto;display:block}
+header.cover .logo{width:150px}
+nav.toc{background:var(--fond-page);border:1px solid var(--trait);border-left:5px solid var(--c-principal);
+  border-radius:0 8px 8px 0;padding:22px 28px;margin:0 0 48px;font-size:18px;color:var(--c-principal)}
+nav.toc .toc-titre{font-family:var(--police-titre);font-weight:700;font-size:24px;margin:0 0 6px}
+nav.toc .part{display:block;margin:16px 0 4px;font-family:var(--police-titre);font-weight:700;
+  font-size:19px;letter-spacing:.02em;color:var(--c-second)}
+nav.toc ol{margin:0;padding-left:26px}
+nav.toc li{margin:4px 0;padding-left:2px}
+nav.toc li::marker{color:var(--c-accent);font-weight:700}
+nav.toc a{color:var(--c-principal);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+.parthead{margin:64px 0 12px;padding:18px 24px;border-radius:8px;background:var(--plein);
+  color:var(--sur-plein)}
+.parthead .lab{display:block;font-family:var(--police-titre);font-size:19px;font-weight:700;
+  letter-spacing:.02em;color:var(--c-vif);margin-bottom:2px}
+.parthead .titre{font-family:var(--police-titre);font-weight:700;font-size:30px;line-height:1.15}
+.parthead .ph-sub{display:block;font-size:15px;margin-top:4px;opacity:.92}
+h2{font-family:var(--police-titre);font-weight:700;color:var(--c-principal);font-size:29px;line-height:1.2;
+  margin:52px 0 14px;padding-bottom:6px;border-bottom:2px solid var(--c-accent)}
+h2 .num{color:var(--c-accent);margin-right:12px}
+h3{font-family:var(--police-titre);font-weight:700;color:var(--c-second);font-size:22px;
+  line-height:1.25;margin:30px 0 8px}
+h4{font-size:18px;font-weight:700;color:var(--c-principal);margin:20px 0 4px}
+p{margin:10px 0}
+strong,b{color:var(--c-principal);font-weight:700}
+a{color:var(--c-second)}
+ol{padding-left:24px;margin:10px 0}
+li{margin:5px 0}
+ul{list-style:none;padding-left:0;margin:10px 0}
+ul > li{position:relative;padding-left:1.5em}
+ul > li::before{content:var(--puce-1);position:absolute;left:.1em;top:0;color:var(--c-puce-1);
+  font-family:var(--police-puces);font-size:.9em;line-height:1.78}
+ul ul{margin:4px 0}
+ul ul > li::before{content:var(--puce-2);color:var(--c-puce-2);font-size:.85em;line-height:1.88}
+ul ul ul > li::before{content:var(--puce-3);color:var(--c-puce-3);font-size:.85em;line-height:1.88}
+ol li::marker{color:var(--c-accent);font-weight:700}
+code{font-family:var(--police-mono);font-size:.88em;background:var(--fond-libelle);color:var(--c-code);
+  padding:1px 5px;border-radius:3px;white-space:nowrap}
+pre{font-family:var(--police-mono);font-size:14px;line-height:1.45;background:var(--fond-libelle);
+  color:var(--texte);border:1px solid var(--trait);border-radius:4px;padding:12px 14px;
+  overflow-x:auto;margin:10px 0 16px}
+pre code{font-size:inherit;background:none;color:inherit;padding:0;border-radius:0;white-space:pre}
+.small{font-size:15px;color:var(--texte-second)}
+.wrap > ol:not([class]) > li{padding-left:2px}
+@media (min-width:721px){.wrap > p,.wrap > ul li,.wrap > ol li{text-align:justify;hyphens:auto}}
+.scroll{overflow-x:auto;margin:14px 0}
+table{border-collapse:collapse;width:auto;max-width:100%;margin:0 auto;font-size:16px}
+table.fit{table-layout:auto}
+col{width:auto !important}
+th,td{border:1px solid var(--trait);padding:7px 10px;text-align:left;vertical-align:top}
+th{background:var(--plein);color:var(--sur-plein);font-family:var(--police-titre);font-weight:700;
+  font-size:17px;letter-spacing:.2px}
+th.sous{font-size:15px;font-weight:400}
+td{color:var(--texte)}
+thead th:empty{background:transparent;border-top-style:hidden;border-left-style:hidden}
+td.lib,td.tot{font-weight:700}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.c,th.c{text-align:center}
+tr.total td{background:var(--plein);color:var(--sur-plein);font-weight:700;border-color:var(--plein)}
+.callout{margin:16px 0;border:1px solid var(--c);border-radius:6px;overflow:hidden;
+  color:var(--texte);font-size:17px;--c:var(--c-principal);--cf:var(--fond-carte)}
+.callout .ct{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 12px;background:var(--cf);
+  font-family:var(--police-titre);font-weight:700;font-size:17px;color:var(--c)}
+.callout .ct svg{width:22px;height:22px;flex:0 0 auto}
+.callout svg *{stroke-linecap:round !important;stroke-linejoin:round !important}
+.callout svg .plein{fill:currentColor}
+.callout svg .signe{stroke:var(--fond-page);stroke-width:2.6}
+.callout .cb{padding:10px 16px}
+.callout .cb > :first-child{margin-top:0}
+.callout .cb > :last-child{margin-bottom:0}
+.callout.piste{--c:var(--c-accent);--cf:var(--fond-accent)}
+.callout.definition{--c:var(--c-second);--cf:var(--fond-second)}
+.callout.ecart{--c:var(--c-negatif);--cf:var(--fond-negatif)}
+.callout.question{--c:var(--c-question);--cf:var(--fond-question)}
+.callout.attention{--c:var(--c-avertissement-texte);--cf:var(--fond-avertissement);
+  border-color:var(--c-avertissement)}
+.callout.court{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 12px;background:var(--cf);
+  border-width:0 0 0 4px;border-radius:0 6px 6px 0}
+.callout.court > svg{width:22px;height:22px;flex:0 0 auto;color:var(--c)}
+.callout.court .cb{padding:0}
+.reg{margin:16px 0;padding:12px 18px;border-radius:0 6px 6px 0;background:var(--plein);
+  color:var(--sur-plein);font-weight:700;font-size:17px;border-left:4px solid var(--c-vif)}
+.reg .src{display:block;margin-top:6px;font-size:13.5px;font-weight:400;color:var(--c-vif)}
+.eqrow{display:flex;align-items:center;gap:16px;margin:18px 0;color:var(--texte)}
+.eqbody{flex:1 1 auto;min-width:0}
+.eqnum{flex:0 0 48px;text-align:right;color:var(--c-second);font-size:16px;font-weight:700}
+.formule{overflow-x:auto;padding:6px 2px}
+.formule svg{display:block;margin:0 auto}
+.formule.inline{display:inline;padding:0}
+.formule.inline svg{display:inline-block;vertical-align:middle;margin:0}
+.pastille{display:inline-block;font-family:var(--police-titre);font-weight:700;font-size:1em;
+  letter-spacing:.02em;line-height:1.15;padding:0 8px;border-radius:999px;white-space:nowrap;
+  vertical-align:baseline;border:1.5px solid currentColor}
+.pastille.ko{color:var(--c-negatif);background:var(--fond-negatif)}
+.pastille.ok{color:var(--c-accent);background:var(--fond-accent)}
+.pastille.hyp{color:var(--c-avertissement-texte);background:var(--fond-avertissement)}
+.pastille.conv{color:var(--c-question);background:var(--fond-question)}
+.pastille.par{color:var(--c-accent);background:var(--fond-accent)}
+.pastille.ref{color:var(--c-principal);background:var(--fond-principal)}
+.pastille.don{color:var(--c-second);background:var(--fond-second)}
+.chaine{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;
+  margin:18px 0;padding:12px 14px;background:var(--fond-carte);border-radius:8px}
+.chaine .etape{background:var(--plein);color:var(--sur-plein);font-weight:700;font-size:15.5px;
+  border-radius:999px;padding:4px 13px;white-space:nowrap}
+.chaine .fleche{color:var(--c-accent);font-weight:700}
+figure.schema{margin:24px auto;text-align:center;max-width:min(1120px,96vw)}
+figure.schema img{display:block;margin:0 auto;max-width:100%;height:auto;
+  border:1px solid var(--trait);border-radius:6px;padding:8px;background:var(--fond-schema)}
+figure.schema-svg .cadre{overflow-x:auto;border:1px solid var(--trait);border-radius:6px;padding:8px;
+  background:var(--fond-schema)}
+figure.schema-svg svg{display:block;margin:0 auto}
+figure.schema figcaption{margin-top:8px;font-size:15px;color:var(--texte-second);text-align:center}
+figure.schema figcaption b{color:var(--c-second)}
+footer{margin-top:72px;padding-top:16px;border-top:2px solid var(--c-principal);display:flex;
+  justify-content:space-between;align-items:center;gap:16px;font-size:14px;color:var(--texte-discret)}
+footer .logo{width:110px}
+.retour-libelle{display:block;margin:14px 0 4px;font-size:15px;font-weight:600;color:var(--c-second)}
+textarea.retour{display:block;box-sizing:border-box;width:100%;min-height:64px;margin:12px 0 22px;
+  padding:9px 11px;font:inherit;font-size:16px;color:var(--texte);background:var(--fond-question);
+  border:1px solid var(--trait);border-left:4px solid var(--c-question);border-radius:6px;resize:vertical}
+textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
+.retours-barre{position:fixed;right:18px;bottom:18px;z-index:20;display:flex;align-items:center;gap:12px;
+  padding:9px 14px;background:var(--fond-page);color:var(--texte);border:1px solid var(--trait);
+  border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.18);font-size:14px}
+.retours-barre .retours-compte{color:var(--texte-discret)}
+.retours-barre button{font:inherit;cursor:pointer;padding:6px 13px;border-radius:7px;
+  border:1px solid var(--trait);background:var(--fond-carte);color:var(--texte)}
+.retours-barre button.retours-valider{background:var(--plein);border-color:var(--plein);
+  color:var(--sur-plein);font-weight:600}
+#retours-statut.st-cache{color:var(--c-avertissement-texte)}
+#retours-statut.st-ok{color:var(--c-second);font-weight:600}
+#retours-statut.st-err{color:var(--c-negatif);font-weight:700}
+@media print{.retours-barre{display:none} textarea.retour{resize:none}}
+@media (max-width:720px){
+  body{font-size:16.5px}
+  .wrap{padding:28px 16px 64px}
+  header.cover{padding-left:16px}
+  header.cover .titre-ligne{flex-direction:column-reverse;align-items:flex-start;gap:14px}
+  header.cover .logo{width:110px}
+  h1{font-size:32px} h2{font-size:23px} h3{font-size:19px} .parthead .titre{font-size:24px}
+  footer{flex-direction:column}
+  .formule svg{max-width:none !important}
+  .eqrow{gap:8px} .eqnum{flex-basis:30px}
+}
+@media print{
+  body{font-size:11pt}
+  .wrap{max-width:none;padding:0}
+  h2,h3,.parthead{break-after:avoid}
+  table,figure,.callout,.reg{break-inside:avoid}
+  .parthead,th,tr.total td,.reg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.compteurs{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 26px}
+.compteur{--c:var(--c-accent);min-width:150px;padding:12px 22px 13px 18px;background:var(--fond-page);
+  border:1px solid var(--trait);border-top:4px solid var(--c);border-radius:6px}
+.compteur b{display:block;font-family:var(--police-titre);font-size:2.2em;line-height:1.05;
+  color:var(--c);font-variant-numeric:tabular-nums}
+.compteur span{display:block;margin-top:5px;font-size:15.5px;color:var(--texte)}
+.compteur.principal{--c:var(--c-principal)}
+.compteur.second{--c:var(--c-second)}
+.compteur.question{--c:var(--c-question)}
+.compteur.avertissement{--c:var(--c-avertissement-texte)}
+.compteur.negatif{--c:var(--c-negatif)}
+@media print{.compteur{break-inside:avoid}}
+.bandeau-tableau{--c:var(--c-question);display:table;max-width:100%;margin:18px auto 22px}
+.bandeau-tableau-titre{font-family:var(--police-titre);font-weight:700;font-size:19px;
+  padding:7px 14px;border-radius:6px 6px 0 0;background:var(--c);color:var(--sur-plein)}
+.bandeau-tableau .scroll{margin:0}
+.bandeau-tableau table{margin:0}
+.bandeau-tableau.accent{--c:var(--c-accent)}
+.bandeau-tableau.second{--c:var(--c-second)}
+.bandeau-tableau.principal{--c:var(--c-principal)}
+@media print{.bandeau-tableau-titre{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style><style id="colonnes-ajustees">table.ajuste{table-layout:fixed;width:100%;min-width:var(--larg)}table.ajuste > colgroup.ajuste > col{width:var(--w) !important}@media (max-width:1335px){table.ajuste{table-layout:auto;width:auto;min-width:0}table.ajuste > colgroup.ajuste > col{width:auto !important}}</style></head><body><div class="wrap"><header class="cover"><div class="kicker">WH — note technique</div><div class="titre-ligne"><h1>Rejouer les contrôles du CRAN avant une soumission</h1></div><p class="lede">Les contrôles de BLAS du CRAN (MKL, OpenBLAS) et l'absence des paquets suggérés se rejouent fidèlement sous Windows, sur cette machine ; les sanitizers, valgrind, noLD, les compilateurs de Linux et le Mac exigent Linux ou macOS, et R-hub les fournit déjà configurés, sans rien installer ici.</p><div class="meta">25 octobre 2026</div></header><nav class="toc"><div class="toc-titre">Sommaire</div><ol start="1"><li><a href="#la-question">La question</a></li><li><a href="#ce-que-fait-le-cran">Ce que fait le CRAN</a></li><li><a href="#où-rejouer-chaque-contrôle-windows-wsl-ou-r-hub">Où rejouer chaque contrôle : Windows, WSL ou R-hub</a></li><li><a href="#ce-que-donne-wh-2.0.0">Ce que donne WH 2.0.0</a></li><li><a href="#la-recette">La recette</a></li><li><a href="#le-skill-cran-tests-proposé">Le skill « CRAN-tests » proposé</a></li><li><a href="#ce-qui-reste-à-décider">Ce qui reste à décider</a></li></ol></nav><h2 id="la-question"><span class="num">1</span>La question</h2>
+<p>Le CRAN contrôle chaque paquet sur 13 environnements réguliers (<em>check flavors</em>) et sur une trentaine de configurations additionnelles (<em>additional issues</em>) : autres bibliothèques d’algèbre linéaire, sanitizers, valgrind, R sans <code>long double</code>, Mac M1… C’est l’une d’elles, MKL, qui a fait échouer WH en 2023 et en 2024. La note répond à trois questions : lesquelles de ces configurations peuvent faire échouer un paquet R avec du C++ comme WH, lesquelles se rejouent sur cette machine (Windows 11, WSL Ubuntu 20.04, i7-1165G7 AVX-512) et à quel prix, et ce que donne WH 2.0.0, la version sur le CRAN, sous chacune.</p>
+<h2 id="ce-que-fait-le-cran"><span class="num">2</span>Ce que fait le CRAN</h2>
+<p>Sources lues le 25/10/2026 : la page des environnements de contrôle (<code>cran.r-project.org/web/checks/check_flavors.html</code>), celle des types de contrôles additionnels (<code>check_issue_kinds.html</code>) et les README de B. Ripley (<code>stats.ox.ac.uk/pub/bdr/&lt;type&gt;/README.txt</code>).</p>
+<h3 id="les-environnements-réguliers">Les environnements réguliers</h3>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Environnement</th>
+<th>Système</th>
+<th>Compilateur</th>
+<th>Processeur</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r-devel-linux-x86_64-debian-clang</td>
+<td>Debian testing</td>
+<td>clang/flang 23.1.0</td>
+<td>2 × Xeon E5-2690</td>
+</tr>
+<tr>
+<td>r-devel-linux-x86_64-debian-gcc</td>
+<td>Debian testing</td>
+<td>GCC 16.2.0</td>
+<td>2 × Xeon E5-2690</td>
+</tr>
+<tr>
+<td>r-devel-linux-x86_64-fedora-clang</td>
+<td>Fedora 44</td>
+<td>clang/flang 23.1.0, libc++</td>
+<td>2 × Xeon E5-2690 v4</td>
+</tr>
+<tr>
+<td>r-devel-linux-x86_64-fedora-gcc</td>
+<td>Fedora 44</td>
+<td>GCC 16.2.1</td>
+<td>2 × Xeon E5-2690 v4</td>
+</tr>
+<tr>
+<td>r-patched-linux, r-release-linux</td>
+<td>Debian testing</td>
+<td>GCC 15.3.0</td>
+<td>2 × Xeon E5-2690</td>
+</tr>
+<tr>
+<td>r-devel-windows, r-release-windows</td>
+<td>Windows Server 2022</td>
+<td>GCC 14.3.0</td>
+<td>2 × AMD EPYC 7443</td>
+</tr>
+<tr>
+<td>r-oldrel-windows</td>
+<td>Windows Server 2022</td>
+<td>GCC 14.3.0</td>
+<td>2 × Xeon E5-2680 v4</td>
+</tr>
+<tr>
+<td>r-release-macos-arm64</td>
+<td>macOS 15.7.1</td>
+<td>Apple Clang 1700</td>
+<td>Apple M3 Ultra</td>
+</tr>
+<tr>
+<td>r-oldrel-macos-arm64</td>
+<td>macOS 13.4</td>
+<td>Apple Clang 1400</td>
+<td>Apple M1</td>
+</tr>
+<tr>
+<td>r-release / r-oldrel-macos-x86_64</td>
+<td>macOS 13.3.1</td>
+<td>Apple Clang 1403</td>
+<td>Core i5 6 cœurs</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tous les environnements Linux lient WH à la LAPACK du système et au BLAS de référence de R (<code>-llapack -lRblas</code> dans les journaux d’installation de WH 2.0.0) ; Windows et macOS utilisent la LAPACK et le BLAS internes de R.</p>
+<h3 id="les-contrôles-additionnels-qui-peuvent-faire-échouer-wh">Les contrôles additionnels qui peuvent faire échouer WH</h3>
+<p>WH est du R et du C++ (Rcpp) qui appelle LAPACK en mode bande (<code>dpbtrf</code>, <code>dtbtrs</code>, <code>dsbev</code>), sans OpenMP, sans <code>\donttest</code>, et dont les tests comparent des résultats numériques à une tolérance. Les types retenus :</p>
+<div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:15.05%"><col style="--w:55.70%"><col style="--w:29.25%"></colgroup>
+
+<thead>
+<tr>
+<th>Type</th>
+<th>Ce que fait le CRAN</th>
+<th>Ce qu’il peut révéler dans WH</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MKL</td>
+<td>Fedora 44, R-devel gcc, oneMKL 2026.1.0 <strong>en série</strong> (<code>-lmkl_gf_lp64 -lmkl_core -lmkl_sequential</code>), BLAS et LAPACK ; 2023.2.0 avant 2026-07</td>
+<td>résultats qui changent avec les noyaux de MKL : les échecs de 2023 et 2024</td>
+</tr>
+<tr>
+<td>OpenBLAS</td>
+<td>Fedora 44, OpenBLAS 0.3.29 en série à la place de <code>libRblas.so</code>, LAPACK du système (3.12.0) gardée</td>
+<td>écart numérique au BLAS de référence</td>
+</tr>
+<tr>
+<td>noSuggests</td>
+<td><code>_R_CHECK_DEPENDS_ONLY_=true</code> : les paquets de <code>Suggests</code> (testthat, knitr…) absents</td>
+<td>test ou vignette qui suppose un paquet suggéré</td>
+</tr>
+<tr>
+<td>gcc-ASAN, gcc-UBSAN</td>
+<td>Fedora 44, gcc 16.1, <code>-fsanitize=address,undefined,bounds-strict</code>, R construit avec</td>
+<td>lecture ou écriture hors bornes, comportement indéfini dans le C++</td>
+</tr>
+<tr>
+<td>clang-ASAN, clang-UBSAN</td>
+<td>Fedora 44, clang 23 et libc++, <code>-fsanitize=address,undefined</code></td>
+<td>idem, avec la bibliothèque C++ de LLVM</td>
+</tr>
+<tr>
+<td>valgrind</td>
+<td>Fedora 44, valgrind 3.27.1, R instrumenté (niveau 2), <code>R CMD check --use-valgrind</code></td>
+<td>mémoire non initialisée, accès invalides</td>
+</tr>
+<tr>
+<td>noLD</td>
+<td>R-devel configuré <code>--disable-long-double</code></td>
+<td>sommes et moyennes de R calculées sans précision étendue, comme sur le Mac ARM</td>
+</tr>
+<tr>
+<td>M1mac</td>
+<td>R-devel sur Mac arm64, macOS 27, LAPACK interne</td>
+<td>arithmétique et compilateur du Mac ARM</td>
+</tr>
+<tr>
+<td>LTO</td>
+<td>Fedora, <code>--enable-lto=R</code>, <code>INSTALL --use-LTO</code></td>
+<td>prototypes incohérents entre unités de compilation (avertissement <code>-Wlto-type-mismatch</code>)</td>
+</tr>
+<tr>
+<td>clang23, gcc</td>
+<td>compilateurs les plus récents (en-têtes de libc++ allégés)</td>
+<td>en-tête C++ manquant</td>
+</tr>
+<tr>
+<td>rchk</td>
+<td>analyse statique du code natif (PROTECT)</td>
+<td>protection oubliée ; peu pertinent avec Rcpp, que l’outil analyse mal</td>
+</tr>
+</tbody>
+</table></div>
+<p>Écartés, avec leur raison :</p>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Type</th>
+<th>Raison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ATLAS</td>
+<td>« no longer run regularly » depuis le 2026-09-01 (README des BLAS)</td>
+</tr>
+<tr>
+<td>BLIS</td>
+<td>serial BLIS 2.0 de Fedora ; aucune copie ici ni conteneur R-hub : <span class="pastille ko">non reproduit</span>, risque couvert par les trois autres BLAS</td>
+</tr>
+<tr>
+<td>Intel</td>
+<td>page « no longer updated » (compilateurs oneAPI 2024.2.1)</td>
+</tr>
+<tr>
+<td>Strict, noRemap, C23, 0len</td>
+<td>devenus le comportement par défaut de R-devel, ou archivés : tout contrôle R-devel les couvre</td>
+</tr>
+<tr>
+<td>BLAS</td>
+<td>appels Fortran sans <code>FCONE</code> : WH les a, et R ≥ 4.2 l’impose à la compilation</td>
+</tr>
+<tr>
+<td>noOMP, donttest</td>
+<td>WH n’a ni OpenMP ni <code>\donttest</code></td>
+</tr>
+<tr>
+<td>musl, linux-arm64, rcnst, rlibro, vnu</td>
+<td>sans lien avec le code de WH ; vnu demande Java, absent ici</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="où-rejouer-chaque-contrôle-windows-wsl-ou-r-hub"><span class="num">3</span>Où rejouer chaque contrôle : Windows, WSL ou R-hub</h2>
+<p>Trois lieux sont possibles. <strong>Windows</strong> : les copies privées de R 4.5.3 sous <code>C:\Users\Guillaume Biessy\R-prive\</code>, posées par le chantier MKL d’ebmcd, et Rtools45. <strong>WSL</strong> : la distribution Ubuntu 20.04 de la machine. <strong>R-hub</strong> : le service de contrôle de R-hub, qui tourne sur GitHub Actions dans le dépôt du paquet ; son flux <code>.github/workflows/rhub.yaml</code> est déjà dans WH, le dépôt est public, l’exécution est gratuite.</p>
+<p>Trois constats, mesurés le 25/10, tranchent la plupart des cas :</p>
+<ul>
+<li><strong>Rtools45 ne sait pas compiler avec les sanitizers.</strong> <code>g++ -fsanitize=address</code> et <code>-fsanitize=undefined</code> échouent à l’édition de liens (<code>cannot find -lasan</code>, <code>-lubsan</code>) ; seul <code>-fsanitize-undefined-trap-on-error</code> compile, qui arrête le programme sans dire où. Valgrind n’existe pas sous Windows.</li>
+<li><strong>Le WSL ne compile rien en l’état</strong> : ni <code>gcc</code>, ni <code>g++</code>, ni <code>make</code> ; R 4.3.1 sans testthat ni Rcpp. Ubuntu 20.04 n’a que gcc 9 et valgrind 3.15, loin des gcc 16, clang 23 et valgrind 3.27 du CRAN.</li>
+<li><strong>Les noyaux de MKL en série se comportent de même sous Windows et sous Linux</strong> (chantier MKL d’ebmcd, <code>dev/mkl/note-mkl.md</code>) : le défaut propre à Linux, la couche de fils Intel, ne touche pas la configuration en série du CRAN.</li>
+</ul>
+<div class="callout definition"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="plein" d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/><path class="signe" d="M12 7v14"/></svg>Définition</div><div class="cb"><p><strong>Substitut.</strong> La configuration de cette machine ou de R-hub qui rejoue le mieux un contrôle du CRAN : même bibliothèque à la même version, mêmes options, et le chemin d’instructions du processeur du CRAN quand la bibliothèque en dépend. Sa <strong>fidélité</strong> dit ce qu’il ne reproduit pas.</p></div></div>
+<div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:15.05%"><col style="--w:50.38%"><col style="--w:6.53%"><col style="--w:28.04%"></colgroup>
+
+<thead>
+<tr>
+<th>Contrôle du CRAN</th>
+<th>Substitut retenu</th>
+<th>Lieu</th>
+<th>Ce qu’il ne reproduit pas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r-release-windows</td>
+<td>R 4.5.3, BLAS et LAPACK de référence, Rtools45 (GCC 14.2)</td>
+<td>Windows</td>
+<td>GCC 14.3 du CRAN ; processeur AMD</td>
+</tr>
+<tr>
+<td>r-devel-windows</td>
+<td>R-devel Windows</td>
+<td>Windows</td>
+<td><span class="pastille hyp">à télécharger</span> : environ 90 Mo</td>
+</tr>
+<tr>
+<td>MKL</td>
+<td>copie <code>R-4.5.3-mkl</code> (oneMKL 2026.1, la version du CRAN), <code>MKL_THREADING_LAYER=SEQUENTIAL</code>, <code>MKL_ENABLE_INSTRUCTIONS=AVX2</code></td>
+<td>Windows</td>
+<td>R 4.5.3 au lieu de R-devel ; Fedora et gcc</td>
+</tr>
+<tr>
+<td>MKL avant 2026-07</td>
+<td>copie <code>R-4.5.3-mkl2023</code> (2023.2), série, AVX2 ; AVX pour le processeur de 2023-2024</td>
+<td>Windows</td>
+<td>idem</td>
+</tr>
+<tr>
+<td>OpenBLAS</td>
+<td>copie <code>R-4.5.3-openblas-cran</code> : OpenBLAS 0.3.29 à la place de <code>Rblas.dll</code> seule, LAPACK de R gardée, <code>OPENBLAS_NUM_THREADS=1</code>, <code>OPENBLAS_CORETYPE=Haswell</code></td>
+<td>Windows</td>
+<td>LAPACK 3.12.1 de R au lieu de la 3.12.0 de Fedora ; OpenBLAS compilé par mingw</td>
+</tr>
+<tr>
+<td>noSuggests</td>
+<td><code>_R_CHECK_DEPENDS_ONLY_=true</code> sur la copie de référence</td>
+<td>Windows</td>
+<td>rien de propre à Linux</td>
+</tr>
+<tr>
+<td>gcc-ASAN, gcc-UBSAN</td>
+<td>conteneur <code>gcc-asan</code> : Fedora 44, R-devel, drapeaux du CRAN, <code>libasan</code> préchargée</td>
+<td>R-hub</td>
+<td>R lui-même non instrumenté</td>
+</tr>
+<tr>
+<td>clang-ASAN, clang-UBSAN</td>
+<td>conteneurs <code>clang-asan</code>, <code>clang-ubsan</code> : Ubuntu 26.04, clang et libc++</td>
+<td>R-hub</td>
+<td>Ubuntu au lieu de Fedora ; <code>alignment</code> et <code>float-divide-by-zero</code> exclus</td>
+</tr>
+<tr>
+<td>valgrind</td>
+<td>conteneur <code>valgrind</code> : Fedora 44, R-devel construit pour valgrind</td>
+<td>R-hub</td>
+<td>niveau d’instrumentation de R <span class="pastille hyp">non vérifié</span></td>
+</tr>
+<tr>
+<td>noLD</td>
+<td>conteneur <code>nold</code> : Ubuntu 26.04, R-devel <code>--disable-long-double</code></td>
+<td>R-hub</td>
+<td>Ubuntu au lieu de Fedora</td>
+</tr>
+<tr>
+<td>M1mac, macOS arm64</td>
+<td>plate-forme <code>macos-arm64</code> : Mac M1 de GitHub, R-release</td>
+<td>R-hub</td>
+<td>R-release au lieu de R-devel, macOS de GitHub</td>
+</tr>
+<tr>
+<td>LTO</td>
+<td>conteneur <code>lto</code></td>
+<td>R-hub</td>
+<td>—</td>
+</tr>
+<tr>
+<td>clang23, gcc 16, Linux</td>
+<td>conteneurs <code>clang23</code>, <code>gcc16</code>, <code>ubuntu-clang</code>, <code>ubuntu-gcc12</code></td>
+<td>R-hub</td>
+<td>Ubuntu au lieu de Debian testing</td>
+</tr>
+<tr>
+<td>rchk</td>
+<td>conteneur <code>rchk</code></td>
+<td>R-hub</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<p>Pour MKL, R-hub est <strong>moins</strong> fidèle que Windows : son conteneur <code>mkl</code> pose oneMKL 2025.3 (pas 2026.1) par <code>mkl_rt</code> (<code>containers/mkl/Dockerfile</code> de R-hub, lu le 25/10), et les machines de GitHub peuvent être des AMD EPYC, sur lesquels MKL ne prend pas les noyaux d’un Xeon <span class="pastille hyp">hypothèse</span>. Windows permet en outre d’imposer le chemin AVX2 du processeur du CRAN.</p>
+<h3 id="le-wsl-chiffré">Le WSL, chiffré</h3>
+<p>Le WSL ne serait le bon lieu que pour rejouer <strong>hors ligne</strong> ce que R-hub fournit. Il demanderait, avant tout contrôle : les outils de compilation et valgrind d’Ubuntu (<code>build-essential</code>, <code>gfortran</code>, <code>r-base-dev</code>, <code>valgrind</code>, de l’ordre de 300 Mo <span class="pastille hyp">estimation</span>), les paquets R Rcpp et testthat compilés depuis leurs sources, puis, pour noLD et un valgrind instrumenté, deux constructions de R-devel depuis ses sources (40 Mo de sources, une vingtaine de minutes chacune <span class="pastille hyp">estimation</span>). Le résultat resterait sur gcc 9 et valgrind 3.15, Ubuntu 20.04 n’étant plus maintenue. R-hub donne les mêmes contrôles, à jour, sans rien poser ici.</p>
+<h2 id="ce-que-donne-wh-2.0.0"><span class="num">4</span>Ce que donne WH 2.0.0</h2>
+<p>Archive construite depuis <code>origin/master</code>, dont les fichiers du paquet sont ceux de la version 2.0.0 sur le CRAN. Chaque ligne est un <code>R CMD check --as-cran</code> complet (installation, exemples, 76 tests, vignette, manuel), le 25/10/2026. La bannière est celle que la bibliothèque imprime elle-même au chargement, dans un processus lancé comme ceux du contrôle.</p>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Substitut</th>
+<th>Bibliothèque chargée</th>
+<th>Statut</th>
+<th>Tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>référence (r-release-windows)</td>
+<td>BLAS et LAPACK de R</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>noSuggests</td>
+<td>BLAS et LAPACK de R</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>OpenBLAS</td>
+<td>OpenBLAS 0.3.29, noyaux Haswell, un fil</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>MKL</td>
+<td>oneMKL 2026 Update 1, AVX-512, série</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>MKL, processeur du CRAN</td>
+<td>oneMKL 2026 Update 1, AVX2, série</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>MKL avant 2026-07</td>
+<td>oneMKL 2023.0 Update 2, AVX2, série</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+<tr>
+<td>MKL de 2023-2024</td>
+<td>oneMKL 2023.0 Update 2, AVX, série</td>
+<td>1 NOTE</td>
+<td>76 / 76</td>
+</tr>
+</tbody>
+</table></div>
+<p>La NOTE est partout la même : <code>CLAUDE.md</code>, fichier non standard à la racine. Il est apparu dans le dépôt après la soumission et n’est pas dans l’archive du CRAN ; son inscription au <code>.Rbuildignore</code> est un point déjà ouvert de la doctrine du dépôt. Dans chaque contrôle, WH importe <code>Rlapack.dll</code> et rien d’autre.</p>
+<p><strong>WH 2.0.0 passe toutes les configurations de BLAS du CRAN, y compris celle de 2023-2024 qui faisait échouer WH 1.0.6.</strong> Les contrôles Linux et Mac (sanitizers, valgrind, noLD, macos-arm64…) ne sont pas encore lancés : ils passent par R-hub, et attendent ton accord (« Ce qui reste à décider »).</p>
+<h2 id="la-recette"><span class="num">5</span>La recette</h2>
+<p>Les scripts sont dans <code>documentation/cran-tests/</code> (hors de l’archive du paquet, <code>^documentation$</code> étant au <code>.Rbuildignore</code>). Une session les lance sous le verrou machine (skill <code>gate-lock-r</code>), depuis Git Bash :</p>
+<pre><code>bash documentation/cran-tests/run_windows.sh &lt;dépôt&gt; &lt;dossier de sortie&gt; [&lt;référence git&gt;] [&lt;calibration | none&gt;]</code></pre>
+<ul>
+<li><code>configs.sh</code> : un substitut par configuration (copie privée de R et variables d’environnement), sources en tête.</li>
+<li><code>check_config.sh</code> : un <code>R CMD check --as-cran</code> sous un substitut ; écrit une ligne de bilan (statut, ligne de testthat, bannière de la bibliothèque chargée, DLL importées par le paquet compilé).</li>
+<li><code>run_windows.sh</code> : construit l’archive depuis la référence git (par défaut <code>origin/master</code>, jamais l’arbre de travail), rejoue la calibration, puis toutes les configurations.</li>
+<li><code>blas_probe.R</code> : fait annoncer à la bibliothèque sa version, son chemin d’instructions et sa couche de fils (<code>MKL_VERBOSE=1</code>, <code>OPENBLAS_VERBOSE=2</code>).</li>
+<li><code>calibrer_nosuggests.sh</code> : prouve que <code>_R_CHECK_DEPENDS_ONLY_</code> prend effet, sur un paquet témoin.</li>
+</ul>
+<p>Les calibrations précèdent tout verdict, parce qu’un contrôle qui passe ne prouve rien tant que l’instrument n’a pas montré qu’il voit un défaut connu :</p>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Calibration</th>
+<th>Attendu</th>
+<th>Mesuré le 25/10</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WH 1.0.6 (R pur, échec MKL de 2023) sous MKL 2023.2, série, AVX</td>
+<td>des tests en échec</td>
+<td>FAIL 5, PASS 179</td>
+</tr>
+<tr>
+<td>WH 1.0.6 sous MKL 2026.1, série, AVX-512</td>
+<td>aucun échec</td>
+<td>FAIL 0, PASS 184</td>
+</tr>
+<tr>
+<td>témoin dont l’exemple appelle un paquet de <code>Suggests</code>, sans puis avec <code>_R_CHECK_DEPENDS_ONLY_</code></td>
+<td>OK, puis erreur</td>
+<td><code>Status: OK</code>, puis « there is no package called ‘spelling’ »</td>
+</tr>
+</tbody>
+</table></div>
+<p>Le CRAN avait vu 7 échecs en 2023 ; le chantier MKL d’ebmcd en mesurait 5 à 9 selon les tirages d’alignement.</p>
+<p>::: ecart titre=“Une copie de R à BLAS remplacé peut faire charger une autre bibliothèque que celle qu’on teste” Le premier passage du banc a rendu WH 40 fois plus lent sous OpenBLAS (exemples en 234 s, contre 13 s ailleurs). Cause mesurée : lié contre la copie OpenBLAS, l’éditeur de liens de Rtools prend <code>dpbtrf</code>, <code>dtbtrs</code> et <code>dsbev</code> dans la DLL OpenBLAS posée en <code>Rblas.dll</code> (elle exporte aussi LAPACK), et les importe sous son nom interne, <code>libopenblas.dll</code>. Windows cherche alors ce nom sur le PATH, et y trouve celle d’Inkscape : le paquet tournait sur un autre OpenBLAS que celui du contrôle. Correctif, dans <code>check_config.sh</code> : lier le paquet aux noms <code>Rblas.dll</code> et <code>Rlapack.dll</code> de la copie de référence (<code>R_MAKEVARS_USER</code>) ; au chargement, ces noms désignent les DLL déjà chargées par la copie testée, comme <code>-llapack -lRblas</code> au CRAN. Le banc vérifie désormais les DLL importées par le paquet.</p>
+<p>Le R de production (<code>C:\Program Files\R\R-4.5.3</code>) a OpenBLAS à la fois en <code>Rblas.dll</code> et en <code>Rlapack.dll</code> : tout paquet qui appelle LAPACK, compilé par lui, importera <code>libopenblas.dll</code> et chargera celui d’Inkscape. Aucun paquet installé n’est touché aujourd’hui (aucun n’importe ce nom, contrôle du 25/10), mais le prochain compilé le sera. :::</p>
+<h2 id="le-skill-cran-tests-proposé"><span class="num">6</span>Le skill « CRAN-tests » proposé</h2>
+<p>Une proposition, à valider : la création passera ensuite par le skill <code>helper-skill-creator</code>.</p>
+<p><strong>Quand il s’arme</strong> : avant une soumission au CRAN d’un paquet maison (WH, WHfull, ebmcd, Linkplots…), après un signalement du CRAN dans un contrôle additionnel, et après une montée de version de R (les copies privées sont à refaire).</p>
+<p><strong>Deux étages.</strong></p>
+<div class="scroll"><table class="ajuste" style="--larg:1256px"><colgroup class="ajuste"><col style="--w:16.32%"><col style="--w:42.44%"><col style="--w:41.24%"></colgroup>
+
+<thead>
+<tr>
+<th>Étage</th>
+<th>Ce qu’il rejoue</th>
+<th>Ce qu’il demande</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Windows, sur cette machine</td>
+<td>référence, noSuggests, OpenBLAS, MKL 2026.1 (AVX-512 et AVX2), MKL 2023.2 (AVX2 et AVX) ; R-devel Windows si posé</td>
+<td>rien : lancé sous le verrou, environ 25 min, verdict en tableau</td>
+</tr>
+<tr>
+<td>R-hub, sur GitHub</td>
+<td><code>gcc-asan</code>, <code>clang-asan</code>, <code>clang-ubsan</code>, <code>valgrind</code>, <code>nold</code>, <code>macos-arm64</code>, <code>lto</code>, <code>clang23</code>, <code>gcc16</code> ; <code>rchk</code> pour un paquet en C</td>
+<td>ton accord à chaque soumission : les calculs tournent sur GitHub et leurs journaux sont visibles dans l’onglet Actions d’un dépôt public</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Scripts</strong>, repris de <code>documentation/cran-tests/</code> et généralisés à tout paquet :</p>
+<ul>
+<li><code>configs.sh</code>, <code>check_config.sh</code>, <code>run_local.sh</code> (l’actuel <code>run_windows.sh</code>, avec la liste des configurations en option) et <code>blas_probe.R</code> ;</li>
+<li>les calibrations : <code>calibrer_mkl.sh</code> (WH 1.0.6 doit échouer sous MKL 2023.2 AVX), <code>calibrer_nosuggests.sh</code> ;</li>
+<li><code>rhub_lancer.sh</code> : <code>gh workflow run rhub.yaml -f config=&lt;liste&gt;</code> sur la branche visée, puis une seule surveillance jusqu’à la fin des tâches ; <code>rhub_bilan.sh</code> : le statut de chaque tâche et l’extrait d’erreur ;</li>
+<li><code>poser_copies.sh</code> : refait les copies privées après une montée de R (repris de <code>mkl_prive.sh</code> et <code>install_prive.sh</code> d’ebmcd), copie OpenBLAS « BLAS seul » comprise.</li>
+</ul>
+<p><strong>Règles qu’il porte</strong> :</p>
+<ul>
+<li>l’archive se construit depuis la référence git soumise, jamais depuis l’arbre de travail ;</li>
+<li>aucun verdict sans les deux calibrations vertes ; un paquet compilé qui importe autre chose que <code>Rblas.dll</code> et <code>Rlapack.dll</code> invalide son contrôle ;</li>
+<li>les durées ne se jugent pas (la machine est partagée) ;</li>
+<li>les sources du CRAN se relisent à chaque usage (README des BLAS : versions de MKL et d’OpenBLAS) : un changement de version demande un téléchargement, donc ton accord ;</li>
+<li>un paquet sans flux R-hub reçoit <code>.github/workflows/rhub.yaml</code> (hors archive, <code>^\.github$</code> au <code>.Rbuildignore</code>) ; pour un dépôt privé, R-hub consomme le quota gratuit de GitHub Actions du compte.</li>
+</ul>
+<h2 id="ce-qui-reste-à-décider"><span class="num">7</span>Ce qui reste à décider</h2>
+<p>::: question titre=“Lancer R-hub sur WH” Les contrôles Linux et Mac retenus — <code>gcc-asan</code>, <code>clang-asan</code>, <code>clang-ubsan</code>, <code>valgrind</code>, <code>nold</code>, <code>macos-arm64</code>, <code>lto</code>, <code>clang23</code>, <code>gcc16</code> — se lancent d’une commande sur le flux déjà présent dans WH (<code>rhub.yaml</code>). Coût : gratuit (dépôt public), rien d’installé ici, une demi-heure à une heure d’attente sur GitHub <span class="pastille hyp">estimation</span>. Contrepartie : les journaux sont publics dans l’onglet Actions du dépôt. C’est ce qui complète la matrice de WH. :::</p>
+<p>::: question titre=“Valider la conception du skill « CRAN-tests »” Périmètre, deux étages, scripts et règles de la section précédente. Une fois validée, le skill se crée par <code>helper-skill-creator</code>, et reprend les scripts de <code>documentation/cran-tests/</code>. :::</p>
+<p>Deux points ne demandent pas de décision maintenant :</p>
+<ul>
+<li><strong>R-devel sous Windows</strong> (environ 90 Mo <span class="pastille hyp">estimation</span>) n’apporte qu’une version de R plus récente sur des contrôles déjà verts ; le skill le proposera à la première soumission qui en aura besoin.</li>
+<li><strong>Le R de production sous OpenBLAS</strong> (encadré de la recette) relève du dépôt ebmcd, où vit <code>poser_openblas.ps1</code> : une session à lancer là-bas.</li>
+</ul>
+<p>Les scripts restent sur la branche <code>claude/cran-configs-ccce4a</code> : ce ne sont pas des fichiers documentaires, et la doctrine de WH interdit de les pousser sur <code>master</code> sans suite de tests. Le skill les reprendra ; seule cette note va sur <code>master</code>.</p>
+<footer><span>WH — octobre 2026</span></footer></div></body></html>
