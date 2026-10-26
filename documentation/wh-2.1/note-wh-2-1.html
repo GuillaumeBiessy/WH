@@ -248,7 +248,7 @@ textarea.retour:focus{outline:2px solid var(--c-question);outline-offset:-1px}
 </tr>
 <tr>
 <td>Tests</td>
-<td>76 → 380 attentes, 8 fichiers</td>
+<td>76 → 316 attentes, 8 fichiers</td>
 <td>—</td>
 </tr>
 </tbody>
@@ -11168,7 +11168,7 @@ z
 </table></div>
 <p>Le nombre d’évaluations du critère est le même dans les deux versions : la sélection elle-même n’a pas changé. Une sélection par REML ne calcule pas la variance à chaque évaluation, d’où le gain plus faible sur la sélection complète ; une sélection par AIC, BIC ou GCV la calcule à chaque fois. Sur ces grilles simulées, le log-taux est exactement linéaire en âge : la 2.1 signale à juste titre le λ de cette dimension au bord de l’intervalle. Sortie brute : <code>dev/bench/timings-2.0.0.9000.txt</code>.</p>
 <h3 id="écarts-numériques">Écarts numériques</h3>
-<p>Les 34 ajustements de la 2.0.0 figés avant toute modification (<code>tests/testthat/fixtures/ref-2.0.0.rds</code>) sont recalculés par la 2.1 (<code>dev/ref-2.0.0/compare_ref.R</code>, sortie dans <code>gaps-2.0.0.9000.txt</code>).</p>
+<p>Les 34 ajustements de la 2.0.0 figés avant toute modification (<code>tests/testthat/fixtures/ref-2.0.0.rds</code>) sont recalculés par la 2.1 (<code>dev/ref-2.0.0/compare_ref.R</code>, sortie dans <code>gaps-2.0.0.9000.txt</code> ; degrés de liberté totaux par <code>edf_gaps.R</code>, sortie dans <code>edf-gaps-2.0.0.9000.txt</code>). Les quatre premières colonnes sont des écarts relatifs, la dernière un écart absolu sur la somme des degrés de liberté effectifs de l’ajustement.</p>
 <div class="scroll"><table>
 
 <thead>
@@ -11177,6 +11177,7 @@ z
 <th class="n">λ</th>
 <th class="n"><code>y_hat</code></th>
 <th class="n"><code>std_y_hat</code>, <code>edf</code></th>
+<th class="n">Σ <code>edf</code>, en degrés de liberté</th>
 </tr>
 </thead>
 <tbody>
@@ -11185,34 +11186,73 @@ z
 <td class="n">identique</td>
 <td class="n">identique</td>
 <td class="n">≤ 2,1e-15</td>
+<td class="n">identique</td>
 </tr>
 <tr>
 <td>2D, λ sélectionné par Nelder-Mead (5)</td>
 <td class="n">identique, mêmes évaluations</td>
 <td class="n">identique</td>
 <td class="n">≤ 5,3e-15</td>
+<td class="n">≤ 2,8e-14</td>
 </tr>
 <tr>
 <td>1D régression, λ sélectionné (12)</td>
 <td class="n">≤ 2,3e-7</td>
 <td class="n">≤ 1,1e-9</td>
 <td class="n">≤ 3,8e-8</td>
+<td class="n">≤ 1,9e-7</td>
 </tr>
 <tr>
 <td>1D vraisemblance, λ sélectionné (12)</td>
 <td class="n">≤ 4,3e-5</td>
 <td class="n">≤ 9,8e-7</td>
 <td class="n">≤ 1,7e-5</td>
+<td class="n">≤ 2,6e-4</td>
 </tr>
 <tr>
 <td>Prédictions : 2D (2), 1D après sélection (1)</td>
 <td class="n">identique ; ≤ 8e-10</td>
 <td class="n">≤ 5,7e-12</td>
 <td class="n">≤ 2,9e-10</td>
+<td class="n">≤ 1,2e-9</td>
 </tr>
 </tbody>
 </table></div>
 <div class="callout ecart"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="plein" d="M15.312 2a2 2 0 0 1 1.414.586l4.688 4.688A2 2 0 0 1 22 8.688v6.624a2 2 0 0 1-.586 1.414l-4.688 4.688a2 2 0 0 1-1.414.586H8.688a2 2 0 0 1-1.414-.586l-4.688-4.688A2 2 0 0 1 2 15.312V8.688a2 2 0 0 1 .586-1.414l4.688-4.688A2 2 0 0 1 8.688 2z"/><path class="signe" d="M12 8v4"/><path class="signe" d="M12 16h.01"/></svg>Écart constaté</div><div class="cb"><p><strong>Le seuil de 1e-10 n’est pas tenu pour un λ sélectionné en 1D</strong>, en régression (jusqu’à 2,3e-7 sur λ) et surtout en vraisemblance. Il l’est à λ fixé et en 2D. En 1D, la sélection n’est définie qu’à sa propre tolérance près : celle de Brent (1,2e-4 sur log λ) et l’arrêt du PIRLS, dont le critère hérite un bruit relatif d’environ 1e-8. Le moindre changement d’arrondi, nouveau noyau ou autre BLAS, peut faire prendre à Brent un autre chemin dans cette indétermination. Calibration (<code>dev/ref-2.0.0/calib_noise.R</code>) : la 2.0.0 elle-même, avec des expositions multipliées par 1 + 1e-14, déplace ses sélections 1D en vraisemblance jusqu’à 4,1e-5 sur λ, 2e-7 sur <code>y_hat</code> et 3e-6 sur <code>std_y_hat</code>. Les écarts de la 2.1 sont du même ordre, jusqu’à cinq fois plus sur <code>y_hat</code>. Aucune version ne peut tenir 1e-10 sur ces cas.</p></div></div>
+<p>Un écart sur λ ne dit pas, à lui seul, s’il compte : autour de son optimum le critère est plat, et λ peut bouger sans effet visible sur l’ajustement. Les degrés de liberté effectifs totaux mesurent ce que la sélection décide vraiment, la quantité de lissage, dans une unité qui se lit de la même façon pour un modèle de 5 ou de 112 degrés de liberté. La même mesure, faite sur la 2.0.0 avec ses expositions perturbées de 1e-14 (quatre perturbations : multipliées par 1 + 1e-14, par 1 − 1e-14, et deux bruits aléatoires de cette taille ; le plus grand écart est retenu, <code>edf_gaps.R --calib</code>, sortie dans <code>edf-calib-2.0.0.txt</code>), donne la sensibilité propre de la version publiée.</p>
+<div class="scroll"><table>
+
+<thead>
+<tr>
+<th>Ajustements</th>
+<th class="n">2.0.0, entrées perturbées de 1e-14</th>
+<th class="n">2.1, entrées exactes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1D vraisemblance, λ sélectionné (12, et 1 prédiction)</td>
+<td class="n">≤ 2,3e-4</td>
+<td class="n">≤ 2,6e-4</td>
+</tr>
+<tr>
+<td>1D régression, λ sélectionné (12)</td>
+<td class="n">≤ 2,2e-7</td>
+<td class="n">≤ 1,9e-7</td>
+</tr>
+<tr>
+<td>2D, λ sélectionné (5, et 2 prédictions)</td>
+<td class="n">≤ 5,1e-12</td>
+<td class="n">≤ 2,8e-14</td>
+</tr>
+<tr>
+<td>λ fixé, 1D et 2D (2)</td>
+<td class="n">≤ 2,7e-13</td>
+<td class="n">identique</td>
+</tr>
+</tbody>
+</table></div>
+<p>Les deux plus grands écarts tombent sur le même ajustement, vraisemblance 1D, q = 1, critère BIC : la 2.1 s’écarte de l’étalon autant que la 2.0.0 s’écarte d’elle-même quand ses entrées bougent de 1e-14. <code>test-reference.R</code> juge donc chaque λ sélectionné par <strong>un écart d’au plus 1e-3 degré de liberté</strong> sur le total, environ quatre fois la plus grande des deux mesures. Les tolérances relatives sur λ, <code>std_y_hat</code> et <code>edf</code> disparaissent, remplacées par ce seul critère ; les valeurs lissées et prédites, qui n’ont pas d’expression en degrés de liberté, gardent la leur (1e-5 relatif, pour des écarts mesurés jusqu’à 9,8e-7). En 2D, la perturbation n’a déplacé aucune sélection de la 2.0.0 : la marge y est héritée de la 1D, pas calibrée.</p>
 <h2 id="la-suite-de-tests"><span class="num">8</span>La suite de tests</h2>
 <div class="scroll"><table>
 
@@ -11257,17 +11297,17 @@ z
 <tr>
 <td><code>test-reference.R</code></td>
 <td>les 34 ajustements de la 2.0.0</td>
-<td class="n">145</td>
+<td class="n">81</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
 <td></td>
-<td class="n"><strong>380</strong></td>
+<td class="n"><strong>316</strong></td>
 </tr>
 </tbody>
 </table></div>
 <p>Durée : 22 s pour l’ensemble des fichiers sur la machine chargée, 31 s de bout en bout par le gate <code>dev/run_tests_staged.R</code> (compilation optimisée, puis 75 s quand le C++ est à recompiler). Le gate est rouge dès qu’un test échoue, plante ou est sauté.</p>
-<p>Face aux BLAS : les échecs de WH au contrôle MKL du CRAN en 2023 et 2024 venaient de tests qui comparaient un calcul à lui-même avec une tolérance serrée (chantier « Erreurs MKL » d’ebmcd). Aucun test de la 2.1 ne compare deux résultats flottants à l’identique : les noyaux se comparent à l’algèbre dense à 1e-8 ou 1e-10, et les λ sélectionnés à l’étalon dans l’indétermination calibrée ci-dessus. <code>R CMD check</code> : 0 erreur, 0 avertissement, 1 note (le fichier <code>.git</code> du worktree, exclu depuis par le <code>.Rbuildignore</code>), vignette non construite ; son code et celui du README tournent sans aucun avertissement.</p>
+<p>Face aux BLAS : les échecs de WH au contrôle MKL du CRAN en 2023 et 2024 venaient de tests qui comparaient un calcul à lui-même avec une tolérance serrée (chantier « Erreurs MKL » d’ebmcd). Aucun test de la 2.1 ne compare deux résultats flottants à l’identique : les noyaux se comparent à l’algèbre dense à 1e-8 ou 1e-10, et les λ sélectionnés à l’étalon par leur effet sur les degrés de liberté, calibré ci-dessus. <code>R CMD check</code> : 0 erreur, 0 avertissement, 1 note (le fichier <code>.git</code> du worktree, exclu depuis par le <code>.Rbuildignore</code>), vignette non construite ; son code et celui du README tournent sans aucun avertissement.</p>
 <h2 id="ce-qui-reste-ouvert"><span class="num">9</span>Ce qui reste ouvert</h2>
 <ul>
 <li><strong>Avant la soumission</strong> : rejouer les contrôles additionnels du CRAN (MKL, OpenBLAS, sanitizers, valgrind) par le skill <code>cran-tests</code>, que tu tapes toi-même, puis la promotion de <code>dev</code> vers <code>master</code> avec ta validation.</li>
@@ -11452,5 +11492,7 @@ z
 </svg></span>, même quand la sélection a tourné à la bande plus étroite de la table transposée. Gain résiduel estimé à 0,3 s sur 100×40 après Takahashi, pour un changement de l’orientation de <code>object$R</code> lue par <code>vcov()</code> et <code>predict()</code> : non fait.</li>
 </ul>
 <h2 id="ce-qui-reste-à-décider"><span class="num">10</span>Ce qui reste à décider</h2>
-<div class="callout question"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="plein" cx="12" cy="12" r="10"/><path class="signe" d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path class="signe" d="M12 17h.01"/></svg>Point à confirmer</div><div class="cb"><p><strong>Quel seuil pour un λ sélectionné ?</strong> Proposition : garder 1e-10 à λ fixé (tenu : ≤ 2e-14), et juger un λ sélectionné contre la sensibilité propre de la 2.0.0, mesurée par <code>calib_noise.R</code>, comme le fait aujourd’hui <code>test-reference.R</code> (tolérance 1e-3 sur λ, 1e-5 sur <code>y_hat</code>, 1e-4 sur <code>std_y_hat</code> et <code>edf</code>).</p></div></div>
+<p>Plus rien dans cette note : la question du seuil des λ sélectionnés est tranchée.</p>
+<div class="callout"><div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle class="plein" cx="12" cy="12" r="10"/><path class="signe" d="M12 16v-4"/><path class="signe" d="M12 8h.01"/></svg>Tranché le 2026-10-26 : le seuil d'un λ sélectionné</div><div class="cb"><p>Proposition soumise : garder 1e-10 à λ fixé (tenu : ≤ 2e-14), et juger un λ sélectionné contre la sensibilité propre de la 2.0.0, mesurée par <code>calib_noise.R</code>. Ta réponse, verbatim : « Ok pour ta proposition. Les seuils acceptés par le package ou ceux des tests peuvent être ajustés, je n’y suis pas forcément attaché. On peut les fixer par rapport à leur impact sur les degrés de liberté également ».</p>
+<p>Mise en œuvre de la piste que tu as ouverte, à titre de proposition : le seuil d’un λ sélectionné s’exprime en degrés de liberté, au plus 1e-3 sur le total, calé sur les deux mesures de la section « Écarts numériques » (2,3e-4 pour la 2.0.0 perturbée, 2,6e-4 pour la 2.1). Le seuil de 1e-10 à λ fixé est inchangé. Ce seuil de 1e-3 se règle d’une ligne dans <code>test-reference.R</code> si tu le veux plus large ou plus serré.</p></div></div>
 <footer><span>WH 2.0.0.9000 — branche dev — octobre 2026</span></footer></div></body></html>
