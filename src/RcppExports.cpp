@@ -35,6 +35,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// band_inverse_compact_cpp
+NumericMatrix band_inverse_compact_cpp(const NumericMatrix& C);
+RcppExport SEXP _WH_band_inverse_compact_cpp(SEXP CSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type C(CSEXP);
+    rcpp_result_gen = Rcpp::wrap(band_inverse_compact_cpp(C));
+    return rcpp_result_gen;
+END_RCPP
+}
 // diag_V_compact_cpp
 NumericVector diag_V_compact_cpp(const NumericMatrix& C);
 RcppExport SEXP _WH_diag_V_compact_cpp(SEXP CSEXP) {
@@ -134,6 +145,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_WH_create_P_compact_cpp", (DL_FUNC) &_WH_create_P_compact_cpp, 2},
     {"_WH_backsolve_compact_cpp", (DL_FUNC) &_WH_backsolve_compact_cpp, 3},
+    {"_WH_band_inverse_compact_cpp", (DL_FUNC) &_WH_band_inverse_compact_cpp, 1},
     {"_WH_diag_V_compact_cpp", (DL_FUNC) &_WH_diag_V_compact_cpp, 1},
     {"_WH_get_prod_P_y_compact_cpp", (DL_FUNC) &_WH_get_prod_P_y_compact_cpp, 2},
     {"_WH_get_prod_P_K_compact_cpp", (DL_FUNC) &_WH_get_prod_P_K_compact_cpp, 2},

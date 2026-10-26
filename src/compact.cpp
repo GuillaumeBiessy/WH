@@ -56,40 +56,48 @@ NumericVector backsolve_compact_cpp(const NumericMatrix& C, const NumericVector&
   return x;
 }
 
+// Selected inverse (Takahashi et al., 1973; Hutchinson and de Hoog, 1985). C holds the upper Cholesky
+// factor R of A = R'R in compact band storage, R(i, j) = C(q + i - j, j) for i <= j <= i + q. The band of
+// Sigma = A^{-1} is computed from the last row upwards, using Sigma = R^{-1} R^{-T}:
+//   Sigma(i, j) = - sum_{k = i+1}^{i+q} R(i, k) Sigma(k, j) / R(i, i)          for i < j <= i + q
+//   Sigma(i, i) = (1 / R(i, i) - sum_{k = i+1}^{i+q} R(i, k) Sigma(k, i)) / R(i, i)
+// Every Sigma(k, j) needed lies in the band, so the cost is O(p q^2) and the memory O(p q).
+// The result uses the same compact storage as C.
+
+// [[Rcpp::export]]
+NumericMatrix band_inverse_compact_cpp(const NumericMatrix& C) {
+
+  const int p = C.ncol();
+  const int q = C.nrow() - 1;
+  NumericMatrix S(q + 1, p);
+
+  for (int i = p - 1; i >= 0; --i) {
+    const double rii = C(q, i);
+    const int k_max = std::min(i + q, p - 1);
+
+    for (int j = k_max; j > i; --j) {
+      double sum = 0.0;
+      for (int k = i + 1; k <= k_max; ++k) {
+        const double skj = (k <= j) ? S(q + k - j, j) : S(q + j - k, k);
+        sum += C(q + i - k, k) * skj;
+      }
+      S(q + i - j, j) = - sum / rii;
+    }
+
+    double sum = 0.0;
+    for (int k = i + 1; k <= k_max; ++k) sum += C(q + i - k, k) * S(q + i - k, k);
+    S(q, i) = (1.0 / rii - sum) / rii;
+  }
+  return S;
+}
+
+// Diagonal of A^{-1} from its Cholesky factor, through the selected inverse above.
+
 // [[Rcpp::export]]
 NumericVector diag_V_compact_cpp(const NumericMatrix& C) {
 
-  int p = C.ncol();
-  int q = C.nrow() - 1;
-
-  NumericVector result(p);
-  std::vector<double> K_col(p);
-  std::vector<double> K_diag(p);
-
-  for (int i = 0; i < p; ++i) {
-    double Kii = 1.0 / C(q, i);
-    K_diag[i] = Kii;
-    result[i] = Kii * Kii;
-  }
-
-  for (int j = p - 1; j >= 0; --j) {
-
-    K_col[j] = K_diag[j];
-
-    for (int i = j - 1; i >= 0; --i) {
-      int delta = i + q;
-      double sum = 0.0;
-
-      int k_max = std::min(j, delta);
-      for (int k = i + 1; k <= k_max; ++k) {
-        sum += C(delta - k, k) * K_col[k];
-      }
-      double Kij = - K_diag[i] * sum;
-      K_col[i] = Kij;
-      result[i] += Kij * Kij;
-    }
-  }
-  return result;
+  const NumericMatrix S = band_inverse_compact_cpp(C);
+  return S(S.nrow() - 1, _);
 }
 
 // [[Rcpp::export]]

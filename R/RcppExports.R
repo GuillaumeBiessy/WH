@@ -9,6 +9,10 @@ backsolve_compact_cpp <- function(C, b, transpose = FALSE) {
     .Call(`_WH_backsolve_compact_cpp`, C, b, transpose)
 }
 
+band_inverse_compact_cpp <- function(C) {
+    .Call(`_WH_band_inverse_compact_cpp`, C)
+}
+
 diag_V_compact_cpp <- function(C) {
     .Call(`_WH_diag_V_compact_cpp`, C)
 }
