@@ -88,3 +88,24 @@ test_that("predict adds the observed positions to newdata and handles non contig
   expect_equal(pred2$std_y_pred, ref2$std_y_pred[rows, cols])
   expect_equal(sqrt(diag(vcov(pred2))), c(pred2$std_y_pred), tolerance = 1e-8)
 })
+
+test_that("the 1D log pseudo-determinant of the penalty is exact, also for long series", {
+
+  # exact integer determinant of D D' by fraction-free (Bareiss) elimination
+  bareiss <- function(M) {
+    prev <- 1
+    for (k in 1:(nrow(M) - 1)) {
+      for (i in (k + 1):nrow(M)) for (j in (k + 1):nrow(M)) M[i, j] <- (M[i, j] * M[k, k] - M[i, k] * M[k, j]) / prev
+      prev <- M[k, k]
+    }
+    M[nrow(M), nrow(M)]
+  }
+  for (q in 1:6) for (n in (q + 2):(q + 9)) {
+    G <- tcrossprod(diff(diag(n), differences = q))
+    expect_equal(log_pdet_P(n, q), log(bareiss(G)), tolerance = 1e-12)
+  }
+  # 2.0.0 summed the logs of LAPACK eigenvalues: NaN here (smallest nonzero eigenvalue computed negative)
+  set.seed(1); d <- rpois(3000, 50); names(d) <- seq_along(d)
+  fit <- WH(d, rep(1000, 3000), q = 3, lambda = 1e6, verbose = 0)
+  expect_true(is.finite(fit$diagnosis$REML))
+})

@@ -9,12 +9,21 @@ eigen_dec <- function(n, q) {
   list(P = P, s = s)
 }
 
+log_pdet_P <- function(n, q) {
+
+  # Log of the product of the nonzero eigenvalues of P = D'D, D being the difference matrix of order q
+  # on n points. It equals log det(D D'), whose closed form sum_{k=0}^{q-1} log(C(n+k, 2k+1) / C(2k, k))
+  # is checked in exact integer arithmetic in the tests. The eigenvalues of P computed by LAPACK lose
+  # their relative accuracy for long series (q = 3, n = 1000: 3e-3 on the sum; n = 3000: negative).
+  k <- seq_len(q) - 1
+  sum(lchoose(n + k, 2 * k + 1) - lchoose(2 * k, k))
+}
+
 get_model_matrices <- function(n, q) {
 
   if (length(n) == 1) {
-    eig <- eigen_dec(n, q)
-    P <- eig$P
-    s <- eig$s
+    P <- create_P_compact_cpp(n, q)
+    s <- NULL # the 1D criterion uses the closed form of log_pdet_P instead of eigenvalues
   } else {
     eig <- list(eigen_dec(n[[1]], q[[1]]), eigen_dec(n[[2]], q[[2]]))
     P <- list(eig[[1]]$P, eig[[2]]$P)
@@ -89,7 +98,7 @@ compute_K <- function(p, q, s, lambda, R) {
 
     log_det_S <- if (length(lambda) == 1) {
 
-      (p - q) * log(lambda) + sum(log(s[- seq_len(q)]))
+      (p - q) * log(lambda) + log_pdet_P(p, q)
 
     } else {
 
