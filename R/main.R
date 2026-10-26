@@ -131,16 +131,16 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
     }
     if (dims == 1) {
       if (is.null(names(y))) {
-        y_names <- seq_along(y)
-        if (verbose > 0) warning("No names found for y, setting names to: ", paste(range(y_names), collapse = " - "))
+        names(y) <- seq_along(y)
+        if (verbose > 0) warning("No names found for y, setting names to: ", paste(range(seq_along(y)), collapse = " - "))
       }
     } else {
       if (is.null(rownames(y))) {
-        rownames(y) <- seq_along(dim(y)[[1]])
+        rownames(y) <- seq_len(nrow(y))
         if (verbose > 0) warning("No names found for y rows, setting names to: ", paste(range(rownames(y)), collapse = " - "))
       }
       if (is.null(colnames(y))) {
-        colnames(y) <- seq_along(dim(y)[[2]])
+        colnames(y) <- seq_len(ncol(y))
         if (verbose > 0) warning("No names found for y columns, setting names to: ", paste(range(colnames(y)), collapse = " - "))
       }
     }
@@ -152,19 +152,19 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
       if (!is.numeric(ec)) stop("ec should be a numeric vector")
       if (length(d) != length(ec)) stop("Dimensions of d and ec must match")
       if (is.null(names(d))) {
-        d_names <- seq_along(d)
-        if (verbose > 0) warning("No names found for d, setting names to: ", paste(range(d_names), collapse = " - "))
+        names(d) <- seq_along(d)
+        if (verbose > 0) warning("No names found for d, setting names to: ", paste(range(seq_along(d)), collapse = " - "))
       }
     } else {
       if (is.null(dim(d)) || length(dim(d)) != dims) stop("d should be a numeric matrix")
       if (is.null(dim(ec)) || length(dim(ec)) != dims) stop("ec should be a numeric matrix")
       if (any(dim(d) != dim(ec))) stop("Dimensions of d and ec must match")
       if (is.null(rownames(d))) {
-        rownames(d) <- seq_along(dim(d)[[1]])
+        rownames(d) <- seq_len(nrow(d))
         if (verbose > 0) warning("No names found for d rows, setting names to: ", paste(range(rownames(d)), collapse = " - "))
       }
       if (is.null(colnames(d))) {
-        colnames(d) <- seq_along(dim(d)[[2]])
+        colnames(d) <- seq_len(ncol(d))
         if (verbose > 0) warning("No names found for d columns, setting names to: ", paste(range(colnames(d)), collapse = " - "))
       }
     }
