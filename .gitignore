@@ -4,3 +4,9 @@
 .httr-oauth
 .DS_Store
 inst/doc
+src/*.o
+src/*.so
+src/*.dll
+dev/.last_test_status
+dev/.test_durations.tsv
+dev/.last_test_run.log
