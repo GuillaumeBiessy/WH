@@ -12,3 +12,4 @@
 ^\.doc-projet$
 ^dev$
 ^CLAUDE\.md$
+^\.git$
