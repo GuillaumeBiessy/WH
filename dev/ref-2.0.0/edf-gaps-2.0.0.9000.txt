@@ -1,0 +1,37 @@
+WH 2.0.0.9000 against the 2.0.0 reference
+             fit edf_total gap_edf_total gap_lambda_rel
+   1d_ml_q1_REML    31.720       1.6e-10        2.2e-11
+  1d_reg_q1_REML    31.650       1.5e-13        1.9e-14
+    1d_ml_q1_AIC    20.810       0.0e+00        0.0e+00
+   1d_reg_q1_AIC    20.720       0.0e+00        0.0e+00
+    1d_ml_q1_BIC    15.370       2.6e-04        4.1e-05
+   1d_reg_q1_BIC    15.430       0.0e+00        0.0e+00
+    1d_ml_q1_GCV    22.540       1.4e-10        1.8e-11
+   1d_reg_q1_GCV    22.470       0.0e+00        0.0e+00
+   1d_ml_q2_REML     6.848       1.2e-09        8.0e-10
+  1d_reg_q2_REML     6.850       1.4e-11        8.9e-12
+    1d_ml_q2_AIC     7.199       1.7e-07        1.1e-07
+   1d_reg_q2_AIC     7.201       2.6e-08        1.6e-08
+    1d_ml_q2_BIC     5.410       1.4e-05        1.3e-05
+   1d_reg_q2_BIC     5.399       3.0e-09        2.6e-09
+    1d_ml_q2_GCV     6.938       5.1e-09        3.2e-09
+   1d_reg_q2_GCV     6.940       1.3e-10        8.3e-11
+   1d_ml_q3_REML     6.051       1.4e-07        1.8e-07
+  1d_reg_q3_REML     6.062       9.1e-14        0.0e+00
+    1d_ml_q3_AIC     6.592       1.5e-05        1.7e-05
+   1d_reg_q3_AIC     6.614       9.8e-09        1.1e-08
+    1d_ml_q3_BIC     5.565       3.0e-05        4.3e-05
+   1d_reg_q3_BIC     5.588       6.3e-08        8.9e-08
+    1d_ml_q3_GCV     6.393       1.2e-08        1.4e-08
+   1d_reg_q3_GCV     6.412       1.9e-07        2.3e-07
+  2d_ml_q22_REML    46.620       7.1e-15        0.0e+00
+ 2d_reg_q22_REML    50.500       0.0e+00        0.0e+00
+   2d_ml_q22_GCV    42.010       1.4e-14        0.0e+00
+  2d_reg_q22_GCV    53.380       7.1e-15        0.0e+00
+  2d_ml_q13_REML   111.600       2.8e-14        0.0e+00
+     1d_ml_fixed    21.130       0.0e+00        0.0e+00
+     2d_ml_fixed    64.170       0.0e+00        0.0e+00
+      1d_ml_pred     6.848       1.2e-09        8.0e-10
+      2d_ml_pred    46.620       7.1e-15        0.0e+00
+     2d_reg_pred    50.500       0.0e+00        0.0e+00
+largest gap on sum(edf): 2.64e-04 degree of freedom (1d_ml_q1_BIC)
