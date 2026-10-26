@@ -168,7 +168,7 @@ les options du sanitizer ou de LTO.
 | `lto` | `-flto`, aucun avertissement `-Wlto-type-mismatch` | 2 NOTE | 76 / 76 | — |
 | `clang23` | clang 23 | 1 NOTE | 76 / 76 | — |
 | `gcc16` | gcc 16 | 1 NOTE | 76 / 76 | — |
-| `valgrind` | R-devel sous valgrind | en cours au 25/10, 13 h 38 (lancé à 12 h 06) | — | — |
+| `valgrind` | R-devel sous valgrind | sans verdict : annulé après 6 h 01 (25/10, 12 h 06 → 18 h 07 UTC), la durée maximale d'une tâche GitHub | — | — |
 
 La NOTE commune est celle du `CLAUDE.md`. La seconde NOTE de `lto` dit que les tests ont pris 3,3 fois plus de temps
 de calcul que de temps écoulé : du calcul parallèle, que WH ne fait pas. Le conteneur charge un OpenBLAS à plusieurs
