@@ -216,9 +216,11 @@ autre OpenBLAS que celui du contrôle. Correctif, dans `check_config.sh` : lier 
 `Rlapack.dll` de la copie de référence (`R_MAKEVARS_USER`) ; au chargement, ces noms désignent les DLL déjà chargées
 par la copie testée, comme `-llapack -lRblas` au CRAN. Le banc vérifie désormais les DLL importées par le paquet.
 
-Le R de production (`C:\Program Files\R\R-4.5.3`) a OpenBLAS à la fois en `Rblas.dll` et en `Rlapack.dll` : tout
-paquet qui appelle LAPACK, compilé par lui, importera `libopenblas.dll` et chargera celui d'Inkscape. Aucun paquet
-installé n'est touché aujourd'hui (aucun n'importe ce nom, contrôle du 25/10), mais le prochain compilé le sera.
+Le R de production est R 4.6.1 depuis le 26/10 (`C:\Program Files\R\R-4.6.1`). Il a OpenBLAS 0.3.29 à la fois en
+`Rblas.dll` et en `Rlapack.dll`, avec à côté les bibliothèques d'import `libRblas.dll.a` et `libRlapack.dll.a` : un
+paquet qu'il compile importe donc `Rblas.dll` et `Rlapack.dll`, et non `libopenblas.dll`. État constaté le 26/10 :
+WH 2.0.0 compilé par ce R importe `Rlapack.dll`, et le contrôle de la machine (`blas_imports_check.py`) ne trouve
+aucun R exposé ni aucun paquet qui importe `libopenblas.dll`.
 :::
 
 ## Le skill « CRAN-tests » proposé
@@ -271,8 +273,8 @@ Deux points ne demandent pas de décision maintenant :
 
 - **R-devel sous Windows** (environ 90 Mo [estimation]{.pastille .hyp}) n'apporte qu'une version de R plus récente
   sur des contrôles déjà verts ; le skill le proposera à la première soumission qui en aura besoin.
-- **Le R de production sous OpenBLAS** (encadré de la recette) relève du dépôt ebmcd, où vit `poser_openblas.ps1` :
-  une session à lancer là-bas.
+- **Le R de production sous OpenBLAS** (encadré de la recette) relevait du dépôt ebmcd, où vit `poser_openblas.ps1` :
+  c'est fait, bibliothèques d'import comprises, sur R 4.6.1 (26/10).
 
 Les scripts restent sur la branche `claude/cran-configs-ccce4a` : ce ne sont pas des fichiers documentaires, et
 la doctrine de WH interdit de les pousser sur `master` sans suite de tests. Le skill les reprendra ; seule cette note
