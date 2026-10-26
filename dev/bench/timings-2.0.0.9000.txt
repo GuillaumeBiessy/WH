@@ -1,0 +1,22 @@
+WH 2.0.0 
+60x30 p=1800 band=120 evals=177 | outer 4.35s  fixed 0.45s  diag_V 0.597s  predict 3.18s
+100x40 p=4000 band=200 evals=75 | outer 11.36s  fixed 7.75s  diag_V 7.233s  predict 30.17s
+WH 2.0.0.9000 
+60x30 p=1800 band=120 evals=177 | outer 3.61s  fixed 0.17s  diag_V 0.130s  predict 0.79s
+100x40 p=4000 band=200 evals=75 | outer 4.60s  fixed 0.92s  diag_V 0.850s  predict 3.17s
+Messages d'avis :
+1: Dans WH_outer(d = c(0L, 0L, 1L, 2L, 1L, 2L, 1L, 5L, 3L, 0L, 0L, 0L,  :
+  Selected smoothing parameter (2.29e+11, 8.58e+02) at the upper boundary of the search interval [1e-6, 1e12]: the fit is close to the polynomial left unpenalized by the differences of order q
+2: Dans WH_outer(d = c(0L, 1L, 0L, 2L, 2L, 2L, 3L, 3L, 2L, 0L, 2L, 0L,  :
+  Selected smoothing parameter (2.33e+12, 1.45e+03) at the upper boundary of the search interval [1e-6, 1e12]: the fit is close to the polynomial left unpenalized by the differences of order q
+WH 2.0.0 
+60x30 p=1800 band=120 evals=177 | outer 3.72s  fixed 0.55s  diag_V 0.543s  predict 3.11s
+100x40 p=4000 band=200 evals=75 | outer 10.83s  fixed 5.58s  diag_V 6.870s  predict 27.73s
+WH 2.0.0.9000 
+60x30 p=1800 band=120 evals=177 | outer 3.81s  fixed 0.19s  diag_V 0.127s  predict 0.79s
+100x40 p=4000 band=200 evals=75 | outer 5.17s  fixed 1.02s  diag_V 0.840s  predict 4.15s
+Messages d'avis :
+1: Dans WH_outer(d = c(0L, 0L, 1L, 2L, 1L, 2L, 1L, 5L, 3L, 0L, 0L, 0L,  :
+  Selected smoothing parameter (2.29e+11, 8.58e+02) at the upper boundary of the search interval [1e-6, 1e12]: the fit is close to the polynomial left unpenalized by the differences of order q
+2: Dans WH_outer(d = c(0L, 1L, 0L, 2L, 2L, 2L, 3L, 3L, 2L, 0L, 2L, 0L,  :
+  Selected smoothing parameter (2.33e+12, 1.45e+03) at the upper boundary of the search interval [1e-6, 1e12]: the fit is close to the polynomial left unpenalized by the differences of order q
