@@ -55,6 +55,12 @@ get_edf_tot <- function(R, wt) {
 
 # Model diagnoses----
 
+get_tXWz_reg <- function(y, wt) {
+
+  # A zero weight cancels its observation, which may be missing (y = log(d / ec) is NA when d = 0)
+  ifelse(wt == 0, 0, wt * y)
+}
+
 compute_res_reg <- function(y, y_hat, wt) {
 
   y[wt == 0] <- 0

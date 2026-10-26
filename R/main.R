@@ -756,7 +756,7 @@ WH_fixed_lambda <- function(
   if (reg) {
 
     fit <- fit_WH_fixed_lambda_reg(
-      y = y, wt = wt, tXWz = wt * y, lambda_P = lambda_P, q = q, lambda = lambda)
+      y = y, wt = wt, tXWz = get_tXWz_reg(y, wt), lambda_P = lambda_P, q = q, lambda = lambda)
     z <- y
 
   } else {
@@ -848,7 +848,7 @@ WH_outer <- function(
   n_pos <- length(which_pos) # number of observations with non-zero weight
 
   if (reg) {
-    tXWz <- wt * y
+    tXWz <- get_tXWz_reg(y, wt)
   } else {
     off <- ifelse(ec == 0, - Inf, log(ec))
   }
