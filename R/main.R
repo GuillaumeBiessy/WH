@@ -942,8 +942,7 @@ WH_outer <- function(
       error = function(e) if (grepl("dpbtrf", conditionMessage(e))) NULL else stop(e))
     if (is.null(fit)) {
       n_failed <<- n_failed + 1
-      if (verbose > 1) cat("Iteration", counter_outer, ": Cholesky factorization failed, criterion set to Inf
-")
+      if (verbose > 1) cat("Iteration", counter_outer, ": Cholesky factorization failed, criterion set to Inf\n")
       return(Inf)
     }
     if (!reg) eta_start <<- fit$y_hat  # update starting parameters (globally)
