@@ -56,3 +56,35 @@ test_that("an evaluation whose Cholesky factorization fails does not stop the se
   expect_no_error(fit <- WH(y = y, wt = portfolio_LTC$d * 1e-8, verbose = 0))
   expect_true(all(is.finite(fit$lambda)) && is.finite(fit$diagnosis$REML))
 })
+
+test_that("predict adds the observed positions to newdata and handles non contiguous positions", {
+
+  fit <- WH(portfolio_mort$d, portfolio_mort$ec, verbose = 0)
+  ref <- predict(fit, newdata = 40:110)
+
+  # newdata beyond the observations only: the observed positions are added (2.0.0 recycled silently)
+  pred <- predict(fit, newdata = 100:110)
+  expect_equal(names(pred$y_pred), as.character(c(50:94, 100:110)))
+  expect_equal(pred$y_pred, ref$y_pred[names(pred$y_pred)])
+  expect_equal(unname(pred$y_pred[as.character(50:94)]), unname(fit$y_hat), tolerance = 1e-6)
+
+  # non contiguous newdata: the value at 105 is the value at 105 (2.0.0 returned the value at 100)
+  pred <- predict(fit, newdata = c(45:49, 105))
+  expect_equal(names(pred$y_pred), as.character(c(45:94, 105)))
+  expect_equal(pred$y_pred, ref$y_pred[names(pred$y_pred)])
+  expect_equal(pred$std_y_pred, ref$std_y_pred[names(pred$y_pred)])
+  expect_equal(unname(sqrt(diag(vcov(pred)))), unname(pred$std_y_pred), tolerance = 1e-8)
+
+  expect_error(predict(fit, newdata = 100.5), "grid of the observations")
+
+  fit2 <- WH(portfolio_LTC$d, portfolio_LTC$ec, verbose = 0)
+  ref2 <- predict(fit2, newdata = list(age = 70:109, duration = 0:19))  # the grid spanned by pred2
+  pred2 <- predict(fit2, newdata = list(age = c(105, 109), duration = 19))
+  rows <- rownames(pred2$y_pred); cols <- colnames(pred2$y_pred)
+  expect_equal(rows, as.character(c(70:99, 105, 109)))
+  expect_equal(pred2$y_pred[as.character(70:99), as.character(0:14)], fit2$y_hat)
+  expect_equal(cols, as.character(c(0:14, 19)))
+  expect_equal(pred2$y_pred, ref2$y_pred[rows, cols])
+  expect_equal(pred2$std_y_pred, ref2$std_y_pred[rows, cols])
+  expect_equal(sqrt(diag(vcov(pred2))), c(pred2$std_y_pred), tolerance = 1e-8)
+})

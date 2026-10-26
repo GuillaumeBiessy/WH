@@ -163,6 +163,24 @@ backsolve2 <- function(R, y) {
   backsolve_compact_cpp(R, backsolve_compact_cpp(R, y, transpose = TRUE))
 }
 
+get_pred_grid <- function(data, newdata) {
+
+  # Observations are consecutive points of a regular grid: the prediction is computed on the grid
+  # spanning both the observations and newdata, then returned on their union only
+  step <- if (length(data) > 1) data[[2]] - data[[1]] else 1
+  if (length(data) > 2 && any(abs(diff(data) - step) > 1e-8 * abs(step))) stop(
+    "Extrapolation requires equally spaced observation positions")
+  k <- (c(data, newdata) - data[[1]]) / step
+  if (any(abs(k - round(k)) > 1e-8)) stop(
+    "newdata should only contain positions on the grid of the observations (step ", step, ")")
+  k <- round(k)
+  k_min <- min(k)
+  grid <- data[[1]] + step * seq(k_min, max(k))
+  list(grid = grid,
+       ind_fit = seq_along(data) - k_min,
+       keep = sort(unique(k)) - k_min + 1)
+}
+
 extend_vector <- function(v, dims) {
 
   if (length(v) < dims) c(v, rep(v[[length(v)]], dims - 1)) else v

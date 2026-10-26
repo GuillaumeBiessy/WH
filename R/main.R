@@ -245,9 +245,9 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   # Requires the following elements from object: lambda, q, wt, tXWz
   data <- as.numeric(names(object$wt))
 
-  n <- length(data)
-  n_tot <-length(newdata)
-  ind_fit <- sum(newdata < min(data)) + seq_len(n)
+  grid <- get_pred_grid(data, newdata)
+  n_tot <- length(grid$grid)
+  ind_fit <- grid$ind_fit
 
   P <- create_P_compact_cpp(n_tot, object$q)
   lambda_P <- combine_lambda_P(object$lambda, P)
@@ -259,14 +259,15 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
   fit <- fit_pen_reg(wt, tXWz, lambda_P)
   diag_V_pred <- diag_V_compact_cpp(fit$R)
 
-  y_pred <- fit$y_hat
-  std_y_pred <- sqrt(diag_V_pred)
+  y_pred <- fit$y_hat[grid$keep]
+  std_y_pred <- sqrt(diag_V_pred)[grid$keep]
 
-  names(y_pred) <- names(std_y_pred) <- newdata
+  names(y_pred) <- names(std_y_pred) <- grid$grid[grid$keep]
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
   object$R_pred <- fit$R
+  object$ind_keep <- grid$keep
 
   return(object)
 }
@@ -301,12 +302,12 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   data <- dimnames(object$wt) |> lapply(as.numeric)
 
   n <- sapply(data, length)
-  n_tot <- sapply(newdata, length)
-  n_inf <- mapply(\(x,y) sum(y < min(x)), data, newdata)
+  grids <- mapply(get_pred_grid, data, newdata, SIMPLIFY = FALSE)
+  n_tot <- sapply(grids, \(g) length(g$grid))
 
   ind_mat <- matrix(seq_len(prod(n_tot)), n_tot[[1]])
-  ind_rows <- list(n_inf[[1]] + seq_len(n[[1]]), n_inf[[2]] + seq_len(n[[2]]))
-  ind_fit <- ind_mat[ind_rows[[1]], ind_rows[[2]]]; dim(ind_fit) <- NULL
+  ind_fit <- ind_mat[grids[[1]]$ind_fit, grids[[2]]$ind_fit]; dim(ind_fit) <- NULL
+  ind_keep <- ind_mat[grids[[1]]$keep, grids[[2]]$keep]; dim(ind_keep) <- NULL
 
   P <- mapply(create_P_compact_cpp, n_tot, object$q)
   lambda_P <- list(object$lambda[[1]] * P[[1]], object$lambda[[2]] * P[[2]])
@@ -322,14 +323,19 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   std_y_pred[ind_fit] <- object$std_y_hat
   std_y_pred[- ind_fit] <- sqrt(diag_V_pred)
 
-  dim(y_pred) <- dim(std_y_pred) <- n_tot # set dimension for output matrices
-  dimnames(y_pred) <- dimnames(std_y_pred) <- newdata # set names for output matrices
+  y_pred <- y_pred[ind_keep]
+  std_y_pred <- std_y_pred[ind_keep]
+  dim(y_pred) <- dim(std_y_pred) <- unname(sapply(grids, \(g) length(g$keep))) # set dimension for output matrices
+  dimnames(y_pred) <- dimnames(std_y_pred) <- stats::setNames(
+    lapply(grids, \(g) g$grid[g$keep]), names(newdata)) # set names for output matrices
 
   object$y_pred <- y_pred
   object$std_y_pred <- std_y_pred
   object$lambda_P <- lambda_P
   object$R_22 <- R_22
   object$ind_fit <- ind_fit
+  object$ind_keep <- ind_keep
+  object$n_tot_pred <- n_tot
 
   return(object)
 }
@@ -361,7 +367,8 @@ vcov.WH_1d <- function(object, pred = TRUE, ...) {
 
   pred <- pred && !is.null(object$R_pred)
   R <- if (pred) object$R_pred else object$R
-  invert_cholesky_compact_lapack(R) |> tcrossprod()
+  V <- invert_cholesky_compact_lapack(R) |> tcrossprod()
+  if (pred) V[object$ind_keep, object$ind_keep] else V
 }
 
 #' Compute variance-covariance matrix of fitted 1D WH model
@@ -390,7 +397,7 @@ vcov.WH_2d <- function(object, pred = TRUE, ...) {
   pred <- pred && !is.null(object$R_22)
   if (pred) {
 
-    prod_n_tot <- prod(dim(object$y_pred))
+    prod_n_tot <- prod(object$n_tot_pred)
 
     K <- invert_cholesky_compact_lapack(object$R)
     V_11 <- tcrossprod(K)
@@ -410,7 +417,7 @@ vcov.WH_2d <- function(object, pred = TRUE, ...) {
     V_pred[object$ind_fit, - object$ind_fit] <- V_12
     V_pred[- object$ind_fit, object$ind_fit] <- t(V_12)
     V_pred[- object$ind_fit, - object$ind_fit] <- V_22
-    V_pred
+    V_pred[object$ind_keep, object$ind_keep]
 
   } else {
     invert_cholesky_compact_lapack(object$R) |> tcrossprod()
