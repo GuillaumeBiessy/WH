@@ -48,3 +48,11 @@ test_that("the starting smoothing parameters are found whatever the scale of the
   expect_error(WH(y = y, wt = portfolio_LTC$d, lambda_start_ratio = 1, verbose = 0), "strictly between 0 and 1")
   expect_error(WH(y = y, wt = portfolio_LTC$d, lambda_start_ratio = 0, verbose = 0), "strictly between 0 and 1")
 })
+
+test_that("an evaluation whose Cholesky factorization fails does not stop the selection", {
+
+  # weights x 1e-8: Nelder-Mead explores lambda where W + lambda P is numerically singular (2.0.0: error)
+  y <- log(portfolio_LTC$d / portfolio_LTC$ec)
+  expect_no_error(fit <- WH(y = y, wt = portfolio_LTC$d * 1e-8, verbose = 0))
+  expect_true(all(is.finite(fit$lambda)) && is.finite(fit$diagnosis$REML))
+})

@@ -884,6 +884,7 @@ WH_outer <- function(
   }
 
   counter_outer <- 0
+  n_failed <- 0
   old_score <- Inf
   cond <- TRUE
   lambda_track <- list()
@@ -897,18 +898,25 @@ WH_outer <- function(
 
     lambda_P <- combine_lambda_P(lambda, P)
 
-    if (reg) {
-
-      fit <- fit_WH_fixed_lambda_reg(
-        y = y, wt = wt, tXWz = tXWz, lambda_P = lambda_P, q = q, lambda = lambda)
-
-    } else {
-
-      fit <- fit_WH_fixed_lambda_ml(
-        d = d, off = off, lambda_P = lambda_P, q = q, lambda = lambda,
-        verbose = verbose - 1, tol_dev = tol_dev, eta_start = eta_start, step_halving = step_halving[[2]])
-      eta_start <<- fit$y_hat  # update starting parameters (globally)
+    # An extreme lambda may make W + lambda P numerically singular: the Cholesky factorization then
+    # fails, and this evaluation scores Inf so that the optimizer moves back
+    fit <- tryCatch(
+      if (reg) {
+        fit_WH_fixed_lambda_reg(
+          y = y, wt = wt, tXWz = tXWz, lambda_P = lambda_P, q = q, lambda = lambda)
+      } else {
+        fit_WH_fixed_lambda_ml(
+          d = d, off = off, lambda_P = lambda_P, q = q, lambda = lambda,
+          verbose = verbose - 1, tol_dev = tol_dev, eta_start = eta_start, step_halving = step_halving[[2]])
+      },
+      error = function(e) if (grepl("dpbtrf", conditionMessage(e))) NULL else stop(e))
+    if (is.null(fit)) {
+      n_failed <<- n_failed + 1
+      if (verbose > 1) cat("Iteration", counter_outer, ": Cholesky factorization failed, criterion set to Inf
+")
+      return(Inf)
     }
+    if (!reg) eta_start <<- fit$y_hat  # update starting parameters (globally)
     l_sat <- if (reg) get_l_sat(n = n_pos) else 0
 
     if (criterion != "REML") sum_edf <- get_edf_tot(R = fit$R, wt = fit$wt) # effective degrees of freedom
