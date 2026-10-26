@@ -741,12 +741,14 @@ fit_WH_fixed_lambda_ml <- function(d, off, lambda_P, q, lambda, verbose, tol_dev
     new_wt <- valid_beta$new_wt
     dev_pen <- valid_beta$dev_pen
 
-    cond <- old_dev_pen - dev_pen >= tol_dev * old_dev_pen
+    converged <- counter > 1 && old_dev_pen - dev_pen < tol_dev * old_dev_pen
+    cond <- !converged && counter < wh_max_iter
   }
   if (verbose > 0) print_fit_infos("PIRLS", lambda, counter, "penalized deviance", dev_pen, old_dev_pen, final = TRUE)
 
   list(wt = wt, tXWz = tXWz, z = z, y_hat = y_hat, R = fit$R,
-       res = valid_beta$res, dev = valid_beta$dev, RESS = valid_beta$RESS, pen = valid_beta$pen)
+       res = valid_beta$res, dev = valid_beta$dev, RESS = valid_beta$RESS, pen = valid_beta$pen,
+       iterations = counter, converged = converged)
 }
 
 # Main functions----
@@ -793,6 +795,9 @@ WH_fixed_lambda <- function(
   }
 
   res <- fit$res
+  inner <- if (reg) list(iterations = 0, converged = TRUE) else list(iterations = fit$iterations, converged = fit$converged)
+  if (!inner$converged) warning(
+    "PIRLS stopped after ", wh_max_iter, " iterations without meeting its convergence criterion")
 
   diag_V <- diag_V_compact_cpp(fit$R)
   l_sat <- if (reg) get_l_sat(n = n_pos) else 0
@@ -823,7 +828,8 @@ WH_fixed_lambda <- function(
 
   out <- list(
     y = y, y_hat = y_hat, std_y_hat = std_y_hat, res = res, edf = edf, diagnosis = diagnosis,
-    wt = wt, tXWz = fit$tXWz, R = fit$R, lambda = lambda, q = q)
+    wt = wt, tXWz = fit$tXWz, R = fit$R, lambda = lambda, q = q,
+    convergence = list(converged = inner$converged, inner = inner, outer = NULL))
   class(out) <- if (dims == 1) "WH_1d" else "WH_2d"
 
   return(out)
@@ -941,11 +947,17 @@ WH_outer <- function(
   }
 
   # Call the optimization process to find the optimal smoothing parameter
-  lambda <- if (dims == 1) {
-    exp(stats::optimize(f = WH_outer_aux, interval = c(- 6, 12) * log(10))$minimum) # Brent (1973) algorithm
+  if (dims == 1) {
+    log_lambda <- stats::optimize(f = WH_outer_aux, interval = wh_log_lambda_interval)$minimum # Brent (1973) algorithm
+    code <- 0L
   } else {
-    exp(stats::optim(par = log(lambda), fn = WH_outer_aux, control = list(reltol = tol_crit))$par) # Nelder and Mead (1965) algorithm
+    opt <- stats::optim(par = log(lambda), fn = WH_outer_aux, control = list(reltol = tol_crit)) # Nelder and Mead (1965) algorithm
+    log_lambda <- opt$par
+    code <- opt$convergence
   }
+  lambda <- exp(log_lambda)
+  at_lower <- any(log_lambda <= wh_log_lambda_interval[[1]] + wh_edge_tol)
+  at_upper <- any(log_lambda >= wh_log_lambda_interval[[2]] - wh_edge_tol)
 
   if (auto_transpose) {
     if (reg) {
@@ -968,6 +980,20 @@ WH_outer <- function(
   # Print summary of the optimization process
   if (verbose > 0) print_fit_infos("Outer", lambda, counter_outer, criterion_display, out$diagnosis[[criterion]], final = TRUE)
 
+  # Report the selections the optimizer cannot vouch for, whatever verbose
+  lambda_display <- paste(format(lambda, digits = 3), collapse = ", ")
+  if (at_upper) warning(
+    "Selected smoothing parameter (", lambda_display, ") at the upper boundary of the search interval ",
+    "[1e-6, 1e12]: the fit is close to the polynomial left unpenalized by the differences of order q")
+  if (at_lower) warning(
+    "Selected smoothing parameter (", lambda_display, ") at the lower boundary of the search interval ",
+    "[1e-6, 1e12]: the fit is close to the observations themselves, with almost no smoothing")
+  if (code != 0) warning(
+    "The Nelder-Mead optimization of the smoothing parameters did not converge (convergence code ", code, ")")
+
+  out$convergence$outer <- list(evaluations = counter_outer, failed_evaluations = n_failed,
+                                boundary = at_lower || at_upper, code = code)
+  out$convergence$converged <- out$convergence$inner$converged && code == 0
   out$lambda_track <- lambda_track
   return(out)
 }

@@ -1,3 +1,18 @@
+# Constants----
+
+# Search interval of log(lambda) for Brent's algorithm in 1D, lambda in [1e-6, 1e12]; a selected lambda
+# beyond it in 2D (Nelder-Mead is not bounded) is also reported as a boundary solution.
+wh_log_lambda_interval <- c(- 6, 12) * log(10)
+
+# Distance in log(lambda) to an end of that interval under which the selected lambda is taken as lying
+# at the boundary: one decade. When the optimum is at infinity the criterion is flat to machine precision
+# well before the bound (exactly linear log-hazard, q = 2: Brent stops at lambda = 5e11), so the tolerance
+# of stats::optimize (used by WHfull) misses it; beyond 1e11 the fit is the unpenalized polynomial anyway.
+wh_edge_tol <- log(10)
+
+# Maximum number of PIRLS iterations (WH 2.0.0 had none: tol_dev = 0 looped forever).
+wh_max_iter <- 200
+
 # Model matrices----
 
 eigen_dec <- function(n, q) {
@@ -220,7 +235,7 @@ find_starting_lambda <- function(wt, diag_P, lambda_start_ratio) {
     # the function decreases from 1 - ratio to - ratio: a root exists for any ratio in ]0, 1[, possibly
     # outside the default interval when weights are far from the unit scale (extendInt widens it then)
     exp(stats::uniroot(\(x) {mean(wt / (wt + exp(x) * diag_P)) - lambda_start_ratio},
-                       interval = c(- 6, 12) * log(10), extendInt = "downX")$root)
+                       interval = wh_log_lambda_interval, extendInt = "downX")$root)
   }
 }
 
