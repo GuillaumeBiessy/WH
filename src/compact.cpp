@@ -22,37 +22,34 @@ NumericMatrix create_P_compact_cpp(int p, int q) {
   return C;
 }
 
+// In-place solve of R x = b (transpose = false) or R'x = b (transpose = true), R upper triangular with
+// band q in compact storage, R(i, j) = C(q + i - j, j). x holds b on entry.
+static void solve_upper_compact(const NumericMatrix& C, double* x, bool transpose) {
+
+  const int p = C.ncol();
+  const int q = C.nrow() - 1;
+
+  if (transpose) {
+    for (int i = 0; i < p; ++i) {
+      double sum = 0.0;
+      for (int j = std::max(i - q, 0); j < i; ++j) sum += C(q + j - i, i) * x[j];
+      x[i] = (x[i] - sum) / C(q, i);
+    }
+  } else {
+    for (int i = p - 1; i >= 0; --i) {
+      double sum = 0.0;
+      const int j_max = std::min(i + q, p - 1);
+      for (int j = i + 1; j <= j_max; ++j) sum += C(q + i - j, j) * x[j];
+      x[i] = (x[i] - sum) / C(q, i);
+    }
+  }
+}
+
 // [[Rcpp::export]]
 NumericVector backsolve_compact_cpp(const NumericMatrix& C, const NumericVector& b, bool transpose = false) {
 
-  int p = C.ncol();
-  int q = C.nrow() - 1;
-  NumericVector x(p);
-
-  if (transpose) {
-
-    for (int i = 0; i < p; ++i) {
-      double sum = 0.0;
-      int k = i - q;
-      int j_min = std::max(k, 0);
-      for (int j = j_min; j < i; ++j) {
-        sum += C(j - k, i) * x[j];
-      }
-      x[i] = (b[i] - sum) / C(q, i);
-    }
-
-  } else {
-
-    for (int i = p - 1; i >= 0; --i) {
-      double sum = 0.0;
-      int k = i + q;
-      int j_max = std::min(k, p - 1);
-      for (int j = i + 1; j <= j_max; ++j) {
-        sum += C(k - j, j) * x[j];
-      }
-      x[i] = (b[i] - sum) / C(q, i);
-    }
-  }
+  NumericVector x = clone(b);
+  solve_upper_compact(C, x.begin(), transpose);
   return x;
 }
 
@@ -100,18 +97,15 @@ NumericVector diag_V_compact_cpp(const NumericMatrix& C) {
   return S(S.nrow() - 1, _);
 }
 
-// [[Rcpp::export]]
-NumericVector get_prod_P_y_compact_cpp(const NumericMatrix& y, const List& C_list) {
+// z += (lambda_1 P_1 (x) I + I (x) lambda_2 P_2) y on the p x n_blocs grid, y and z stored column-major,
+// with p = ncol(C1) and n_blocs = ncol(C2).
+static void add_prod_P_y(const double* yv, double* z, const NumericMatrix& C1, const NumericMatrix& C2) {
 
-  const NumericMatrix& C1 = C_list[0];
-  const NumericMatrix& C2 = C_list[1];
-
-  const int p = y.nrow();
+  const int p = C1.ncol();
   const int q1 = C1.nrow() - 1;
   const int q2 = C2.nrow() - 1;
-  const int n_blocs = y.ncol();
-
-  NumericVector z(p * n_blocs, 0.0);
+  const int n_blocs = C2.ncol();
+  auto y = [yv, p](int i, int j) { return yv[j * p + i]; };
 
   // Bloc 1 : ligne i fixe
   for (int i = 0; i < p; ++i) {
@@ -182,7 +176,67 @@ NumericVector get_prod_P_y_compact_cpp(const NumericMatrix& y, const List& C_lis
         z[offset + i] += Pkj * y(i, k_inf);
     }
   }
+}
+
+// [[Rcpp::export]]
+NumericVector get_prod_P_y_compact_cpp(const NumericMatrix& y, const List& C_list) {
+
+  const NumericMatrix& C1 = C_list[0];
+  const NumericMatrix& C2 = C_list[1];
+  if (y.nrow() != C1.ncol() || y.ncol() != C2.ncol()) stop("Dimensions of y and of the penalty do not match");
+  NumericVector z(y.nrow() * y.ncol(), 0.0);
+  add_prod_P_y(y.begin(), z.begin(), C1, C2);
   return z;
+}
+
+// Extrapolation variance of the new cells of a 2D prediction (Carballo et al., 2021), without the
+// innovation term: diag(A V A') with A = - P22^{-1} P21 and V = (R'R)^{-1} the variance of the fit.
+// Row k of A V A' is computed from x = P22^{-1} e_k (two solves with R_22, Cholesky factor of P22),
+// w = P12 x, then (A V A')_kk = |R^{-T} w|^2. One loop over the m new cells, vectors of the size of the
+// grid only: O(m (m q_22 + N q)) time, O(N) memory beyond the band factors.
+
+// [[Rcpp::export]]
+NumericVector diag_V_pred_compact_cpp(const NumericMatrix& R, const List& lambda_P, const NumericMatrix& R_22,
+                                      const IntegerVector& ind_fit) {
+
+  const NumericMatrix& C1 = lambda_P[0];
+  const NumericMatrix& C2 = lambda_P[1];
+  const int N = C1.ncol() * C2.ncol();
+  const int p = R.ncol();
+  const int m = R_22.ncol();
+  if (ind_fit.size() != p || p + m != N) stop("Inconsistent dimensions for the extrapolation variance");
+
+  std::vector<int> fit_pos(p), new_pos;
+  std::vector<char> is_fit(N, 0);
+  for (int j = 0; j < p; ++j) {
+    fit_pos[j] = ind_fit[j] - 1;
+    is_fit[fit_pos[j]] = 1;
+  }
+  new_pos.reserve(m);
+  for (int i = 0; i < N; ++i) if (!is_fit[i]) new_pos.push_back(i);
+
+  std::vector<double> x(m), z(N), Pz(N), w(p);
+  NumericVector out(m);
+
+  for (int k = 0; k < m; ++k) {
+    std::fill(x.begin(), x.end(), 0.0);
+    x[k] = 1.0;
+    solve_upper_compact(R_22, x.data(), true);
+    solve_upper_compact(R_22, x.data(), false);
+
+    std::fill(z.begin(), z.end(), 0.0);
+    for (int l = 0; l < m; ++l) z[new_pos[l]] = x[l];
+    std::fill(Pz.begin(), Pz.end(), 0.0);
+    add_prod_P_y(z.data(), Pz.data(), C1, C2);
+
+    for (int j = 0; j < p; ++j) w[j] = Pz[fit_pos[j]];
+    solve_upper_compact(R, w.data(), true);
+
+    double sum = 0.0;
+    for (int j = 0; j < p; ++j) sum += w[j] * w[j];
+    out[k] = sum;
+  }
+  return out;
 }
 
 // [[Rcpp::export]]

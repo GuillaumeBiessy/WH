@@ -21,6 +21,10 @@ get_prod_P_y_compact_cpp <- function(y, C_list) {
     .Call(`_WH_get_prod_P_y_compact_cpp`, y, C_list)
 }
 
+diag_V_pred_compact_cpp <- function(R, lambda_P, R_22, ind_fit) {
+    .Call(`_WH_diag_V_pred_compact_cpp`, R, lambda_P, R_22, ind_fit)
+}
+
 get_prod_P_K_compact_cpp <- function(K, C_list) {
     .Call(`_WH_get_prod_P_K_compact_cpp`, K, C_list)
 }

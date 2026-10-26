@@ -300,21 +300,6 @@ get_y_new_compact <- function(y, lambda_P, R_22, n_tot, ind_fit) {
   return(y_new)
 }
 
-get_diag_V_pred_compact <- function(R, lambda_P, R_22, n, n_tot, ind_fit) {
-
-  prod_n <- prod(n)
-  prod_n_tot <- prod(n_tot)
-  diag_V_pred <- numeric(prod_n_tot - prod_n)
-  for (j in 1:prod_n) {
-
-    ej <- numeric(prod_n); ej[j] <- 1
-    kj <- backsolve_compact_cpp(R, ej)
-    aj <- get_y_new_compact(kj, lambda_P, R_22, n_tot, ind_fit)
-    diag_V_pred <- diag_V_pred + aj * aj
-  }
-  return(diag_V_pred)
-}
-
 # Tests----
 
 banded_to_compact <- function(P, q) {

@@ -28,3 +28,18 @@ test_that("selected inverse: the band of A^{-1} from the band Cholesky factor (T
   expect_equal(band_inverse_compact_cpp(s$R_compact), banded_to_compact(s$V, s$band), tolerance = 1e-10)
   expect_equal(diag_V_compact_cpp(s$R_compact), diag(s$V), tolerance = 1e-10)
 })
+
+test_that("2D extrapolation variance: band C++ loop over new cells equals the dense formula", {
+
+  fit <- WH(portfolio_LTC$d, portfolio_LTC$ec, verbose = 0)
+  pred <- predict(fit, newdata = list(age = 65:104, duration = 0:17))
+  # dense: V_22 = A V_11 A' + P_22^{-1}, A = - P_22^{-1} P_21, on the full grid
+  n_tot <- c(40, 18)
+  P <- fit$lambda[[1]] * (diag(n_tot[[2]]) %x% crossprod(diff(diag(n_tot[[1]]), differences = 2))) +
+    fit$lambda[[2]] * (crossprod(diff(diag(n_tot[[2]]), differences = 2)) %x% diag(n_tot[[1]]))
+  fit_pos <- pred$ind_fit
+  P22_inv <- solve(P[- fit_pos, - fit_pos])
+  A <- - P22_inv %*% P[- fit_pos, fit_pos]
+  V22 <- A %*% vcov(fit) %*% t(A) + P22_inv
+  expect_equal(c(pred$std_y_pred)[- fit_pos], sqrt(diag(V22)), tolerance = 1e-8)
+})

@@ -315,7 +315,7 @@ predict.WH_2d <- function(object, newdata = NULL, ...) {
   R_22 <- submatrix_compact_cpp(P_pred, ind_fit) |> cholesky_compact_lapack(inplace = TRUE)
 
   y_new <- get_y_new_compact(y = object$y_hat, lambda_P, R_22, n_tot, ind_fit)
-  diag_V_pred <- get_diag_V_pred_compact(object$R, lambda_P, R_22, n, n_tot, ind_fit) + diag_V_compact_cpp(R_22)
+  diag_V_pred <- diag_V_pred_compact_cpp(object$R, lambda_P, R_22, ind_fit) + diag_V_compact_cpp(R_22)
 
   y_pred <- std_y_pred <- numeric(prod(n_tot))
   y_pred[ind_fit] <- object$y_hat

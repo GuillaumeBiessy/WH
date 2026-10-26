@@ -69,6 +69,20 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// diag_V_pred_compact_cpp
+NumericVector diag_V_pred_compact_cpp(const NumericMatrix& R, const List& lambda_P, const NumericMatrix& R_22, const IntegerVector& ind_fit);
+RcppExport SEXP _WH_diag_V_pred_compact_cpp(SEXP RSEXP, SEXP lambda_PSEXP, SEXP R_22SEXP, SEXP ind_fitSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type R(RSEXP);
+    Rcpp::traits::input_parameter< const List& >::type lambda_P(lambda_PSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type R_22(R_22SEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ind_fit(ind_fitSEXP);
+    rcpp_result_gen = Rcpp::wrap(diag_V_pred_compact_cpp(R, lambda_P, R_22, ind_fit));
+    return rcpp_result_gen;
+END_RCPP
+}
 // get_prod_P_K_compact_cpp
 NumericMatrix get_prod_P_K_compact_cpp(const NumericMatrix& K, const List& C_list);
 RcppExport SEXP _WH_get_prod_P_K_compact_cpp(SEXP KSEXP, SEXP C_listSEXP) {
@@ -148,6 +162,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_WH_band_inverse_compact_cpp", (DL_FUNC) &_WH_band_inverse_compact_cpp, 1},
     {"_WH_diag_V_compact_cpp", (DL_FUNC) &_WH_diag_V_compact_cpp, 1},
     {"_WH_get_prod_P_y_compact_cpp", (DL_FUNC) &_WH_get_prod_P_y_compact_cpp, 2},
+    {"_WH_diag_V_pred_compact_cpp", (DL_FUNC) &_WH_diag_V_pred_compact_cpp, 4},
     {"_WH_get_prod_P_K_compact_cpp", (DL_FUNC) &_WH_get_prod_P_K_compact_cpp, 2},
     {"_WH_submatrix_compact_cpp", (DL_FUNC) &_WH_submatrix_compact_cpp, 2},
     {"_WH_cholesky_compact_lapack", (DL_FUNC) &_WH_cholesky_compact_lapack, 2},
