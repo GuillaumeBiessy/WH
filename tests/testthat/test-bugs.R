@@ -32,3 +32,19 @@ test_that("data without names get default positions, in 1D and in 2D", {
   expect_equal(dimnames(fit2$y_hat), list(as.character(seq_len(nrow(d2))), as.character(seq_len(ncol(d2)))))
   expect_equal(unname(fit2$y_hat), unname(WH(portfolio_LTC$d, portfolio_LTC$ec, lambda = c(1e1, 1e2), verbose = 0)$y_hat))
 })
+
+test_that("the starting smoothing parameters are found whatever the scale of the weights", {
+
+  wt <- c(portfolio_LTC$d)
+  P <- get_model_matrices(dim(portfolio_LTC$d), c(2, 2))$P
+  n <- dim(portfolio_LTC$d)
+  diag_P <- list(rep(P[[1]][nrow(P[[1]]), ], n[[2]]), rep(P[[2]][nrow(P[[2]]), ], each = n[[1]]))
+  ref <- find_starting_lambda(wt, diag_P, 0.2)
+  # the root for c * wt is c times the root for wt; 2.0.0 failed outside [1e-6, 1e12]
+  for (scale in c(1e-12, 1e-6, 1e6, 1e12)) {
+    expect_equal(find_starting_lambda(wt * scale, diag_P, 0.2) / scale, ref, tolerance = 1e-4)
+  }
+  y <- log(portfolio_LTC$d / portfolio_LTC$ec)
+  expect_error(WH(y = y, wt = portfolio_LTC$d, lambda_start_ratio = 1, verbose = 0), "strictly between 0 and 1")
+  expect_error(WH(y = y, wt = portfolio_LTC$d, lambda_start_ratio = 0, verbose = 0), "strictly between 0 and 1")
+})

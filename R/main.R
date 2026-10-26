@@ -849,6 +849,10 @@ WH_outer <- function(
     q <- rev(q)
   }
 
+  if (!is.numeric(lambda_start_ratio) || length(lambda_start_ratio) != 1 || is.na(lambda_start_ratio) ||
+      lambda_start_ratio <= 0 || lambda_start_ratio >= 1) stop(
+        "lambda_start_ratio should be a number strictly between 0 and 1")
+
   criterion_display <- if (criterion == "REML" & !reg) "LAML" else criterion
   eta_start <- NULL
 

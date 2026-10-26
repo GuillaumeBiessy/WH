@@ -190,7 +190,10 @@ find_starting_lambda <- function(wt, diag_P, lambda_start_ratio) {
     c(find_starting_lambda(wt, diag_P[[1]], lambda_start_ratio),
       find_starting_lambda(wt, diag_P[[2]], lambda_start_ratio))
   } else {
-    exp(stats::uniroot(\(x) {mean(wt / (wt + exp(x) * diag_P)) - lambda_start_ratio}, interval = c(- 6, 12) * log(10))$root)
+    # the function decreases from 1 - ratio to - ratio: a root exists for any ratio in ]0, 1[, possibly
+    # outside the default interval when weights are far from the unit scale (extendInt widens it then)
+    exp(stats::uniroot(\(x) {mean(wt / (wt + exp(x) * diag_P)) - lambda_start_ratio},
+                       interval = c(- 6, 12) * log(10), extendInt = "downX")$root)
   }
 }
 
