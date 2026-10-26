@@ -10,3 +10,5 @@
 ^documentation$
 
 ^\.doc-projet$
+^dev$
+^CLAUDE\.md$
