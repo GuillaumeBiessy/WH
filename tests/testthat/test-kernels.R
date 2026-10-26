@@ -43,3 +43,31 @@ test_that("2D extrapolation variance: band C++ loop over new cells equals the de
   V22 <- A %*% vcov(fit) %*% t(A) + P22_inv
   expect_equal(c(pred$std_y_pred)[- fit_pos], sqrt(diag(V22)), tolerance = 1e-8)
 })
+
+test_that("REML criterion: band computation equals the dense formula, in 1D and in 2D", {
+
+  dense_reml <- function(y, wt, P_list, lambda) {
+    P <- Reduce(`+`, mapply(`*`, lambda, P_list, SIMPLIFY = FALSE))
+    A <- P; diag(A) <- diag(A) + c(wt)
+    y0 <- ifelse(c(wt) == 0, 0, c(y))
+    y_hat <- solve(A, c(wt) * y0)
+    dev <- sum(c(wt) * (y0 - y_hat) ^ 2)
+    pen <- sum(y_hat * (P %*% y_hat))
+    s <- eigen(P, symmetric = TRUE, only.values = TRUE)$values
+    q_null <- sum(s < 1e-9 * max(s))
+    log_pdet <- sum(log(sort(s, decreasing = TRUE)[seq_len(length(s) - q_null)]))
+    K <- determinant(A)$modulus[[1]] - log_pdet - q_null * log(2 * pi)
+    (dev + pen) / 2 + K / 2 + sum(wt > 0) / 2 * log(2 * pi)
+  }
+  d <- portfolio_mort$d; y <- log(d / portfolio_mort$ec)
+  for (q in 1:3) {
+    P <- crossprod(diff(diag(length(d)), differences = q))
+    fit <- WH(y = y, wt = d, lambda = 1e3, q = q, verbose = 0)
+    expect_equal(fit$diagnosis$REML, dense_reml(y, d, list(P), 1e3), tolerance = 1e-8)
+  }
+  d2 <- portfolio_LTC$d; y2 <- log(d2 / portfolio_LTC$ec); n <- dim(d2)
+  P2 <- list(diag(n[[2]]) %x% crossprod(diff(diag(n[[1]]), differences = 2)),
+             crossprod(diff(diag(n[[2]]), differences = 2)) %x% diag(n[[1]]))
+  fit2 <- WH(y = y2, wt = d2, lambda = c(1e1, 1e2), verbose = 0)
+  expect_equal(fit2$diagnosis$REML, dense_reml(y2, d2, P2, c(1e1, 1e2)), tolerance = 1e-8)
+})
