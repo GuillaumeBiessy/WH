@@ -2,7 +2,9 @@
 
 Paquet R de lissage de Whittaker-Henderson en 1 et 2 dimensions, pour la graduation de tables
 actuarielles utilisées en assurance vie. Méthodes du papier Biessy (2025), arXiv:2306.06932.
-**Publié sur le CRAN** : version 2.0.0, soumise le 2025-06-19.
+**Publié sur le CRAN** : version 2.0.0, soumise le 2025-06-19, portée par `master`. La version de
+développement `2.0.0.9000`, future 2.1, vit sur `dev` depuis le 2026-10-26 ; ses modifications sont
+présentées dans `documentation/wh-2.1/note-wh-2-1.html` (source `.md` à côté).
 
 WH est le **sous-ensemble léger assumé** de `WHfull` (`C:\Packages R\WHfull`) : sélection des
 paramètres de lissage par emboîtement `outer` avec un optimiseur sans dérivée, et algèbre **bande**
@@ -16,64 +18,76 @@ seule — ni Fellner-Schall, ni Newton, ni réduction de rang, ni GLAM.
   `predict` / `vcov` / `print` / `plot` en versions `WH_1d` et `WH_2d`, et `output_to_df`.
 - `R/tools.R` : matrices du modèle et opérateurs de différences (`get_model_matrices`, `q_diff`),
   critères de sélection (`compute_REML`, `compute_K`) et diagnostics (`get_diagnosis`,
-  `compute_res_deviance`), initialisation de λ (`find_starting_lambda`), et les passerelles vers
-  la représentation bande compacte (`combine_P_compact`, `get_y_new_compact`,
-  `get_diag_V_pred_compact`, `banded_to_compact`, `compact_to_sym`).
-- `src/` : noyaux C++ — `compact.cpp` (Cholesky et résolutions en stockage bande compact),
-  `lapack.cpp` (appels LAPACK bande) ; enveloppes générées dans `R/RcppExports.R`.
+  `compute_res_deviance`), initialisation de λ (`find_starting_lambda`),
+  log-pseudo-déterminant exact de la pénalité 1D (`log_pdet_P`, forme close en coefficients
+  binomiaux), grille de prédiction (`get_pred_grid`), constantes nommées (`wh_log_lambda_interval`,
+  `wh_edge_tol`, `wh_max_iter`), et les passerelles vers la représentation bande compacte
+  (`combine_P_compact`, `get_y_new_compact`, `banded_to_compact`, `compact_to_sym`).
+- `src/` : noyaux C++ — `compact.cpp` (résolutions en stockage bande compact, inverse sélective de
+  Takahashi `band_inverse_compact_cpp` et sa diagonale `diag_V_compact_cpp`, variance
+  d'extrapolation 2D `diag_V_pred_compact_cpp`), `lapack.cpp` (appels LAPACK bande : Cholesky,
+  résolutions, valeurs propres) ; enveloppes générées dans `R/RcppExports.R`. Toute l'algèbre reste
+  en stockage bande, mémoire O(p·q) : exigence de l'auteur (2026-10-26), seul `vcov()` est dense.
 - `data/` : jeux `portfolio_mort` (1D) et `portfolio_LTC` (2D). `vignettes/WH.Rmd` ;
   `README.Rmd`, rendu en `README.md`.
-- `tests/` : `testthat` édition 3 — `test-1D.R` et `test-2D.R`, qui confrontent le chemin bande à
-  l'algèbre dense équivalente écrite en base R dans le test même ; `spelling.R`, sauté sur le CRAN.
+- `tests/` : `testthat` édition 3 — `test-1D.R`, `test-2D.R` et `test-kernels.R` confrontent le
+  chemin bande à l'algèbre dense équivalente écrite en base R dans le test même ; `test-bugs.R` (un
+  bloc par bug de la 2.0.0, rouge sur elle), `test-inputs.R`, `test-convergence.R`,
+  `test-methods.R` ; `test-reference.R` compare 34 ajustements à ceux de la 2.0.0
+  (`fixtures/ref-2.0.0.rds`, recalculés par `helper-reference.R`) ; `spelling.R`, sauté sur le
+  CRAN. Aucun test ne compare deux flottants à l'identique : c'est ce qui faisait échouer WH sous
+  MKL au CRAN en 2023 et 2024.
+- `dev/` (hors du tarball) : gate `run_tests_staged.R`, base `land-base.txt`, étalon de la 2.0.0
+  (`ref-2.0.0/` : `make_ref.R`, `compare_ref.R`, `calib_noise.R` et leurs sorties), temps
+  (`bench/bench.R`).
 - `.github/workflows/` : `R-CMD-check.yaml` (5 plateformes, sur `master`) et `rhub.yaml` (manuel).
 - `.doc-projet` : pointeur vers la vitrine HTML du package, qui vit hors du dépôt.
 
 ## Commandes
 
-Le dépôt n'a **aucun script de gate** : `dev/run_tests_staged.R` n'existe pas, et c'est un fait,
-pas un oubli — WH est figé sur sa version CRAN, sa suite ne sert qu'à un cycle de développement
-délibéré. Deux conséquences mécaniques :
+Le gate est `dev/run_tests_staged.R`, depuis la racine du paquet :
 
-- `land-to-master.sh` **refuse** tout atterrissage sans `--test-cmd` explicite, le repli
-  `--no-test` étant lui-même refusé ici (§ Intégration) : un futur cycle dev commence donc par
-  se donner son gate ;
-- aucune commande de suite n'est figée ici. L'écrire reviendrait à choisir ce gate sans l'avoir
-  exercé. La suite est une suite `testthat` ordinaire, sur le paquet compilé et chargé, à lancer
-  sous le verrou machine du skill `gate-lock-r` — et ⛔ jamais par `Rscript -e`, qui échoue sous
-  Git Bash : passer par un fichier `.R`.
+```bash
+"/c/Program Files/R/R-4.5.3/bin/Rscript.exe" dev/run_tests_staged.R > dev/.last_test_run.log 2>&1
+```
+
+Il compile le C++ en `-O2` (`pkgbuild::compile_dll(debug = FALSE)` : `load_all` seul compile en
+`-O0`, dix fois plus lent sur les tests 2D), charge le paquet par `load_all`, lance chaque fichier
+de test et sort en code 1 dès qu'un test échoue, plante ou est sauté. Mesuré le 2026-10-26 :
+380 attentes, 18 à 22 s de tests, 31 s de bout en bout, 75 s quand le C++ est à recompiler.
+`land.sh` le détecte et le lance de lui-même. Un lancement en tâche de fond passe par le verrou
+machine du skill `gate-lock-r` ; ⛔ jamais par `Rscript -e`, qui échoue sous Git Bash.
+
+Une version de travail se mesure installée dans une **bibliothèque privée**
+(`R CMD INSTALL --library=<dossier>`), ⛔ jamais par-dessus le WH 2.0.0 de la bibliothèque
+utilisateur : `dev/bench/bench.R` et `dev/ref-2.0.0/compare_ref.R` prennent ce dossier en argument.
 
 ## Intégration
 
-Le dépôt n'a **pas de base d'intégration déclarée** — `dev/land-base.txt` n'existe pas — et la
-branche par défaut que GitHub déclare est **`master`**. Ici, donc, atterrir et promouvoir sont
-**le même geste**, et `master` est la branche publiée au CRAN.
+La base d'intégration est **`dev`**, déclarée par `dev/land-base.txt` (décision de l'auteur du
+2026-10-26). `master`, branche par défaut que GitHub déclare, porte **la version publiée au CRAN**
+(2.0.0) et ne reçoit le cycle 2.1 qu'à la promotion.
 
 - **Naissance** : un worktree créé par l'application naît sur `origin/master`, la branche par
   défaut que **GitHub** déclare, ⛔ ni sur la référence locale `origin/HEAD`, ⛔ ni sur le HEAD du
-  checkout principal. Il peut donc être en retard. Premier geste dans un worktree neuf et propre :
-  `git fetch origin master && git merge --ff-only origin/master` ; travail déjà committé :
-  `git merge origin/master`. ⛔ Pas de `git reset --hard`. Constat obligatoire :
-  `git rev-list --count HEAD..origin/master` = 0.
-- **Atterrissage — la chaîne `land.sh` ne passe pas ici, et c'est mécanique** (mesuré le
-  2026-09-22) : `land-to-master.sh` exige une commande de tests **avant même** de regarder si le
-  diff est documentaire, et le repli `--no-test` est refusé vers une branche protégée, ce
-  qu'est `master` faute de base déclarée. Sans script de gate dans le dépôt, tout atterrissage
-  par la chaîne échoue en précondition. Donc :
-  - **diff 100 % documentaire** (`.md`, `.html`, `.gitignore`) → `git merge origin/master` puis
-    `git push origin HEAD:master`. Le garde du verrou machine exempte ces diffs par construction,
-    et aucune suite de tests ne les lit : c'est la voie normale, pas un contournement.
-  - **tout le reste** → se donner d'abord un gate, le passer en `--test-cmd` à `land.sh`, et
-    ⛔ jamais un `--base` tapé à la main.
+  checkout principal — donc **hors de la base**. Premier geste dans un worktree neuf et propre :
+  `git fetch origin dev && git merge --ff-only origin/dev` ; travail déjà committé :
+  `git merge origin/dev`. ⛔ Pas de `git reset --hard`. Constat obligatoire :
+  `git rev-list --count HEAD..origin/dev` = 0. Une branche qui ne porte pas `dev/land-base.txt`
+  fait refuser le lander.
+- **Atterrissage sur `dev`** : par `land.sh` (skill `gate-lock-r`), qui lit la base dans
+  `dev/land-base.txt` et lance le gate ; ⛔ jamais un `--base` tapé à la main, ⛔ jamais un
+  `git push` direct vers `dev`, que le garde refuse. Mesuré le 2026-10-26 : 25 commits atterris
+  par cette voie, gate vert en 18 s.
+- **Promotion `dev` → `master`** : c'est une soumission au CRAN. Elle exige la **validation express
+  de l'auteur**, après les contrôles additionnels du CRAN (skill `cran-tests`, tapé par l'auteur) ;
+  ⛔ ne rien promouvoir de sa propre initiative.
 - ⚠️ **Tout ce que `R CMD build` empaquette est livrable** : `R/`, `src/`, `man/`, `tests/`,
-  `data/`, `vignettes/`, `NAMESPACE`, `DESCRIPTION`, `NEWS.md`, `README.md`. Y toucher ouvre un
-  cycle CRAN — montée de version et resoumission — et exige la **validation express de
-  l'utilisateur** : ⛔ ne rien lander de tel de sa propre initiative. Le piège est que `NEWS.md` et
-  `README.md` sont des `.md` : la voie doc-only du lander les pousserait sur `master` **sans
-  gate**, faisant diverger en silence la branche publiée du tarball soumis. Seuls les fichiers
-  listés au `.Rbuildignore` sont hors livrable et relèvent du doc-only.
-- Ce `CLAUDE.md` n'est **pas** inscrit au `.Rbuildignore` : `R CMD check` le signale donc comme
-  fichier non standard à la racine du paquet — une note, pas une erreur. L'y inscrire touche un
-  fichier non documentaire et relève du même cycle dev, seul en mesure de payer son gate.
+  `data/`, `vignettes/`, `NAMESPACE`, `DESCRIPTION`, `NEWS.md`, `README.md`. Il atterrit sur `dev`,
+  jamais directement sur `master`. Le piège est que `NEWS.md` et `README.md` sont des `.md` : une
+  voie doc-only vers `master` les y pousserait **sans gate**, faisant diverger en silence la
+  branche publiée du tarball soumis. Seuls les fichiers listés au `.Rbuildignore` (dont `dev/`,
+  `documentation/` et ce `CLAUDE.md`) sont hors livrable.
 
 ## Décisions de l'auteur
 
@@ -81,7 +95,17 @@ branche par défaut que GitHub déclare est **`master`**. Ici, donc, atterrir et
   ont une suite de test (WH, WHfull et ebmcd) doit exister dans le Claude.md. Interdiction de la
   déléguer dans la fiche tech, et la mémoire court-terme n'est pas non plus le bon endroit après
   mûre réflexion. » La règle visée est le § Intégration ci-dessus. Cet arbitrage **révoque** celui
-  du 2026-09-19, qui la logeait dans l'index de l'auto-mémoire.
+  du 2026-09-19, qui la logeait hors de ce fichier.
+- **2026-10-26** — ouverture du cycle 2.1. Demande, verbatim : « crée une session dans le repo WH qui
+  va créer une version de développement qui deviendra plus tard la 2.1 pour améliorer le package sur
+  plusieurs aspects : aligner les développements numériques sur nos avancées les plus récentes
+  (ebmcd, WHfull a normalement déjà partiellement été amélioré sur ce point), corriger les bugs
+  existants, mettre en place une suite de tests digne de ce nom (mais légère et rapide). Toutes les
+  modifications réalisées devront m'être présentées via une note ». Plan validé le même jour, verbatim :
+  « Oui comme proposé. Tu me confirmes que ta méthodologie garde le stockage par bandes et
+  l'empreinte mémoire limitée qui en résulte ? » — base `dev`, avertissements de convergence émis
+  quel que soit `verbose`, `lambda_start_ratio` documenté, stockage bande et mémoire O(p·q)
+  maintenus.
 - **2026-06-04** (PR #11) — la partition WH / WHfull est un **choix de périmètre**, pas un manque :
   la confrontation du code au papier n'a laissé aucune divergence dure. Ce qui en découle, et qui
   est l'état du dépôt : WH reste figé sur sa version CRAN, et toute évolution de son source
