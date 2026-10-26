@@ -77,7 +77,7 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
 
   # Guess dimension of estimation problem
   target <- if (missing(d)) y else d
-  dims <- if (is.null(dim(target))) 1 else 2
+  dims <- if (is.null(dim(target))) 1 else length(dim(target))
   if (dims > 2) stop("At the moment, WH only handles smoothing in 1 or 2 dimensions, sorry !")
 
   if (missing(reg)) reg <- !missing(y)
@@ -170,10 +170,20 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
     }
   }
 
+  # Check values of observations and weights
+  if (!missing(d)) check_finite_nonneg(d, "d")
+  if (!missing(ec)) check_finite_nonneg(ec, "ec")
+  if (!missing(d) && !missing(ec) && any(d > 0 & ec == 0)) stop(
+    "ec should be positive wherever d is positive")
+  if (reg) {
+    check_finite_nonneg(wt, "wt")
+    if (any(!is.finite(y[wt > 0]))) stop("y should be finite wherever wt is positive")
+  }
+
   # Check method, criterion and smoothing parameters
   if (!is.null(lambda)) {
     if (length(lambda) > dims) stop(paste0("lambda should be of length ", dims))
-    if (!is.numeric(lambda) || any(lambda < 0)) stop(
+    if (!is.numeric(lambda) || anyNA(lambda) || any(!is.finite(lambda)) || any(lambda < 0)) stop(
       "lambda should only have positive elements")
   }
 
@@ -187,6 +197,9 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
   # Check penalization order
   if (!is.numeric(q) || length(q) > dims || length(q) == 0 || any(q <= 0) || max(abs(q - round(q))) > .Machine$double.eps ^ 0.5) stop(
     paste0("q should be an integer vector of length ", dims))
+  n_obs <- if (dims == 1) length(target) else dim(target)
+  if (any(n_obs <= rep_len(q, dims))) stop(
+    "Each dimension should contain more than q data points")
   if (any(q > 3) && verbose > 0) warning(
     "Differences of order q > 3 are not recommanded and may cause numerical instability")
 

@@ -150,6 +150,13 @@ get_omega_pos <- function(s, lambda_s) {
 
 # Misc functions----
 
+check_finite_nonneg <- function(x, name) {
+
+  if (!is.numeric(x)) stop(name, " should be numeric")
+  if (anyNA(x) || any(!is.finite(x))) stop(name, " should not contain missing or infinite values")
+  if (any(x < 0)) stop(name, " should not contain negative values")
+}
+
 backsolve2 <- function(R, y) {
 
   dim(y) <- NULL
