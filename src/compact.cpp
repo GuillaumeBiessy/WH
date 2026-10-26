@@ -48,7 +48,7 @@ static void solve_upper_compact(const NumericMatrix& C, double* x, bool transpos
 // [[Rcpp::export]]
 NumericVector backsolve_compact_cpp(const NumericMatrix& C, const NumericVector& b, bool transpose = false) {
 
-  NumericVector x = clone(b);
+  NumericVector x(b.begin(), b.end()); // values only, no attributes (as in 2.0.0)
   solve_upper_compact(C, x.begin(), transpose);
   return x;
 }
