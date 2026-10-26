@@ -1,3 +1,5 @@
+# WH (development version)
+
 # WH 2.0.0
 
 This version introduces a complete overhaul of the package, with substantial improvements to both the core computational engine and the user-facing interface.
