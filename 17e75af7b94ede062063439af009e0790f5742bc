@@ -1,0 +1,1 @@
+GATE=full VERDICT=PASS cmd="/c/Program Files/R/R-4.5.3/bin/Rscript" dev/run_tests_staged.R
