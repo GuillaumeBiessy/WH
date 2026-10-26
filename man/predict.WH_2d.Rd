@@ -10,7 +10,9 @@
 \item{object}{An object of class \code{"WH_2d"} returned by the \code{\link[=WH]{WH()}} function}
 
 \item{newdata}{A list containing two vectors indicating the new observation
-positions}
+positions. Observations from the fit will automatically be added to them.
+Positions should lie on the regular grid of the observations; they need
+not be contiguous.}
 
 \item{...}{Not used}
 }

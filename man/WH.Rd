@@ -44,7 +44,12 @@ analysis framework.}
 \item{verbose}{Integer between 0 and 3. Control the level of informations
 that will be printed on screen during fitting.}
 
-\item{...}{Additional parameters passed to the smoothing function called.}
+\item{...}{Additional parameters passed to the smoothing function called.
+Among them, \code{lambda_start_ratio} (default \code{0.2}) sets the starting values
+of the selection of two smoothing parameters: the average share of each
+observation in its own fitted value (effective degrees of freedom per
+observation) targeted by the initial smoothing. It should lie strictly
+between 0 and 1.}
 }
 \value{
 An object of class \code{WH_1d} i.e. a list containing, among other
@@ -57,6 +62,14 @@ things :
 \item \code{edf} The vector/matrix of effective degrees of freedom associated with each observation
 \item \code{diagnosis} A data.frame with one row containing the effective degrees of freedom of the model,
 the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+\item \code{convergence} A list describing the convergence of the fit: \code{converged}
+(logical), \code{inner} (number of iterations and status of the iterative
+fitting in the maximum likelihood framework) and, when smoothing parameters
+are selected, \code{outer} (number of evaluations of the criterion, evaluations
+that failed, whether the selected parameters lie at the boundary of the
+search interval, and the convergence code of the optimizer). A warning is
+emitted, whatever \code{verbose}, when the selection or the fit did not converge
+or when a selected smoothing parameter lies at the boundary.
 }
 }
 \description{

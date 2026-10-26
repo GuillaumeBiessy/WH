@@ -11,7 +11,8 @@
 
 \item{newdata}{A vector containing the position of new observations.
 Observations from the fit will automatically be added to this, in the
-adequate order}
+adequate order. Positions should lie on the regular grid of the
+observations; they need not be contiguous.}
 
 \item{...}{Not used}
 }

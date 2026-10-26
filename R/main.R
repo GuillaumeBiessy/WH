@@ -40,6 +40,11 @@
 #' @param verbose Integer between 0 and 3. Control the level of informations
 #'   that will be printed on screen during fitting.
 #' @param ... Additional parameters passed to the smoothing function called.
+#'   Among them, `lambda_start_ratio` (default `0.2`) sets the starting values
+#'   of the selection of two smoothing parameters: the average share of each
+#'   observation in its own fitted value (effective degrees of freedom per
+#'   observation) targeted by the initial smoothing. It should lie strictly
+#'   between 0 and 1.
 #'
 #' @returns An object of class `WH_1d` i.e. a list containing, among other
 #'   things :
@@ -50,6 +55,14 @@
 #' * `edf` The vector/matrix of effective degrees of freedom associated with each observation
 #' * `diagnosis` A data.frame with one row containing the effective degrees of freedom of the model,
 #'   the deviance of the fit as well as the AIC, BIC, GCV and REML criteria
+#' * `convergence` A list describing the convergence of the fit: `converged`
+#'   (logical), `inner` (number of iterations and status of the iterative
+#'   fitting in the maximum likelihood framework) and, when smoothing parameters
+#'   are selected, `outer` (number of evaluations of the criterion, evaluations
+#'   that failed, whether the selected parameters lie at the boundary of the
+#'   search interval, and the convergence code of the optimizer). A warning is
+#'   emitted, whatever `verbose`, when the selection or the fit did not converge
+#'   or when a selected smoothing parameter lies at the boundary.
 #'
 #' @examples
 #'
@@ -224,7 +237,8 @@ WH <- function(d, ec, lambda = NULL, q = 2, criterion, reg, y, wt, verbose = 1, 
 #' @param object An object of class `"WH_1d"` returned by the [WH()] function
 #' @param newdata A vector containing the position of new observations.
 #'   Observations from the fit will automatically be added to this, in the
-#'   adequate order
+#'   adequate order. Positions should lie on the regular grid of the
+#'   observations; they need not be contiguous.
 #' @param ... Not used
 #'
 #' @returns An object of class `"WH_1d"` with additional components for model
@@ -279,7 +293,9 @@ predict.WH_1d <- function(object, newdata = NULL, ...) {
 #'
 #' @param object An object of class `"WH_2d"` returned by the [WH()] function
 #' @param newdata A list containing two vectors indicating the new observation
-#'   positions
+#'   positions. Observations from the fit will automatically be added to them.
+#'   Positions should lie on the regular grid of the observations; they need
+#'   not be contiguous.
 #' @param ... Not used
 #'
 #' @returns An object of class `"WH_2d"` with additional components for model
