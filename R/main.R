@@ -640,12 +640,13 @@ plot.WH_2d <- function(x, what = "y_hat", trans, ...) {
   graphics::contour(
     z, x, data,
     nlevels = 20,
-    xlab = "x",
-    ylab = "z",
+    xlab = "z", # the second dimension is drawn on the horizontal axis
+    ylab = "x",
     main = switch(
       what,
       y_hat = "log - hazard rate",
       std_y_hat = " standard deviation of log - hazard rate",
+      res = "deviance residuals",
       edf = "degrees of freedom"))
 }
 
