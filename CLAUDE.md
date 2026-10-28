@@ -81,7 +81,7 @@ branche par défaut que GitHub déclare est **`master`**. Ici, donc, atterrir et
   ont une suite de test (WH, WHfull et ebmcd) doit exister dans le Claude.md. Interdiction de la
   déléguer dans la fiche tech, et la mémoire court-terme n'est pas non plus le bon endroit après
   mûre réflexion. » La règle visée est le § Intégration ci-dessus. Cet arbitrage **révoque** celui
-  du 2026-09-19, qui la logeait dans l'index de l'auto-mémoire.
+  du 2026-09-19, qui la logeait hors de ce fichier.
 - **2026-06-04** (PR #11) — la partition WH / WHfull est un **choix de périmètre**, pas un manque :
   la confrontation du code au papier n'a laissé aucune divergence dure. Ce qui en découle, et qui
   est l'état du dépôt : WH reste figé sur sa version CRAN, et toute évolution de son source
