@@ -23,4 +23,9 @@ Useful links:
 \author{
 \strong{Maintainer}: Guillaume Biessy \email{guillaume.biessy78@gmail.com} (\href{https://orcid.org/0000-0003-3756-7345}{ORCID}) [copyright holder]
 
+Authors:
+\itemize{
+  \item Guillaume Biessy \email{guillaume.biessy78@gmail.com} (\href{https://orcid.org/0000-0003-3756-7345}{ORCID}) [copyright holder]
+}
+
 }
