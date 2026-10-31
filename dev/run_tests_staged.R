@@ -25,7 +25,20 @@ write_status <- function(line) {
 }
 write_status(paste("STARTED @", format(Sys.time(), "%Y-%m-%d %H:%M:%S")))
 
+# skip_on_cran() is neutralised, as under devtools::test(): this gate counts any skip as red.
+Sys.setenv(NOT_CRAN = "true")
+
 verdict <- tryCatch({
+  # PRE-STEP (2026-10-31): does the committed roxygen doc follow the source? Author:
+  # document() now runs at promotion only. dev/verifier_roxygen.R regenerates
+  # NAMESPACE, man/ and DESCRIPTION on a copy and stops if they differ;
+  # remedy: devtools::document(), committed apart. Before any loading: ~2 s.
+  local({
+    e_rox <- new.env()
+    sys.source(file.path(root, "dev", "verifier_roxygen.R"), envir = e_rox)
+    tryCatch(e_rox$verifier_roxygen(root),
+             error = function(e) stop("[ROXYGEN] ", conditionMessage(e), call. = FALSE))
+  })
   # Optimised build (load_all alone compiles in debug mode, -O0: the 2D tests ran ten times slower)
   pkgbuild::compile_dll(root, debug = FALSE, quiet = TRUE)
   suppressMessages(pkgload::load_all(root, export_all = TRUE, helpers = FALSE, quiet = TRUE, compile = FALSE))
