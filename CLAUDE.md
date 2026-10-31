@@ -45,18 +45,25 @@ seule — ni Fellner-Schall, ni Newton, ni réduction de rang, ni GLAM.
 
 ## Commandes
 
-Le gate est `dev/run_tests_staged.R`, depuis la racine du paquet :
+Le gate est `dev/run_tests_staged.R`, depuis la racine du paquet, en tâche de fond et sous le
+verrou machine du skill `gate-lock-r` :
 
 ```bash
-"/c/Program Files/R/R-4.5.3/bin/Rscript.exe" dev/run_tests_staged.R > dev/.last_test_run.log 2>&1
+bash ~/.claude/skills/gate-lock-r/scripts/heavy.sh --classe legere --duree 2m -- \
+  '"$R_HOME/bin/Rscript.exe" dev/run_tests_staged.R > dev/.last_test_run.log 2>&1'
 ```
+
+Aucune version de R ne s'écrit ici : dans la commande que lance `heavy.sh`, `$R_HOME` est celui du
+R courant du registre, que `heavy.sh` résout lui-même — mesuré le 2026-10-31 : R 4.6.1, gate vert.
+Hors de `heavy.sh`, `$R_HOME` est vide et la commande échoue d'emblée. Un chemin versionné en dur
+périme à chaque mise à jour de R.
 
 Il compile le C++ en `-O2` (`pkgbuild::compile_dll(debug = FALSE)` : `load_all` seul compile en
 `-O0`, dix fois plus lent sur les tests 2D), charge le paquet par `load_all`, lance chaque fichier
 de test et sort en code 1 dès qu'un test échoue, plante ou est sauté. Mesuré le 2026-10-26 :
-380 attentes, 18 à 22 s de tests, 31 s de bout en bout, 75 s quand le C++ est à recompiler.
-`land.sh` le détecte et le lance de lui-même. Un lancement en tâche de fond passe par le verrou
-machine du skill `gate-lock-r` ; ⛔ jamais par `Rscript -e`, qui échoue sous Git Bash.
+18 à 22 s de tests, 31 s de bout en bout, 75 s quand le C++ est à recompiler ; 326 attentes au
+2026-10-31. `land.sh` le détecte et le lance de lui-même ; ⛔ jamais par `Rscript -e`, qui échoue
+sous Git Bash.
 
 Une version de travail se mesure installée dans une **bibliothèque privée**
 (`R CMD INSTALL --library=<dossier>`), ⛔ jamais par-dessus le WH 2.0.0 de la bibliothèque
