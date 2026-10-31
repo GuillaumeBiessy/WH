@@ -16,6 +16,21 @@
 # si ecart, avec la liste des fichiers. Kill-probe : `Rscript dev/verifier_roxygen.R
 # --killprobe` retire un @export sur une copie et exige le refus.
 # COPIE IDENTIQUE dans les depots qui promeuvent (Linkplots, ebmcd, WHfull, WH).
+#
+# QUAND : `roxygen_a_verifier()` dit si le gate courant doit verifier. Le lander
+# (`land-to-master.sh`) exporte a la commande de gate `LAND_GATE_BASE` (base visee)
+# et `LAND_DECLARED_BASE` (base de dev/land-base.txt, vide si aucune). On verifie a
+# la PROMOTION (les deux posees et differentes), dans un depot sans base declaree,
+# et quand la suite est lancee a la main (`LAND_GATE_BASE` absente) ; on saute sur
+# un atterrissage vers la base declaree. Pourquoi : WH lance sa suite a chaque
+# atterrissage sur `dev`, ou la verification refusait des `dev` (constate le
+# 2026-10-31), contre la decision de l'auteur.
+
+roxygen_a_verifier <- function(gate = Sys.getenv("LAND_GATE_BASE", NA),
+                               declaree = Sys.getenv("LAND_DECLARED_BASE", "")) {
+  if (is.na(gate) || !nzchar(gate) || !nzchar(declaree)) return(TRUE)
+  !identical(gate, declaree)
+}
 
 verifier_roxygen <- function(racine = ".", copie_hook = NULL) {
   racine <- normalizePath(racine, winslash = "/")

@@ -33,11 +33,18 @@ verdict <- tryCatch({
   # document() now runs at promotion only. dev/verifier_roxygen.R regenerates
   # NAMESPACE, man/ and DESCRIPTION on a copy and stops if they differ;
   # remedy: devtools::document(), committed apart. Before any loading: ~2 s.
+  # Skipped when the lander targets the declared base (LAND_GATE_BASE equal to
+  # LAND_DECLARED_BASE): this suite gates every landing on dev, where the docs may
+  # lag until promotion. Run by hand (no LAND_GATE_BASE), it still checks.
   local({
     e_rox <- new.env()
     sys.source(file.path(root, "dev", "verifier_roxygen.R"), envir = e_rox)
-    tryCatch(e_rox$verifier_roxygen(root),
-             error = function(e) stop("[ROXYGEN] ", conditionMessage(e), call. = FALSE))
+    if (e_rox$roxygen_a_verifier()) {
+      tryCatch(e_rox$verifier_roxygen(root),
+               error = function(e) stop("[ROXYGEN] ", conditionMessage(e), call. = FALSE))
+    } else {
+      cat("[ROXYGEN] skipped: land onto the declared base, docs follow at promotion\n")
+    }
   })
   # Optimised build (load_all alone compiles in debug mode, -O0: the 2D tests ran ten times slower)
   pkgbuild::compile_dll(root, debug = FALSE, quiet = TRUE)
